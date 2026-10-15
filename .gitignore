@@ -1,0 +1,40 @@
+# Secrets and environment configuration
+.env
+.env.*
+!.env.example
+!.env.*.example
+secrets/
+
+# Java, Spring Boot, Gradle and Maven
+.gradle/
+build/
+target/
+out/
+*.class
+
+# Android local configuration
+local.properties
+captures/
+.externalNativeBuild/
+.cxx/
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.egg-info/
+
+# Frontend dependencies and build output
+node_modules/
+dist/
+
+# IDE files
+.idea/
+
+# Operating system files
+.DS_Store
+Thumbs.db
