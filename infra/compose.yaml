@@ -1,0 +1,22 @@
+name: level-up-dev
+
+services:
+  backend:
+    build:
+      context: ../backend
+      dockerfile: Dockerfile
+    image: level-up-backend:dev
+    ports:
+      - "8080:8080"
+    environment:
+      AGENTS_BASE_URL: http://agents:8000
+    restart: unless-stopped
+
+  agents:
+    build:
+      context: ../agents
+      dockerfile: Dockerfile
+    image: level-up-agents:dev
+    ports:
+      - "127.0.0.1:8000:8000"
+    restart: unless-stopped
