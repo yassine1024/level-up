@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Level Up — Agent Streaming</title>
+
+    <style>
+        body {
+            font-family: system-ui, sans-serif;
+            max-width: 850px;
+            margin: 40px auto;
+            padding: 0 20px;
+            background: #f5f7fb;
+            color: #172033;
+        }
+
+        main {
+            background: white;
+            padding: 28px;
+            border-radius: 14px;
+            box-shadow: 0 8px 30px #17203312;
+        }
+
+        textarea {
+            box-sizing: border-box;
+            width: 100%;
+            min-height: 130px;
+            padding: 12px;
+            font: inherit;
+            border: 1px solid #ccd3df;
+            border-radius: 8px;
+            resize: vertical;
+        }
+
+        button {
+            margin-top: 12px;
+            padding: 11px 18px;
+            border: 0;
+            border-radius: 8px;
+            background: #245eea;
+            color: white;
+            font: inherit;
+            cursor: pointer;
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: wait;
+        }
+
+        #status {
+            color: #526078;
+        }
+
+        pre {
+            min-height: 180px;
+            padding: 18px;
+            white-space: pre-wrap;
+            overflow-wrap: anywhere;
+            background: #111827;
+            color: #e5edff;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body>
+<main>
+    <h1>Gemini Streaming Demo</h1>
+    <p>The browser calls Spring Boot. Spring Boot calls the Python agent.</p>
+
+    <form id="prompt-form">
+        <label for="prompt"><strong>Your prompt</strong></label>
+        <p>
+            <textarea id="prompt" maxlength="8000" required>Explain how Spring Boot communicates with a Python AI agent.</textarea>
+        </p>
+        <button id="send-button" type="submit">Send prompt</button>
+    </form>
+
+    <p id="status" role="status">Ready.</p>
+    <h2>Streaming response</h2>
+    <pre id="response"></pre>
+</main>
+
+<script>
+    const form = document.getElementById("prompt-form");
+    const promptInput = document.getElementById("prompt");
+    const sendButton = document.getElementById("send-button");
+    const statusElement = document.getElementById("status");
+    const output = document.getElementById("response");
+
+    form.addEventListener("submit", async (event) => {
+        event.preventDefault();
+
+        const prompt = promptInput.value.trim();
+        if (!prompt) return;
+
+        sendButton.disabled = true;
+        output.textContent = "";
+        statusElement.textContent = "Generating response...";
+
+        try {
+            const response = await fetch("/api/agents/stream", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ prompt })
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`HTTP ${response.status}: ${errorText}`);
+            }
+
+            if (!response.body) {
+                throw new Error("Streaming is not supported by this response.");
+            }
+
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder();
+
+            while (true) {
+                const { value, done } = await reader.read();
+
+                if (done) break;
+
+                output.textContent += decoder.decode(value, {
+                    stream: true
+                });
+            }
+
+            output.textContent += decoder.decode();
+            statusElement.textContent = "Response completed.";
+        } catch (error) {
+            statusElement.textContent = `Request failed: ${error.message}`;
+        } finally {
+            sendButton.disabled = false;
+        }
+    });
+</script>
+</body>
+</html>
