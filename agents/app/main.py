@@ -60,7 +60,7 @@ async def stream_agent(request: AgentStreamRequest):
 
     model_name = os.getenv(
         "GEMINI_MODEL",
-        "gemini-3.8-flash",
+        "gemini-3.5-flash-lite",
     )
 
     model = init_chat_model(
