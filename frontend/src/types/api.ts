@@ -3,10 +3,9 @@
 // When the backend is ready, keep these in sync with the OpenAPI spec in docs/.
 
 export interface User {
-  id: string;
-  name: string;
-  email: string;
-  avatarUrl?: string;
+  id: number;
+  username: string;
+  role?: string;
 }
 
 export interface AuthTokens {
@@ -15,7 +14,7 @@ export interface AuthTokens {
 }
 
 export interface LoginRequest {
-  email: string;
+  username: string;
   password: string;
 }
 

@@ -23,8 +23,8 @@ export default function ProfileScreen() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>{user.name}</Text>
-      <Text style={styles.row}>Email: {user.email}</Text>
+      <Text style={styles.title}>{user.username}</Text>
+      <Text style={styles.row}>Role: {user.role ?? "—"}</Text>
       <Text style={styles.row}>ID: {user.id}</Text>
     </View>
   );
