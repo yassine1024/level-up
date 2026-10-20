@@ -3,7 +3,7 @@ import { useAuthStore } from "@/src/store/auth";
 
 // Mode is controlled by EXPO_PUBLIC_API_MODE (mock | live).
 // Defaults to "mock" so the app runs without a backend.
-export const API_MODE = (process.env.EXPO_PUBLIC_API_MODE ?? "mock") as
+export const API_MODE = (process.env.EXPO_PUBLIC_API_MODE ?? "live") as
   | "mock"
   | "live";
 
