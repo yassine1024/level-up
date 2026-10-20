@@ -1,0 +1,31 @@
+name: Repository Structure Check
+
+on:
+  push:
+    branches:
+      - develop
+  pull_request:
+    branches:
+      - develop
+
+permissions:
+  contents: read
+
+jobs:
+  check-structure:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Check required files
+        run: |
+          test -f README.md
+          test -f .gitignore
+          test -f frontend/README.md
+          test -f backend/README.md
+          test -f agents/README.md
+          test -f infra/README.md
+          test -f docs/README.md
+          echo "Repository structure is valid."
