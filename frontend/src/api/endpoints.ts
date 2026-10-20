@@ -12,8 +12,17 @@ export const userApi = {
 
 export const authApi = {
   login: async (payload: LoginRequest): Promise<{ token: string }> => {
-    if (API_MODE === "mock") return mockApi.login(payload.email, payload.password);
+    if (API_MODE === "mock") return mockApi.login(payload.username, payload.password);
     const res = await apiClient.post<{ token: string }>("/api/auth/login", payload);
+    return res.data;
+  },
+  register: async (payload: {
+    username: string;
+    password: string;
+    role: string;
+  }): Promise<{ token: string }> => {
+    if (API_MODE === "mock") return mockApi.login(payload.username, payload.password);
+    const res = await apiClient.post<{ token: string }>("/api/auth/register", payload);
     return res.data;
   },
 };

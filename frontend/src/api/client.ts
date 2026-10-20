@@ -1,4 +1,5 @@
 import axios, { AxiosInstance } from "axios";
+import { useAuthStore } from "@/src/store/auth";
 
 // Mode is controlled by EXPO_PUBLIC_API_MODE (mock | live).
 // Defaults to "mock" so the app runs without a backend.
@@ -16,8 +17,12 @@ export const apiClient: AxiosInstance = axios.create({
   headers: { "Content-Type": "application/json" },
 });
 
-// Attach auth token when present (wire to auth store later).
+// Attach auth token when present.
 apiClient.interceptors.request.use((config) => {
-  // TODO: inject bearer token from auth store once implemented
+  const token = useAuthStore.getState().token;
+  if (token) {
+    config.headers = config.headers ?? {};
+    (config.headers as Record<string, string>).Authorization = `Bearer ${token}`;
+  }
   return config;
 });

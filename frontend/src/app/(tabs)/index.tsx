@@ -33,8 +33,8 @@ export default function HomeScreen() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Hello, {user.name}!</Text>
-      <Text style={styles.subtitle}>{user.email}</Text>
+      <Text style={styles.title}>Hello, {user.username}!</Text>
+      <Text style={styles.subtitle}>{user.role ?? ""}</Text>
       <Text style={styles.hint}>
         API mode: {process.env.EXPO_PUBLIC_API_MODE ?? "mock"}
       </Text>

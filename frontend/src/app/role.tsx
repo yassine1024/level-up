@@ -2,16 +2,47 @@ import { useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 
 import { Button } from "@/components/Button";
+import { authApi } from "@/src/api/endpoints";
+import { useAuthStore } from "@/src/store/auth";
 import { Colors, Fonts, Radii } from "@/constants/theme";
 
 type Role = "student" | "teacher";
 
 export default function RoleScreen() {
   const insets = useSafeAreaInsets();
+  const params = useLocalSearchParams<{ username?: string; password?: string }>();
   const [role, setRole] = useState<Role>("student");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(false);
+
+  const username = params.username ?? "";
+  const password = params.password ?? "";
+
+  const handleContinue = async () => {
+    if (!username || !password) {
+      router.replace("/signup");
+      return;
+    }
+    setError(false);
+    setLoading(true);
+    try {
+      const res = await authApi.register({
+        username,
+        password,
+        role: role === "student" ? "STUDENT" : "TEACHER",
+      });
+      useAuthStore.getState().setToken(res.token);
+      if (role === "student") router.replace("/home");
+      else router.replace("/teacher");
+    } catch {
+      setError(true);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <View style={[styles.body, { paddingTop: insets.top + 24 }]}>
@@ -54,12 +85,13 @@ export default function RoleScreen() {
 
       <View style={{ flex: 1 }} />
       <Button
-        title="Continue"
-        onPress={() => {
-          if (role === "student") router.push("/home");
-          else router.push("/teacher");
-        }}
+        title={loading ? "Creating account..." : "Continue"}
+        disabled={loading}
+        onPress={handleContinue}
       />
+      {error ? (
+        <Text style={{ color: "red", textAlign: "center" }}>Sign up failed. Try again.</Text>
+      ) : null}
       <View style={{ height: 28 }} />
     </View>
   );

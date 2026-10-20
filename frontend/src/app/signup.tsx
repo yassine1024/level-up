@@ -13,7 +13,7 @@ import { Colors, Fonts } from "@/constants/theme";
 export default function SignupScreen() {
   const insets = useSafeAreaInsets();
   const keyboardVisible = useKeyboardVisible();
-  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
 
@@ -32,15 +32,14 @@ export default function SignupScreen() {
         </View>
         <Text style={styles.title}>Create your account</Text>
         <Text style={styles.subtitle}>
-          Use your email. You will choose student or teacher next.
+          Choose a username. You will pick student or teacher next.
         </Text>
         <View style={{ marginTop: 8 }}>
           <Input
-            label="Email"
-            placeholder="you@example.com"
-            value={email}
-            onChangeText={setEmail}
-            keyboardType="email-address"
+            label="Username"
+            placeholder="choose a username"
+            value={username}
+            onChangeText={setUsername}
           />
         </View>
         <Input
@@ -58,7 +57,18 @@ export default function SignupScreen() {
           secureTextEntry
         />
         <View style={{ flex: 1, minHeight: 40 }} />
-        <Button title="Sign up" onPress={() => router.push("/role")} />
+        <Button
+          title="Sign up"
+          onPress={() => {
+            if (!username.trim() || !password.trim() || password !== confirm) {
+              return;
+            }
+            router.push({
+              pathname: "/role",
+              params: { username, password },
+            });
+          }}
+        />
         <Text style={styles.footer}>
           Already have an account?{" "}
           <Text style={styles.link} onPress={() => router.push("/login")}>

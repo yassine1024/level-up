@@ -7,15 +7,14 @@ export const mockApi = {
   async getMe(): Promise<User> {
     await delay();
     return {
-      id: "u_1",
-      name: "Demo User",
-      email: "demo@levelup.app",
-      avatarUrl: undefined,
+      id: 1,
+      username: "demo",
+      role: "STUDENT",
     };
   },
 
-  async login(email: string, _password: string): Promise<{ token: string }> {
+  async login(username: string, _password: string): Promise<{ token: string }> {
     await delay();
-    return { token: `mock-token-${email}` };
+    return { token: `mock-token-${username}` };
   },
 };

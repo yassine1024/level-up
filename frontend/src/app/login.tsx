@@ -4,6 +4,8 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { router } from "expo-router";
 
 import { useKeyboardVisible } from "@/src/hooks/useKeyboardVisible";
+import { authApi } from "@/src/api/endpoints";
+import { useAuthStore } from "@/src/store/auth";
 
 import { BackButton } from "@/components/BackButton";
 import { Button } from "@/components/Button";
@@ -13,9 +15,10 @@ import { Colors, Fonts } from "@/constants/theme";
 export default function LoginScreen() {
   const insets = useSafeAreaInsets();
   const keyboardVisible = useKeyboardVisible();
-  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   return (
     <KeyboardAvoidingView
@@ -34,11 +37,10 @@ export default function LoginScreen() {
         <Text style={styles.subtitle}>Log in to pick up where you stopped.</Text>
         <View style={{ marginTop: 8 }}>
           <Input
-            label="Email"
-            placeholder="you@example.com"
-            value={email}
-            onChangeText={(t) => { setEmail(t); setError(false); }}
-            keyboardType="email-address"
+            label="Username"
+            placeholder="your username"
+            value={username}
+            onChangeText={(t) => { setUsername(t); setError(false); }}
           />
         </View>
         <Input
@@ -57,14 +59,24 @@ export default function LoginScreen() {
         ) : null}
         <View style={{ flex: 1, minHeight: 40 }} />
         <Button
-          title="Log in"
-          onPress={() => {
-            if (!email.trim() || !password.trim()) {
+          title={loading ? "Signing in..." : "Log in"}
+          disabled={loading}
+          onPress={async () => {
+            if (!username.trim() || !password.trim()) {
               setError(true);
               return;
             }
             setError(false);
-            router.push("/role");
+            setLoading(true);
+            try {
+              const res = await authApi.login({ username, password });
+              useAuthStore.getState().setToken(res.token);
+              router.push("/role");
+            } catch {
+              setError(true);
+            } finally {
+              setLoading(false);
+            }
           }}
         />
         <Text style={styles.footer}>
