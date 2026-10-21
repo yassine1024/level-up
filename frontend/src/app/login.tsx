@@ -71,7 +71,19 @@ export default function LoginScreen() {
             try {
               const res = await authApi.login({ username, password });
               useAuthStore.getState().setToken(res.token);
-              router.push("/role");
+              // Route based on the role embedded in the JWT so the role
+              // selection screen only appears during account creation.
+              let role = "STUDENT";
+              try {
+                const payload = JSON.parse(
+                  atob(res.token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/"))
+                );
+                if (payload?.role) role = String(payload.role);
+              } catch {
+                // Fall back to student home if the token cannot be decoded.
+              }
+              if (role === "TEACHER") router.replace("/teacher");
+              else router.replace("/home");
             } catch {
               setError(true);
             } finally {
