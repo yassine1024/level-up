@@ -40,3 +40,42 @@ The frontend API base URL must be configurable.
 The backend agents-service URL must also be configurable.
 
 Development URLs and credentials must not be hardcoded into production configuration.
+
+## Teacher · Course resources
+
+Contract requested by the frontend for the "Teacher · course resources" screen
+(reference frames 05 / 06 / 07). The backend does not implement these endpoints
+yet: the frontend falls back to a mock course and flags it with a "Demo data"
+badge until they are available.
+
+### Course structure
+
+| Method | Path | Response |
+|---|---|---|
+| `GET` | `/api/lessons/levels` | `LessonLevel[]` — `{ id: "A1", name: "Beginner" }` |
+| `GET` | `/api/lessons/levels/{levelId}/units` | `LessonUnit[]` — `{ id, levelId, number, title }` |
+| `GET` | `/api/units/{unitId}/lessons` | `Lesson[]` — `{ id, unitId, number, title }` |
+
+A list may be returned as a bare array or wrapped in an envelope such as
+`{ "data": [...] }`; the frontend accepts both.
+
+### Saving the resources of a lesson
+
+`POST /api/teacher/lessons/{lessonId}/resources` — `multipart/form-data`.
+
+| Part | Type | Description |
+|---|---|---|
+| `vocabulary` | file | PDF, DOCX or TXT |
+| `grammar` | file | PDF, DOCX or TXT |
+| `pronunciation` | file | PDF, DOCX or TXT (slot not available yet) |
+| `listening1` | file | Transcript, TXT |
+| `listening2` | file | PDF, DOCX or TXT (slot not available yet) |
+| `other` | file | PDF, DOCX or TXT |
+| `writingDescription` | text | Free text written by the teacher |
+| `otherDescription` | text | Free text written by the teacher |
+
+Response: `{ "lessonId": 42, "savedAt": "2026-10-21T10:00:00Z" }`.
+
+The backend extracts the text of the uploaded files and uses it to build the
+student slides, the practice games and the character chat episode. The frontend
+never parses the files itself.
