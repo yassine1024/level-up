@@ -44,10 +44,12 @@ export default function SignupScreen() {
         </View>
         <Input
           label="Password"
-          placeholder="At least 8 characters"
+          placeholder="At least 6 characters"
           value={password}
           onChangeText={setPassword}
           secureTextEntry
+          autoComplete="off"
+          textContentType="none"
         />
         <Input
           label="Confirm password"
@@ -55,6 +57,8 @@ export default function SignupScreen() {
           value={confirm}
           onChangeText={setConfirm}
           secureTextEntry
+          autoComplete="off"
+          textContentType="none"
         />
         <View style={{ flex: 1, minHeight: 40 }} />
         <Button

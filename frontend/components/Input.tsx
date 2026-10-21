@@ -9,6 +9,8 @@ interface InputProps {
   onChangeText?: (t: string) => void;
   secureTextEntry?: boolean;
   keyboardType?: "default" | "email-address";
+  autoComplete?: "off" | "password" | "password-new" | "username" | "email";
+  textContentType?: "none" | "password" | "newPassword" | "username" | "emailAddress";
   id?: string;
 }
 
@@ -19,6 +21,8 @@ export function Input({
   onChangeText,
   secureTextEntry,
   keyboardType = "default",
+  autoComplete,
+  textContentType,
 }: InputProps) {
   return (
     <View style={styles.wrap}>
@@ -32,6 +36,8 @@ export function Input({
         secureTextEntry={secureTextEntry}
         keyboardType={keyboardType}
         autoCapitalize="none"
+        autoComplete={autoComplete}
+        textContentType={textContentType}
       />
     </View>
   );
