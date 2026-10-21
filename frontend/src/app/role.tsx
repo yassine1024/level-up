@@ -16,7 +16,7 @@ export default function RoleScreen() {
   const params = useLocalSearchParams<{ username?: string; password?: string }>();
   const [role, setRole] = useState<Role>("student");
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const username = params.username ?? "";
   const password = params.password ?? "";
@@ -26,7 +26,7 @@ export default function RoleScreen() {
       router.replace("/signup");
       return;
     }
-    setError(false);
+    setError(null);
     setLoading(true);
     try {
       const res = await authApi.register({
@@ -37,8 +37,12 @@ export default function RoleScreen() {
       useAuthStore.getState().setToken(res.token);
       if (role === "student") router.replace("/home");
       else router.replace("/teacher");
-    } catch {
-      setError(true);
+    } catch (e: any) {
+      const message =
+        e?.response?.data?.message ||
+        e?.message ||
+        "Sign up failed. Try again.";
+      setError(message);
     } finally {
       setLoading(false);
     }
@@ -90,7 +94,7 @@ export default function RoleScreen() {
         onPress={handleContinue}
       />
       {error ? (
-        <Text style={{ color: "red", textAlign: "center" }}>Sign up failed. Try again.</Text>
+        <Text style={{ color: "red", textAlign: "center" }}>{error}</Text>
       ) : null}
       <View style={{ height: 28 }} />
     </View>
