@@ -10,12 +10,15 @@ import { Button } from "@/components/Button";
 import { Input } from "@/components/Input";
 import { Colors, Fonts } from "@/constants/theme";
 
+const MIN_PASSWORD_LENGTH = 6;
+
 export default function SignupScreen() {
   const insets = useSafeAreaInsets();
   const keyboardVisible = useKeyboardVisible();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
+  const [error, setError] = useState<string | null>(null);
 
   return (
     <KeyboardAvoidingView
@@ -39,34 +42,57 @@ export default function SignupScreen() {
             label="Username"
             placeholder="choose a username"
             value={username}
-            onChangeText={setUsername}
+            onChangeText={(t) => { setUsername(t); setError(null); }}
+            autoComplete="username"
+            textContentType="username"
           />
         </View>
         <Input
           label="Password"
-          placeholder="At least 6 characters"
+          placeholder={`At least ${MIN_PASSWORD_LENGTH} characters`}
           value={password}
-          onChangeText={setPassword}
+          onChangeText={(t) => { setPassword(t); setError(null); }}
           secureTextEntry
-          autoComplete="off"
-          textContentType="none"
+          // Android keeps its "suggest strong password" chip, while iOS is
+          // told this is a plain password field. Declaring `newPassword` on
+          // iOS makes the system offer its own strong password, and React
+          // Native then locks the field (yellow background, no more
+          // keystrokes) - see facebook/react-native#53050. Do not switch the
+          // iOS value to `newPassword` without patching React Native first.
+          autoComplete="new-password"
+          textContentType="password"
         />
         <Input
           label="Confirm password"
           placeholder="Repeat your password"
           value={confirm}
-          onChangeText={setConfirm}
+          onChangeText={(t) => { setConfirm(t); setError(null); }}
           secureTextEntry
-          autoComplete="off"
-          textContentType="none"
+          autoComplete="new-password"
+          textContentType="password"
         />
+        {error ? (
+          <View style={styles.errorCard}>
+            <Text style={styles.errorText}>{error}</Text>
+          </View>
+        ) : null}
         <View style={{ flex: 1, minHeight: 40 }} />
         <Button
           title="Sign up"
           onPress={() => {
-            if (!username.trim() || !password.trim() || password !== confirm) {
+            if (!username.trim()) {
+              setError("Choose a username to continue.");
               return;
             }
+            if (password.length < MIN_PASSWORD_LENGTH) {
+              setError(`Your password needs at least ${MIN_PASSWORD_LENGTH} characters.`);
+              return;
+            }
+            if (password !== confirm) {
+              setError("Both passwords do not match.");
+              return;
+            }
+            setError(null);
             router.push({
               pathname: "/role",
               params: { username, password },
@@ -103,6 +129,19 @@ const styles = StyleSheet.create({
     fontSize: 15,
     lineHeight: 22,
     color: Colors.muted,
+  },
+  errorCard: {
+    backgroundColor: Colors.errorBg,
+    borderColor: Colors.errorBorder,
+    borderWidth: 2,
+    borderRadius: 14,
+    padding: 12,
+    paddingHorizontal: 16,
+  },
+  errorText: {
+    fontFamily: Fonts.bodyBold,
+    fontSize: 13,
+    color: Colors.errorText,
   },
   footer: {
     fontFamily: Fonts.bodyBold,
