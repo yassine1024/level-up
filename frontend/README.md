@@ -31,6 +31,17 @@ The frontend communicates with the Spring Boot backend through a REST API.
 - `src/types/` — shared TypeScript types / API contracts
 - `components/`, `constants/` — UI building blocks and theme
 
+## Screens
+- `/welcome`, `/signup`, `/login`, `/role` — shared onboarding
+- `/teacher/resources` — teacher course resources (pick a level / unit / lesson,
+  attach the vocabulary, grammar and listening files, write the descriptions)
+- `/teacher/saved` — confirmation shown after a lesson is saved
+
+The teacher screens need `expo-document-picker` (bundled with Expo Go, no
+development build required) and the course endpoints described in
+`docs/api-contract.md`. Until the backend serves them the frontend falls back to
+a mock course and shows a "Demo data" badge.
+
 ## Team guidelines
 - Keep changes focused on the frontend component.
 - Coordinate API contract changes with backend/agent developers.

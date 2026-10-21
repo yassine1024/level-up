@@ -19,6 +19,13 @@ export const Colors = {
   disabled: "#D5E2DB",
   disabledText: "#4A5F56",
   white: "#FFFFFF",
+  // Chips
+  chipAmberBg: "#FFE9B0",
+  chipAmberText: "#6B4800",
+  chipGreyBg: "#E3E8E5",
+  chipGreyText: "#3E524A",
+  // Dashed outline used by the empty upload boxes
+  dashedBorder: "#9DB5A9",
 };
 
 export const Fonts = {
@@ -32,9 +39,11 @@ export const Radii = {
   button: 16,
   card: 20,
   input: 14,
+  chip: 14,
   phone: 36,
 };
 
 export const Spacing = {
   screen: 24,
+  gap: 16,
 };
