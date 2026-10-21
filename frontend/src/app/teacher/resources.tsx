@@ -190,6 +190,7 @@ export default function CourseResourcesScreen() {
           }
           options={levelOptions}
           onSelect={handleLevel}
+          loading={levelsQuery.isLoading}
         />
 
         <SelectField
@@ -202,6 +203,7 @@ export default function CourseResourcesScreen() {
           options={unitOptions}
           onSelect={handleUnit}
           disabled={!draft.level}
+          loading={unitsQuery.isLoading}
         />
 
         <SelectField
@@ -214,6 +216,7 @@ export default function CourseResourcesScreen() {
           options={lessonOptions}
           onSelect={handleLesson}
           disabled={!draft.unit}
+          loading={lessonsQuery.isLoading}
         />
 
         <View style={styles.divider} />

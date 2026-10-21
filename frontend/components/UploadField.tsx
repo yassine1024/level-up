@@ -1,11 +1,19 @@
 import { useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import Animated, {
+  useAnimatedStyle,
+  useReducedMotion,
+  useSharedValue,
+  withSpring,
+} from "react-native-reanimated";
 import * as DocumentPicker from "expo-document-picker";
 
 import { Chip } from "@/components/Chip";
 import { Colors, Fonts, Radii } from "@/constants/theme";
 import type { PickedDocument } from "@/src/types/api";
+
+const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
 interface UploadFieldProps {
   label: string;
@@ -33,7 +41,13 @@ export function UploadField({
   comingSoon = false,
 }: UploadFieldProps) {
   const [error, setError] = useState<string | null>(null);
+  const reduced = useReducedMotion();
+  const scale = useSharedValue(1);
   const isDisabled = disabled || comingSoon;
+
+  const boxStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.get() }],
+  }));
 
   const handlePress = async () => {
     if (isDisabled) return;
@@ -71,8 +85,17 @@ export function UploadField({
         {comingSoon ? <Chip label="Coming soon" variant="grey" /> : null}
       </View>
 
-      <Pressable
+      <AnimatedPressable
         onPress={handlePress}
+        onPressIn={() => {
+          if (isDisabled) return;
+          scale.set(
+            withSpring(reduced ? 1 : 0.97, { duration: 100, dampingRatio: 1 })
+          );
+        }}
+        onPressOut={() => {
+          scale.set(withSpring(1, { duration: 100, dampingRatio: 1 }));
+        }}
         disabled={isDisabled}
         accessibilityRole="button"
         accessibilityLabel={
@@ -83,6 +106,7 @@ export function UploadField({
           styles.box,
           value ? styles.boxFilled : styles.boxEmpty,
           isDisabled && styles.boxDisabled,
+          boxStyle,
         ]}>
         <Ionicons
           name={value ? "checkmark" : "cloud-upload-outline"}
@@ -99,7 +123,7 @@ export function UploadField({
         ) : hint ? (
           <Chip label={hint} variant="grey" />
         ) : null}
-      </Pressable>
+      </AnimatedPressable>
 
       {error ? <Text style={styles.error}>{error}</Text> : null}
     </View>
