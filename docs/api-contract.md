@@ -43,10 +43,10 @@ Development URLs and credentials must not be hardcoded into production configura
 
 ## Teacher · Course resources
 
-Contract requested by the frontend for the "Teacher · course resources" screen
-(reference frames 05 / 06 / 07). The backend does not implement these endpoints
-yet: the frontend falls back to a mock course and flags it with a "Demo data"
-badge until they are available.
+Contract for the "Teacher · course resources" screen (reference frames 05 / 06 / 07).
+Implemented in the Spring Boot backend (catalog + resource modules). The detailed
+contract and multipart part names live in `docs/teacher-api-contract.md`. The
+frontend no longer needs the mock fallback for these endpoints in `live` mode.
 
 ### Course structure
 
