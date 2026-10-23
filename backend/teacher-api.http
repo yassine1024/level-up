@@ -1,0 +1,38 @@
+### 1. Check that the backend is running
+GET http://localhost:8080/api/health
+Accept: application/json
+
+
+### 2. Get available course levels
+GET http://localhost:8080/api/lessons/levels
+Accept: application/json
+
+
+### 3. Get units for level A1
+GET http://localhost:8080/api/lessons/levels/A1/units
+Accept: application/json
+
+
+### 4. Get lessons for unit 1
+GET http://localhost:8080/api/units/1/lessons
+Accept: application/json
+
+### Upload vocabulary, listening audio, and writing prompt
+POST http://localhost:8080/api/teacher/lessons/1/resources
+Content-Type: multipart/form-data; boundary=WebAppBoundary
+
+--WebAppBoundary
+Content-Disposition: form-data; name="vocabulary"; filename="vocabulary.txt"
+Content-Type: text/plain
+
+< ./test-files/vocabulary.txt
+--WebAppBoundary
+Content-Disposition: form-data; name="listeningAudio"; filename="test-audio.mp3"
+Content-Type: audio/mpeg
+
+< ./test-files/test-audio.mp3
+--WebAppBoundary
+Content-Disposition: form-data; name="writingDescription"
+
+Write five beginner-level sentences introducing yourself.
+--WebAppBoundary--

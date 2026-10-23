@@ -55,7 +55,7 @@ public class LessonResource {
     @Column(name = "updated_at", nullable = false)
     private Instant updatedAt;
 
-    protected LessonResource() {
+    public LessonResource() {
         // Required by JPA.
     }
 
