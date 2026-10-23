@@ -14,8 +14,13 @@ export const API_BASE_URL =
 export const apiClient: AxiosInstance = axios.create({
   baseURL: API_BASE_URL,
   timeout: 10000,
-  headers: { "Content-Type": "application/json" },
 });
+
+// NOTE: no default `Content-Type` here on purpose.
+// Axios sets `application/json` by itself for plain-object bodies, and it only
+// JSON.stringify()s a FormData body when the Content-Type already says
+// application/json. Leaving it unset lets React Native's networking layer
+// (and the browser on web) add `multipart/form-data; boundary=…` for uploads.
 
 // Attach auth token when present.
 apiClient.interceptors.request.use((config) => {
@@ -26,3 +31,17 @@ apiClient.interceptors.request.use((config) => {
   }
   return config;
 });
+
+/**
+ * Posts a multipart/form-data body (teacher resource uploads).
+ * The Content-Type header is intentionally left unset so the platform adds
+ * the multipart boundary itself.
+ */
+export async function postMultipart<T>(
+  url: string,
+  form: FormData,
+  timeout = 120000
+): Promise<T> {
+  const res = await apiClient.post<T>(url, form, { timeout });
+  return res.data;
+}

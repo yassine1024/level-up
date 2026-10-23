@@ -41,6 +41,8 @@ export default function LoginScreen() {
             placeholder="your username"
             value={username}
             onChangeText={(t) => { setUsername(t); setError(false); }}
+            autoComplete="username"
+            textContentType="username"
           />
         </View>
         <Input
@@ -49,6 +51,8 @@ export default function LoginScreen() {
           value={password}
           onChangeText={(t) => { setPassword(t); setError(false); }}
           secureTextEntry
+          autoComplete="current-password"
+          textContentType="password"
         />
         {error ? (
           <View style={styles.errorCard}>

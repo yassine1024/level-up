@@ -36,6 +36,8 @@ export function Button({ title, onPress, variant = "primary", disabled = false }
   return (
     <AnimatedPressable
       onPress={disabled ? undefined : onPress}
+      accessibilityRole="button"
+      accessibilityState={{ disabled }}
       onPressIn={() => {
         if (!disabled) {
           // eslint-disable-next-line react-hooks/immutability
