@@ -105,3 +105,47 @@ export interface SavedResourceLine {
   /** e.g. "Vocabulary · vocabulary_unit1.pdf" or "Writing description". */
   text: string;
 }
+
+// ── Student · home and course ────────────────────────────────────────────
+// Contract for GET /api/me/course (reference frame 13) and the slide viewer
+// flow (reference frames 15-18). The backend does not serve these endpoints
+// yet: the frontend falls back to a mock course and flags it as demo data.
+
+/** A unit the student has already finished (reference frame 13). */
+export interface StudentPreviousUnit {
+  number: number;
+  title: string;
+}
+
+/** A unit still locked for the student (reference frame 13). */
+export interface StudentNextUnit {
+  number: number;
+  title: string;
+}
+
+/** The lesson the student should open next. */
+export interface StudentCurrentLesson {
+  id: number;
+  number: number;
+  title: string;
+}
+
+/** The unit the student is currently working through. */
+export interface StudentCurrentUnit {
+  number: number;
+  title: string;
+  completedLessons: number;
+  totalLessons: number;
+  /** 0..1 */
+  progress: number;
+  currentLesson: StudentCurrentLesson;
+}
+
+/** Payload of GET /api/me/course. */
+export interface StudentCourse {
+  levelId: string;
+  levelName: string;
+  previousUnits: StudentPreviousUnit[];
+  currentUnit: StudentCurrentUnit;
+  nextUnits: StudentNextUnit[];
+}

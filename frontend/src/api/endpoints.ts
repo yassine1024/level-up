@@ -9,6 +9,7 @@ import type {
   ResourceFileField,
   SaveResourcesPayload,
   SaveResourcesResponse,
+  StudentCourse,
   User,
 } from "@/src/types/api";
 
@@ -139,6 +140,20 @@ export const teacherApi = {
         return mockApi.saveResources(lessonId, payload);
       }
       throw error;
+    }
+  },
+};
+
+export const studentApi = {
+  async getCourse(): Promise<StudentCourse> {
+    if (API_MODE === "mock") {
+      return mockApi.getCourse();
+    }
+    try {
+      const res = await apiClient.get("/api/me/course");
+      return res.data as StudentCourse;
+    } catch {
+      return mockApi.getCourse();
     }
   },
 };
