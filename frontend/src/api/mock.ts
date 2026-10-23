@@ -4,6 +4,7 @@ import type {
   LessonUnit,
   SaveResourcesPayload,
   SaveResourcesResponse,
+  StudentCourse,
   User,
 } from "@/src/types/api";
 
@@ -87,6 +88,27 @@ export const mockApi = {
   async getLessons(unitId: number): Promise<Lesson[]> {
     await delay();
     return mockLessons(unitId);
+  },
+
+  async getCourse(): Promise<StudentCourse> {
+    await delay();
+    return {
+      levelId: "A1",
+      levelName: "Beginner",
+      previousUnits: [],
+      currentUnit: {
+        number: 1,
+        title: "Meeting people",
+        completedLessons: 1,
+        totalLessons: 3,
+        progress: 1 / 3,
+        currentLesson: { id: 1012, number: 2, title: "Introducing yourself" },
+      },
+      nextUnits: [
+        { number: 2, title: "Daily routines" },
+        { number: 3, title: "Food and drinks" },
+      ],
+    };
   },
 
   async saveResources(

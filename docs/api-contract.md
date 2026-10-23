@@ -79,3 +79,41 @@ Response: `{ "lessonId": 42, "savedAt": "2026-10-21T10:00:00Z" }`.
 The backend extracts the text of the uploaded files and uses it to build the
 student slides, the practice games and the character chat episode. The frontend
 never parses the files itself.
+
+## Student · home and course
+
+Contract requested by the frontend for the "Student: home and course" screens
+(reference frames 12-18). The backend does not implement these endpoints yet:
+the frontend falls back to a mock course and shows the screens with demo data.
+
+### Current course
+
+`GET /api/me/course`
+
+Response: `StudentCourse`:
+
+```json
+{
+  "levelId": "A1",
+  "levelName": "Beginner",
+  "previousUnits": [],
+  "currentUnit": {
+    "number": 1,
+    "title": "Meeting people",
+    "completedLessons": 1,
+    "totalLessons": 3,
+    "progress": 0.33,
+    "currentLesson": { "id": 1012, "number": 2, "title": "Introducing yourself" }
+  },
+  "nextUnits": [
+    { "number": 2, "title": "Daily routines" },
+    { "number": 3, "title": "Food and drinks" }
+  ]
+}
+```
+
+### Slides
+
+`POST /api/lessons/:id/slides` — generated once, then cached. Response is a
+list of slide objects consumed by the slide viewer (`title`, `bullets`,
+`example`, `hint`, `miniExercise`). The frontend caches the result locally.

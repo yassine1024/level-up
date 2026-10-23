@@ -33,6 +33,13 @@ The frontend communicates with the Spring Boot backend through a REST API.
 
 ## Screens
 - `/welcome`, `/signup`, `/login`, `/role` — shared onboarding
+- `/home` — student home (empty on purpose in the MVP)
+- `/course` — student course tab (current unit, lesson, progress, previous and
+  next units) with the lesson options bottom sheet
+- `/lesson/loading` — loading slides
+- `/lesson/slides` — slide viewer (vocabulary style)
+- `/lesson/grammar` — slide viewer (grammar style)
+- `/lesson/complete` — unit completed
 - `/teacher/resources` — teacher course resources (pick a level / unit / lesson,
   attach the vocabulary, grammar and listening files, write the descriptions)
 - `/teacher/saved` — confirmation shown after a lesson is saved
