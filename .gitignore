@@ -41,3 +41,13 @@ Thumbs.db
 
 # Playwright MCP scratch output
 .playwright-mcp/
+
+# IntelliJ IDEA HTTP Client: generated responses and history
+.idea/httpRequests/
+httpRequests/
+
+# Private IntelliJ HTTP Client environment variables
+**/http-client.private.env.json
+
+# Runtime uploads: never commit user-provided files
+**/uploads/

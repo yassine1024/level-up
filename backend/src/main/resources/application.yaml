@@ -7,7 +7,18 @@ spring:
       path: /h2-console
   datasource:
     url: jdbc:h2:mem:levelup
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 42MB
 
 jwt:
   secret: jwt-secret-for-development-only-123456-123456
   expiration-minutes: 60
+
+
+app:
+  storage:
+    location: ${APP_STORAGE_LOCATION:./uploads}
+  documents:
+    max-extracted-characters: 200000
