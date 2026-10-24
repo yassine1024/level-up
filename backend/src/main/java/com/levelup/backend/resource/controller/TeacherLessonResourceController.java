@@ -13,11 +13,15 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.Map;
 
 @RestController
+@Tag(name = "Teacher Resources")
+@SecurityRequirement(name = "bearerAuth")
 @RequestMapping("/api/teacher/lessons")
 @RequiredArgsConstructor
 public class TeacherLessonResourceController {
