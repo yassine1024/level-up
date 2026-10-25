@@ -164,7 +164,7 @@ export const studentApi = {
       return mockApi.getCourse();
     }
     try {
-      const res = await apiClient.get("/api/me/course");
+      const res = await apiClient.get("/api/student/course");
       return res.data as StudentCourse;
     } catch (error) {
       const status = (error as { response?: { status?: number } })?.response
