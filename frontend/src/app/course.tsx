@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/refs */
 import {
   Dimensions,
   PanResponder,
@@ -56,10 +57,12 @@ export default function CourseScreen() {
       onMoveShouldSetPanResponder: (_, gestureState) =>
         Math.abs(gestureState.dy) > 2,
       onPanResponderMove: (_, gestureState) => {
+      // eslint-disable-next-line react-hooks/immutability
         sheetY.value = Math.max(0, gestureState.dy);
       },
       onPanResponderRelease: (_, gestureState) => {
         if (gestureState.dy > 60 || gestureState.vy > 0.25) {
+      // eslint-disable-next-line react-hooks/immutability
           sheetY.value = withTiming(SCREEN_HEIGHT, { duration: 220 }, (finished) => {
             if (finished) {
               runOnJS(setShowOptions)(false);
@@ -74,12 +77,14 @@ export default function CourseScreen() {
 
   useEffect(() => {
     if (showOptions) {
+      // eslint-disable-next-line react-hooks/immutability
       sheetY.value = SCREEN_HEIGHT;
       sheetY.value = withTiming(0, { duration: 300 });
     }
   }, [showOptions, sheetY, SCREEN_HEIGHT]);
 
   const closeSheet = () => {
+      // eslint-disable-next-line react-hooks/immutability
     sheetY.value = withTiming(SCREEN_HEIGHT, { duration: 220 }, (finished) => {
       if (finished) {
         runOnJS(setShowOptions)(false);
@@ -164,9 +169,11 @@ export default function CourseScreen() {
               <AnimatedPressable
                 onPress={handlePlay}
                 onPressIn={() => {
+      // eslint-disable-next-line react-hooks/immutability
                   playScale.value = withSpring(0.9, { damping: 15, stiffness: 300 });
                 }}
                 onPressOut={() => {
+      // eslint-disable-next-line react-hooks/immutability
                   playScale.value = withSpring(1, { damping: 15, stiffness: 300 });
                 }}
                 style={[styles.playButton, playAnimatedStyle]}
@@ -226,6 +233,7 @@ export default function CourseScreen() {
             <Pressable
               style={styles.primaryButton}
               onPress={() => {
+      // eslint-disable-next-line react-hooks/immutability
                 sheetY.value = withTiming(SCREEN_HEIGHT, { duration: 220 }, (finished) => {
                   if (finished) {
                     runOnJS(setShowOptions)(false);
@@ -238,6 +246,7 @@ export default function CourseScreen() {
             <Pressable
               style={styles.ghostButton}
               onPress={() => {
+      // eslint-disable-next-line react-hooks/immutability
                 sheetY.value = withTiming(SCREEN_HEIGHT, { duration: 220 }, (finished) => {
                   if (finished) {
                     runOnJS(setShowOptions)(false);

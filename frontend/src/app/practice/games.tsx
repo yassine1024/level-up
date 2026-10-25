@@ -5,7 +5,6 @@ import { useState } from "react";
 
 import { Colors, Fonts, Radii } from "@/constants/theme";
 import { StudentBottomNav } from "@/components/StudentBottomNav";
-import { Ionicons } from "@expo/vector-icons";
 
 const TABS = ["Speaking", "Writing", "Listening", "Practising"] as const;
 type Tab = (typeof TABS)[number];
@@ -46,7 +45,11 @@ export default function PracticeGamesScreen() {
           <Pressable
             key={g.key}
             style={[styles.gameCard, g.locked && styles.gameCardLocked]}
-            onPress={() => (g.locked ? null : router.push(g.route as any))}
+            onPress={() => {
+              if (g.locked) return;
+              if (g.key === "quiz") router.push("/practice/quiz");
+              else if (g.key === "fill") router.push("/practice/fill-blank");
+            }}
             disabled={g.locked}>
             <View style={{ flex: 1 }}>
               <Text style={styles.gameTitle}>{g.title}</Text>

@@ -91,7 +91,7 @@ export default function PracticeCharacterScreen() {
             <Text style={styles.title}>Role-play</Text>
           </View>
           <View style={styles.card}>
-            <Text style={styles.eyebrow}>TODAY'S EPISODE</Text>
+            <Text style={styles.eyebrow}>TODAY&apos;S EPISODE</Text>
             <Text style={styles.episodeTitle}>Dinner talk with Yasmine</Text>
             <Text style={styles.bodyText}>
               You and Yasmine are at the table. She wants to know about your

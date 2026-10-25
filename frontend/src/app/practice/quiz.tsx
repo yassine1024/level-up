@@ -5,7 +5,6 @@ import { useEffect, useState } from "react";
 
 import { Colors, Fonts, Radii } from "@/constants/theme";
 import { StudentBottomNav } from "@/components/StudentBottomNav";
-import { Chip } from "@/components/Chip";
 import { Ionicons } from "@expo/vector-icons";
 import { useCourse } from "@/src/hooks/useCourse";
 import {
@@ -31,7 +30,6 @@ export default function PracticeQuizScreen() {
   const [selected, setSelected] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<string | null>(null);
   const [correctAnswer, setCorrectAnswer] = useState<string | null>(null);
-  const [finished, setFinished] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -52,7 +50,6 @@ export default function PracticeQuizScreen() {
     };
   }, [lessonId, startSession]);
 
-  const total = questions.length || 1;
   const currentQuestion = questions[current];
 
   const handleCheck = async () => {
@@ -79,13 +76,12 @@ export default function PracticeQuizScreen() {
     } else if (sessionId) {
       try {
         const res = await finishSession.mutateAsync(sessionId);
-        setFinished(true);
         router.push({
           pathname: "/practice/result",
           params: { score: String(res.score), total: String(res.totalQuestions) },
-        } as any);
+        });
       } catch {
-        router.push("/practice/result" as any);
+        router.push("/practice/result");
       }
     }
   };

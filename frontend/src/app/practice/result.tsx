@@ -32,12 +32,12 @@ export default function PracticeResultScreen() {
         <View style={styles.actions}>
           <Pressable
             style={styles.primaryButton}
-            onPress={() => router.replace("/practice/games" as any)}>
+            onPress={() => router.replace("/practice/games")}>
             <Text style={styles.primaryButtonText}>Play again</Text>
           </Pressable>
           <Pressable
             style={styles.ghostButton}
-            onPress={() => router.replace("/practice" as any)}>
+            onPress={() => router.replace("/practice")}>
             <Text style={styles.ghostButtonText}>Back to games</Text>
           </Pressable>
         </View>

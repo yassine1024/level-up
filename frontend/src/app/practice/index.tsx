@@ -18,7 +18,7 @@ export default function PracticeHomeScreen() {
         </View>
         <Text style={styles.subtitle}>Choose how you want to practise today.</Text>
 
-        <Pressable style={styles.card} onPress={() => router.push("/practice/roleplay" as any)}>
+        <Pressable style={styles.card} onPress={() => router.push("/practice/roleplay")}>
           <View style={styles.cardIcon}>
             <Ionicons name="chatbubble-ellipses" size={22} color={Colors.primaryDark} />
           </View>
@@ -29,7 +29,7 @@ export default function PracticeHomeScreen() {
           <Text style={styles.meet}>Meet the character</Text>
         </Pressable>
 
-        <Pressable style={styles.card} onPress={() => router.push("/practice/games" as any)}>
+        <Pressable style={styles.card} onPress={() => router.push("/practice/games")}>
           <View style={styles.cardIcon}>
             <Ionicons name="game-controller" size={22} color={Colors.primaryDark} />
           </View>
@@ -40,7 +40,7 @@ export default function PracticeHomeScreen() {
           <Text style={styles.meet}>Open games</Text>
         </Pressable>
 
-        <Pressable style={styles.card} onPress={() => router.push("/practice/writing" as any)}>
+        <Pressable style={styles.card} onPress={() => router.push("/practice/writing")}>
           <View style={styles.cardIcon}>
             <Ionicons name="create-outline" size={22} color={Colors.primaryDark} />
           </View>
@@ -51,7 +51,7 @@ export default function PracticeHomeScreen() {
           <Text style={styles.meet}>Open</Text>
         </Pressable>
 
-        <Pressable style={styles.card} onPress={() => router.push("/practice/mistakes" as any)}>
+        <Pressable style={styles.card} onPress={() => router.push("/practice/mistakes")}>
           <View style={styles.cardIcon}>
             <Ionicons name="alert-circle-outline" size={22} color={Colors.primaryDark} />
           </View>

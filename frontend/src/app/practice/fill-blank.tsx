@@ -86,7 +86,7 @@ export default function PracticeFillBlankScreen() {
       } catch {
         // ignore
       }
-      router.push("/practice/result" as any);
+      router.push("/practice/result");
     }
   };
 

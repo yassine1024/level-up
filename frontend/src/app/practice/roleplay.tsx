@@ -23,7 +23,7 @@ export default function PracticeRoleplayScreen() {
         </View>
         <Text style={styles.subtitle}>Chat with a character. It fixes your mistakes and explains why.</Text>
         {characters.map((c) => (
-          <Pressable key={c.id} style={styles.card} onPress={() => router.push("/practice/character" as any)}>
+          <Pressable key={c.id} style={styles.card} onPress={() => router.push("/practice/character")}>
             <View style={styles.characterBadge}>
               <Text style={styles.characterEmoji}>{c.emoji}</Text>
             </View>
