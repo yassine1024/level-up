@@ -1,4 +1,6 @@
 import {
+  Dimensions,
+  PanResponder,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -7,7 +9,14 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { router } from "expo-router";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import Animated, {
+  runOnJS,
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
+  withTiming,
+} from "react-native-reanimated";
 
 import { useCourse } from "@/src/hooks/useCourse";
 import { Colors, Fonts, Radii } from "@/constants/theme";
@@ -15,12 +24,68 @@ import { Ionicons } from "@expo/vector-icons";
 import { Chip } from "@/components/Chip";
 import { StudentBottomNav } from "@/components/StudentBottomNav";
 
+const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
+
 export default function CourseScreen() {
   const insets = useSafeAreaInsets();
   const courseQuery = useCourse();
   const course = courseQuery.data;
 
   const [showOptions, setShowOptions] = useState(false);
+
+  const SCREEN_HEIGHT = Dimensions.get("window").height;
+
+  const playScale = useSharedValue(1);
+  const playAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: playScale.value }],
+  }));
+
+  const sheetY = useSharedValue(SCREEN_HEIGHT);
+  const sheetAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: sheetY.value }],
+  }));
+  const backdropAnimatedStyle = useAnimatedStyle(() => {
+    const progress = 1 - sheetY.value / SCREEN_HEIGHT;
+    const clamped = Math.max(0, Math.min(1, progress));
+    return { opacity: 0.35 * clamped };
+  });
+
+  const panResponder = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onMoveShouldSetPanResponder: (_, gestureState) =>
+        Math.abs(gestureState.dy) > 2,
+      onPanResponderMove: (_, gestureState) => {
+        sheetY.value = Math.max(0, gestureState.dy);
+      },
+      onPanResponderRelease: (_, gestureState) => {
+        if (gestureState.dy > 60 || gestureState.vy > 0.25) {
+          sheetY.value = withTiming(SCREEN_HEIGHT, { duration: 220 }, (finished) => {
+            if (finished) {
+              runOnJS(setShowOptions)(false);
+            }
+          });
+        } else {
+          sheetY.value = withSpring(0, { damping: 20, stiffness: 220 });
+        }
+      },
+    })
+  ).current;
+
+  useEffect(() => {
+    if (showOptions) {
+      sheetY.value = SCREEN_HEIGHT;
+      sheetY.value = withTiming(0, { duration: 300 });
+    }
+  }, [showOptions, sheetY, SCREEN_HEIGHT]);
+
+  const closeSheet = () => {
+    sheetY.value = withTiming(SCREEN_HEIGHT, { duration: 220 }, (finished) => {
+      if (finished) {
+        runOnJS(setShowOptions)(false);
+      }
+    });
+  };
 
   const levelLabel = course
     ? `Level ${course.levelId}`
@@ -96,13 +161,19 @@ export default function CourseScreen() {
                 <Text style={styles.lessonEyebrow}>Current lesson</Text>
                 <Text style={styles.lessonTitle}>{lessonLabel}</Text>
               </View>
-              <Pressable
+              <AnimatedPressable
                 onPress={handlePlay}
-                style={styles.playButton}
+                onPressIn={() => {
+                  playScale.value = withSpring(0.9, { damping: 15, stiffness: 300 });
+                }}
+                onPressOut={() => {
+                  playScale.value = withSpring(1, { damping: 15, stiffness: 300 });
+                }}
+                style={[styles.playButton, playAnimatedStyle]}
                 accessibilityRole="button"
                 accessibilityLabel="Open lesson">
                 <Ionicons name="play" size={18} color={Colors.text} style={{ marginLeft: 2 }} />
-              </Pressable>
+              </AnimatedPressable>
             </View>
           </View>
         </View>
@@ -132,12 +203,16 @@ export default function CourseScreen() {
 
       {showOptions ? (
         <View style={styles.sheetOverlay}>
-          <Pressable
-            style={styles.sheetBackdrop}
-            onPress={() => setShowOptions(false)}
+          <AnimatedPressable
+            style={[styles.sheetBackdrop, backdropAnimatedStyle]}
+            onPress={closeSheet}
           />
-          <View style={styles.sheet}>
-            <View style={styles.sheetHandle} />
+          <Animated.View style={[styles.sheet, sheetAnimatedStyle]}>
+            <View
+              style={styles.sheetHandle}
+              hitSlop={{ top: 16, bottom: 16, left: 60, right: 60 }}
+              {...panResponder.panHandlers}
+            />
             <Text style={styles.sheetEyebrow}>
               UNIT {unitNumber} · LESSON {currentLesson?.number ?? 2}
             </Text>
@@ -151,22 +226,30 @@ export default function CourseScreen() {
             <Pressable
               style={styles.primaryButton}
               onPress={() => {
-                setShowOptions(false);
-                router.push("/lesson/loading");
+                sheetY.value = withTiming(SCREEN_HEIGHT, { duration: 220 }, (finished) => {
+                  if (finished) {
+                    runOnJS(setShowOptions)(false);
+                    runOnJS(router.push)("/lesson/loading");
+                  }
+                });
               }}>
               <Text style={styles.primaryButtonText}>Continue</Text>
             </Pressable>
             <Pressable
               style={styles.ghostButton}
               onPress={() => {
-                setShowOptions(false);
-                router.push("/lesson/loading");
+                sheetY.value = withTiming(SCREEN_HEIGHT, { duration: 220 }, (finished) => {
+                  if (finished) {
+                    runOnJS(setShowOptions)(false);
+                    runOnJS(router.push)("/lesson/loading");
+                  }
+                });
               }}>
               <Text style={styles.ghostButtonText}>
                 Start course from the beginning
               </Text>
             </Pressable>
-          </View>
+          </Animated.View>
         </View>
       ) : null}
     </View>
@@ -348,11 +431,12 @@ const styles = StyleSheet.create({
     elevation: 10,
   },
   sheetHandle: {
-    width: 48,
-    height: 5,
-    borderRadius: 3,
+    width: 64,
+    height: 8,
+    borderRadius: 4,
     backgroundColor: Colors.border,
     alignSelf: "center",
+    marginBottom: 4,
   },
   sheetEyebrow: {
     fontFamily: Fonts.bodyHeavy,

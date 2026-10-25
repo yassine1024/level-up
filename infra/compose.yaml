@@ -10,6 +10,7 @@ services:
       - "8080:8080"
     environment:
       AGENTS_BASE_URL: http://agents:8000
+      SPRING_H2_CONSOLE_SETTINGS_WEB_ALLOW_OTHERS: "true"
     restart: unless-stopped
 
   agents:

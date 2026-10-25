@@ -67,6 +67,11 @@ function RootLayoutNav() {
           <Stack screenOptions={{ headerShown: false }}>
             <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
             <Stack.Screen name="modal" options={{ presentation: "modal" }} />
+            {/* Disable iOS swipe-back where the flow has its own controls */}
+            <Stack.Screen name="lesson/loading" options={{ gestureEnabled: false }} />
+            <Stack.Screen name="lesson/slides" options={{ gestureEnabled: false }} />
+            <Stack.Screen name="lesson/grammar" options={{ gestureEnabled: false }} />
+            <Stack.Screen name="lesson/complete" options={{ gestureEnabled: false }} />
           </Stack>
         </ThemeProvider>
       </QueryClientProvider>

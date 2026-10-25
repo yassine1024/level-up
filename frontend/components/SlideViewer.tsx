@@ -1,4 +1,4 @@
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { useState } from "react";
@@ -64,9 +64,7 @@ export function SlideViewer({ variant = "vocab", initialSlide }: SlideViewerProp
 
   return (
     <View style={[styles.root, { paddingTop: insets.top }]}>
-      <ScrollView
-        contentContainerStyle={styles.body}
-        showsVerticalScrollIndicator={false}>
+      <View style={[styles.body, { paddingBottom: Math.max(20, insets.bottom + 16) }]}>
         {/* Top bar */}
         <View style={styles.topBar}>
           <Pressable
@@ -137,7 +135,7 @@ export function SlideViewer({ variant = "vocab", initialSlide }: SlideViewerProp
 
         <View style={{ flex: 1, minHeight: 24 }} />
 
-        <View style={styles.navRow}>
+        <View style={[styles.navRow, { marginBottom: 16 }]}>
           <Pressable style={styles.backButton} onPress={handleBack}>
             <Text style={styles.backButtonText}>Back</Text>
           </Pressable>
@@ -145,7 +143,7 @@ export function SlideViewer({ variant = "vocab", initialSlide }: SlideViewerProp
             <Text style={styles.nextButtonText}>Next</Text>
           </Pressable>
         </View>
-      </ScrollView>
+      </View>
     </View>
   );
 }
@@ -156,7 +154,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.background,
   },
   body: {
-    flexGrow: 1,
+    flex: 1,
     paddingHorizontal: 24,
     paddingBottom: 20,
     gap: 14,
