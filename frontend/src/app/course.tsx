@@ -229,7 +229,7 @@ export default function CourseScreen() {
                 sheetY.value = withTiming(SCREEN_HEIGHT, { duration: 220 }, (finished) => {
                   if (finished) {
                     runOnJS(setShowOptions)(false);
-                    runOnJS(router.push)("/lesson/loading");
+                    runOnJS(router.push)("/lesson/slides");
                   }
                 });
               }}>
@@ -241,7 +241,7 @@ export default function CourseScreen() {
                 sheetY.value = withTiming(SCREEN_HEIGHT, { duration: 220 }, (finished) => {
                   if (finished) {
                     runOnJS(setShowOptions)(false);
-                    runOnJS(router.push)("/lesson/loading");
+                    runOnJS(router.push)("/lesson/slides?start=0");
                   }
                 });
               }}>

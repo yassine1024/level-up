@@ -1,36 +1,53 @@
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { router, useLocalSearchParams } from "expo-router";
+import { router } from "expo-router";
+import { useState } from "react";
 
 import { Colors, Fonts, Radii } from "@/constants/theme";
 import { StudentBottomNav } from "@/components/StudentBottomNav";
-import { Chip } from "@/components/Chip";
+import { Ionicons } from "@expo/vector-icons";
+
+const TABS = ["Speaking", "Writing", "Listening", "Practising"] as const;
+type Tab = (typeof TABS)[number];
+
+const GAMES: Record<Tab, { key: string; title: string; sub: string; count: string; route: string; locked?: boolean }[]> = {
+  Speaking: [{ key: "speaking", title: "Speaking", sub: "Coming soon", count: "Soon", route: "", locked: true }],
+  Writing: [
+    { key: "fill", title: "Fill in the blank", sub: "Complete the sentence", count: "3 questions", route: "/practice/fill-blank" },
+  ],
+  Listening: [{ key: "listening", title: "Listening", sub: "Coming soon", count: "Soon", route: "", locked: true }],
+  Practising: [
+    { key: "quiz", title: "Quiz", sub: "Choose the right answer", count: "3 questions", route: "/practice/quiz" },
+  ],
+};
 
 export default function PracticeGamesScreen() {
   const insets = useSafeAreaInsets();
-  const games = [
-    { key: "quiz", title: "Quiz", sub: "Choose the right answer", count: "3 questions" },
-    { key: "fill", title: "Fill in the blank", sub: "Complete the sentence", count: "3 questions" },
-    { key: "match", title: "Word match", sub: "More games later", count: "Soon" },
-  ];
+  const [tab, setTab] = useState<Tab>("Practising");
+  const games = GAMES[tab];
+
   return (
     <View style={[styles.root, { paddingTop: insets.top }]}>
       <ScrollView contentContainerStyle={styles.body} showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
           <Text style={styles.title}>Practice course</Text>
-          <Chip label="Level A1" variant="amber" />
         </View>
         <View style={styles.tabs}>
-          {["Speaking", "Writing", "Listening", "Practising"].map((t, i) => (
-            <View key={t} style={[styles.tab, i === 3 && styles.tabOn]}>
-              <Text style={[styles.tabText, i === 3 && styles.tabTextOn]}>{t}</Text>
-            </View>
+          {TABS.map((t, i) => (
+            <Pressable key={t} onPress={() => setTab(t)} style={styles.tab}>
+              <Text style={[styles.tabText, tab === t && styles.tabTextOn]}>{t}</Text>
+              {i < TABS.length - 1 ? <View style={styles.tabDivider} /> : null}
+            </Pressable>
           ))}
         </View>
         <Text style={styles.unit}>Unit 1 · Lesson 2</Text>
         <Text style={styles.pick}>Pick a game</Text>
         {games.map((g) => (
-          <Pressable key={g.key} style={styles.gameCard} onPress={() => router.push("/practice/quiz" as any)}>
+          <Pressable
+            key={g.key}
+            style={[styles.gameCard, g.locked && styles.gameCardLocked]}
+            onPress={() => (g.locked ? null : router.push(g.route as any))}
+            disabled={g.locked}>
             <View style={{ flex: 1 }}>
               <Text style={styles.gameTitle}>{g.title}</Text>
               <Text style={styles.gameSub}>{g.sub}</Text>
@@ -39,23 +56,27 @@ export default function PracticeGamesScreen() {
           </Pressable>
         ))}
       </ScrollView>
-      <StudentBottomNav active="practice" onCoursePress={() => router.push("/course")} onPracticePress={() => {}} />
+      <StudentBottomNav
+        active="practice"
+        onCoursePress={() => router.push("/course")}
+        onPracticePress={() => {}}
+      />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: Colors.background },
-  body: { paddingHorizontal: 24, paddingTop: 24, paddingBottom: 16, gap: 12 },
-  header: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
+  body: { paddingHorizontal: 24, paddingTop: 24, paddingBottom: 16, gap: 16 },
+  header: { marginBottom: 4 },
   title: { fontFamily: Fonts.heading, fontSize: 22, color: Colors.text },
-  tabs: { flexDirection: "row", gap: 8, flexWrap: "wrap" },
-  tab: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 12, backgroundColor: Colors.white, borderWidth: 2, borderColor: Colors.cardBorder },
-  tabOn: { backgroundColor: Colors.primary, borderColor: Colors.primary },
-  tabText: { fontFamily: Fonts.bodyHeavy, fontSize: 12, color: Colors.muted },
-  tabTextOn: { color: Colors.white },
-  unit: { fontFamily: Fonts.bodyHeavy, fontSize: 12, color: Colors.primaryDark, marginTop: 4 },
-  pick: { fontFamily: Fonts.heading, fontSize: 18, color: Colors.text },
+  tabs: { flexDirection: "row", borderBottomWidth: 2, borderColor: Colors.cardBorder },
+  tab: { flex: 1, alignItems: "center", paddingVertical: 10, position: "relative" },
+  tabText: { fontFamily: Fonts.body, fontSize: 13, color: Colors.muted },
+  tabTextOn: { fontFamily: Fonts.bodyHeavy, color: Colors.text },
+  tabDivider: { position: "absolute", right: 0, top: 8, bottom: 8, width: 1, backgroundColor: Colors.cardBorder },
+  unit: { fontFamily: Fonts.bodyHeavy, fontSize: 13, color: Colors.muted, marginTop: 4 },
+  pick: { fontFamily: Fonts.heading, fontSize: 16, color: Colors.text },
   gameCard: {
     backgroundColor: Colors.white,
     borderWidth: 2,
@@ -66,7 +87,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 12,
   },
-  gameTitle: { fontFamily: Fonts.heading, fontSize: 17, color: Colors.text },
+  gameCardLocked: { opacity: 0.5 },
+  gameTitle: { fontFamily: Fonts.heading, fontSize: 18, color: Colors.text },
   gameSub: { fontFamily: Fonts.body, fontSize: 13, color: Colors.muted, marginTop: 2 },
-  gameCount: { fontFamily: Fonts.bodyHeavy, fontSize: 12, color: Colors.primaryDark },
+  gameCount: { fontFamily: Fonts.bodyHeavy, fontSize: 12, color: Colors.muted },
 });
