@@ -1,14 +1,26 @@
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { router } from "expo-router";
+import { useEffect } from "react";
 import { Ionicons } from "@expo/vector-icons";
 
 import { Colors, Fonts, Radii } from "@/constants/theme";
 import { Chip } from "@/components/Chip";
 import { StudentBottomNav } from "@/components/StudentBottomNav";
+import { useCourse } from "@/src/hooks/useCourse";
+import { useCompleteLesson } from "@/src/hooks/useProgress";
 
 export default function UnitCompleteScreen() {
   const insets = useSafeAreaInsets();
+  const courseQuery = useCourse();
+  const completeLesson = useCompleteLesson();
+  const lessonId = courseQuery.data?.currentUnit?.currentLesson?.id;
+
+  useEffect(() => {
+    if (lessonId) {
+      completeLesson.mutate(lessonId);
+    }
+  }, [lessonId, completeLesson]);
 
   return (
     <View style={[styles.root, { paddingTop: insets.top }]}>

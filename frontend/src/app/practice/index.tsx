@@ -39,6 +39,28 @@ export default function PracticeHomeScreen() {
           </View>
           <Text style={styles.meet}>Open games</Text>
         </Pressable>
+
+        <Pressable style={styles.card} onPress={() => router.push("/practice/writing" as any)}>
+          <View style={styles.cardIcon}>
+            <Ionicons name="create-outline" size={22} color={Colors.primaryDark} />
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.cardTitle}>Writing</Text>
+            <Text style={styles.cardSub}>Write and get feedback on your answers.</Text>
+          </View>
+          <Text style={styles.meet}>Open</Text>
+        </Pressable>
+
+        <Pressable style={styles.card} onPress={() => router.push("/practice/mistakes" as any)}>
+          <View style={styles.cardIcon}>
+            <Ionicons name="alert-circle-outline" size={22} color={Colors.primaryDark} />
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.cardTitle}>Your mistakes</Text>
+            <Text style={styles.cardSub}>Review mistakes and explanations.</Text>
+          </View>
+          <Text style={styles.meet}>Open</Text>
+        </Pressable>
       </ScrollView>
       <StudentBottomNav active="practice" onCoursePress={() => router.push("/course")} onPracticePress={() => {}} />
     </View>

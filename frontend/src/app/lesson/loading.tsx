@@ -5,16 +5,35 @@ import { useEffect } from "react";
 
 import { Colors, Fonts, Radii } from "@/constants/theme";
 import { Chip } from "@/components/Chip";
+import { useCourse } from "@/src/hooks/useCourse";
+import { useGenerateSlides } from "@/src/hooks/useSlides";
 
 export default function LoadingSlidesScreen() {
   const insets = useSafeAreaInsets();
+  const courseQuery = useCourse();
+  const generateSlides = useGenerateSlides();
+  const lessonId = courseQuery.data?.currentUnit?.currentLesson?.id;
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      router.replace("/lesson/slides");
-    }, 2200);
-    return () => clearTimeout(timer);
-  }, []);
+    let cancelled = false;
+    const run = async () => {
+      if (lessonId) {
+        try {
+          await generateSlides.mutateAsync({ lessonId });
+        } catch {
+          // Fall through to the viewer even if generation fails.
+        }
+      }
+      if (!cancelled) {
+        router.replace("/lesson/slides");
+      }
+    };
+    const timer = setTimeout(run, 600);
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [lessonId, generateSlides]);
 
   return (
     <View style={[styles.root, { paddingTop: insets.top + 24 }]}>
@@ -38,55 +57,17 @@ export default function LoadingSlidesScreen() {
             <Text style={styles.stepText}>Adding mini exercises</Text>
           </View>
         </View>
-        <View style={{ height: 80 }} />
       </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  root: {
-    flex: 1,
-    backgroundColor: Colors.background,
-  },
-  body: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    paddingHorizontal: 24,
-    gap: 18,
-    textAlign: "center",
-  },
-  title: {
-    fontFamily: Fonts.heading,
-    fontSize: 28,
-    color: Colors.text,
-  },
-  subtitle: {
-    fontFamily: Fonts.body,
-    fontSize: 15,
-    lineHeight: 22,
-    color: Colors.muted,
-    textAlign: "center",
-  },
-  card: {
-    width: "100%",
-    backgroundColor: Colors.white,
-    borderWidth: 2,
-    borderColor: Colors.cardBorder,
-    borderRadius: Radii.card,
-    padding: 16,
-    gap: 10,
-  },
-  row: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-  },
-  stepText: {
-    fontFamily: Fonts.bodyBold,
-    fontSize: 13,
-    color: Colors.text,
-    flex: 1,
-  },
+  root: { flex: 1, backgroundColor: Colors.background },
+  body: { flex: 1, alignItems: "center", justifyContent: "center", paddingHorizontal: 24, gap: 12 },
+  title: { fontFamily: Fonts.heading, fontSize: 22, color: Colors.text, textAlign: "center" },
+  subtitle: { fontFamily: Fonts.body, fontSize: 15, color: Colors.muted, textAlign: "center" },
+  card: { width: "100%", backgroundColor: Colors.white, borderWidth: 2, borderColor: Colors.cardBorder, borderRadius: Radii.card, padding: 16, gap: 12 },
+  row: { flexDirection: "row", alignItems: "center", gap: 12 },
+  stepText: { fontFamily: Fonts.body, fontSize: 14, color: Colors.text },
 });

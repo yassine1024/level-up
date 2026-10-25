@@ -149,3 +149,105 @@ export interface StudentCourse {
   currentUnit: StudentCurrentUnit;
   nextUnits: StudentNextUnit[];
 }
+
+// ── Student · placement test ─────────────────────────────────────────────
+export interface PlacementQuestion {
+  id: number;
+  prompt: string;
+  optionA: string;
+  optionB: string;
+  optionC: string;
+  optionD: string;
+  sortOrder: number;
+}
+
+export interface PlacementAnswer {
+  questionId: number;
+  selectedOption: string;
+}
+
+export interface PlacementAttemptRequest {
+  answers: PlacementAnswer[];
+}
+
+export interface PlacementAttemptResponse {
+  attemptId: number;
+  score: number;
+  totalQuestions: number;
+  assignedLevelId: string;
+  assignedLevelName: string;
+}
+
+// ── Student · slides / progress ──────────────────────────────────────────
+export interface SlideDeck {
+  lessonId: number;
+  cached: boolean;
+  contentVersion: number;
+  language: string;
+  slides: unknown;
+}
+
+export interface Progress {
+  lessonId: number;
+  status: string;
+  lastSlideIndex: number;
+}
+
+// ── Student · practice sessions ──────────────────────────────────────────
+export type GameType = "QUIZ" | "FILL_BLANK";
+
+export interface PracticeQuestion {
+  index: number;
+  prompt: string;
+  options: string[];
+}
+
+export interface PracticeSession {
+  sessionId: number;
+  lessonId: number;
+  gameType: GameType;
+  questions: PracticeQuestion[];
+}
+
+export interface PracticeAnswer {
+  questionIndex: number;
+  answer: string;
+}
+
+export interface PracticeAnswerResponse {
+  questionIndex: number;
+  correct: boolean;
+  correction: string;
+  explanation: string;
+}
+
+export interface PracticeFinishResponse {
+  sessionId: number;
+  score: number;
+  totalQuestions: number;
+  summary: string;
+}
+
+// ── Student · writing ────────────────────────────────────────────────────
+export interface WritingTask {
+  lessonId: number;
+  instructions: string;
+}
+
+export interface WritingSubmission {
+  submissionId: number;
+  lessonId: number;
+  text: string;
+  feedback: string;
+}
+
+// ── Student · mistakes ───────────────────────────────────────────────────
+export interface StudentMistake {
+  id: number;
+  lessonId: number;
+  prompt: string;
+  studentAnswer: string;
+  correction: string;
+  explanation: string;
+  createdAt: string;
+}

@@ -6,6 +6,17 @@ import type {
   SaveResourcesResponse,
   StudentCourse,
   User,
+  PlacementQuestion,
+  PlacementAttemptResponse,
+  SlideDeck,
+  Progress,
+  GameType,
+  PracticeSession,
+  PracticeAnswerResponse,
+  PracticeFinishResponse,
+  WritingTask,
+  WritingSubmission,
+  StudentMistake,
 } from "@/src/types/api";
 
 // Simulated network delay for mock responses.
@@ -117,5 +128,150 @@ export const mockApi = {
   ): Promise<SaveResourcesResponse> {
     await delay(700);
     return { lessonId, savedAt: new Date().toISOString() };
+  },
+
+  async getPlacementQuestions(): Promise<PlacementQuestion[]> {
+    await delay();
+    return [
+      {
+        id: 1,
+        prompt: "She ____ to school every day.",
+        optionA: "go",
+        optionB: "goes",
+        optionC: "going",
+        optionD: "gone",
+        sortOrder: 1,
+      },
+    ];
+  },
+
+  async submitPlacementAttempt(_payload: {
+    answers: { questionId: number; selectedOption: string }[];
+  }): Promise<PlacementAttemptResponse> {
+    await delay();
+    return {
+      attemptId: 1,
+      score: 6,
+      totalQuestions: 15,
+      assignedLevelId: "A1",
+      assignedLevelName: "Beginner",
+    };
+  },
+
+  async generateSlides(lessonId: number, language = "EN"): Promise<SlideDeck> {
+    await delay(900);
+    return {
+      lessonId,
+      cached: false,
+      contentVersion: 1,
+      language,
+      slides: null,
+    };
+  },
+
+  async updateProgress(
+    lessonId: number,
+    lastSlideIndex: number
+  ): Promise<Progress> {
+    await delay();
+    return { lessonId, status: "IN_PROGRESS", lastSlideIndex };
+  },
+
+  async completeLesson(lessonId: number): Promise<Progress> {
+    await delay();
+    return { lessonId, status: "COMPLETED", lastSlideIndex: 8 };
+  },
+
+  async startPracticeSession(
+    lessonId: number,
+    gameType: GameType
+  ): Promise<PracticeSession> {
+    await delay();
+    const questions =
+      gameType === "QUIZ"
+        ? [
+            {
+              index: 0,
+              prompt: "How do you say your name?",
+              options: [
+                "I am name Sara.",
+                "My name is Sara.",
+                "Name my Sara.",
+                "Me call Sara.",
+              ],
+            },
+          ]
+        : [
+            {
+              index: 0,
+              prompt: "She ____ to school every day.",
+              options: ["goes", "go", "going", "gone"],
+            },
+          ];
+    return { sessionId: 1, lessonId, gameType, questions };
+  },
+
+  async submitPracticeAnswer(
+    _sessionId: number,
+    questionIndex: number,
+    answer: string
+  ): Promise<PracticeAnswerResponse> {
+    await delay();
+    const correct = answer === "My name is Sara." || answer === "goes";
+    return {
+      questionIndex,
+      correct,
+      correction: correct ? answer : "goes",
+      explanation: "In the present simple, he, she and it need -s.",
+    };
+  },
+
+  async finishPracticeSession(
+    sessionId: number
+  ): Promise<PracticeFinishResponse> {
+    await delay();
+    return {
+      sessionId,
+      score: 2,
+      totalQuestions: 3,
+      summary: "Good work.",
+    };
+  },
+
+  async getWritingTask(lessonId: number): Promise<WritingTask> {
+    await delay();
+    return {
+      lessonId,
+      instructions:
+        "Write 5 sentences about your daily routine. Use the present simple and at least 5 words from this lesson.",
+    };
+  },
+
+  async submitWriting(
+    lessonId: number,
+    text: string
+  ): Promise<WritingSubmission> {
+    await delay();
+    return {
+      submissionId: 1,
+      lessonId,
+      text,
+      feedback: "Good work. Two small verb mistakes to fix.",
+    };
+  },
+
+  async getMistakes(): Promise<StudentMistake[]> {
+    await delay();
+    return [
+      {
+        id: 1,
+        lessonId: 1012,
+        prompt: "She ____ to school every day.",
+        studentAnswer: "go",
+        correction: "goes",
+        explanation: "He, she and it take -s in the present simple.",
+        createdAt: new Date().toISOString(),
+      },
+    ];
   },
 };

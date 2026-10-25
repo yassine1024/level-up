@@ -1,29 +1,93 @@
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { router } from "expo-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { Colors, Fonts, Radii } from "@/constants/theme";
 import { StudentBottomNav } from "@/components/StudentBottomNav";
 import { Ionicons } from "@expo/vector-icons";
-
-const options = ["goes", "go", "going", "gone"];
+import { useCourse } from "@/src/hooks/useCourse";
+import {
+  useStartPracticeSession,
+  useSubmitPracticeAnswer,
+  useFinishPracticeSession,
+} from "@/src/hooks/usePracticeSession";
 
 export default function PracticeFillBlankScreen() {
   const insets = useSafeAreaInsets();
+  const courseQuery = useCourse();
+  const lessonId = courseQuery.data?.currentUnit?.currentLesson?.id ?? 1012;
+
+  const startSession = useStartPracticeSession();
+  const submitAnswer = useSubmitPracticeAnswer();
+  const finishSession = useFinishPracticeSession();
+
+  const [sessionId, setSessionId] = useState<number | null>(null);
+  const [questions, setQuestions] = useState<
+    { prompt: string; options: string[] }[]
+  >([]);
+  const [current, setCurrent] = useState(0);
   const [selected, setSelected] = useState<string | null>(null);
   const [showFeedback, setShowFeedback] = useState(false);
-  const sentence = "She _____ to school every day.";
-  const correctAnswer = "goes";
+  const [feedback, setFeedback] = useState<string | null>(null);
+  const [correctAnswer, setCorrectAnswer] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    startSession
+      .mutateAsync({ lessonId, gameType: "FILL_BLANK" })
+      .then((session) => {
+        if (cancelled) return;
+        setSessionId(session.sessionId);
+        setQuestions(
+          session.questions.map((q) => ({ prompt: q.prompt, options: q.options }))
+        );
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [lessonId, startSession]);
+
+  const currentQuestion = questions[current];
 
   const handleSelect = (opt: string) => {
+    if (showFeedback) return;
     setSelected(opt);
-    setShowFeedback(true);
   };
 
-  const handleContinue = () => {
-    if (!showFeedback) setShowFeedback(true);
-    else router.push("/practice/result" as any);
+  const handleCheck = async () => {
+    if (!sessionId || !selected || showFeedback) return;
+    try {
+      const res = await submitAnswer.mutateAsync({
+        sessionId,
+        questionIndex: current,
+        answer: selected,
+      });
+      setCorrectAnswer(res.correction);
+      setFeedback(res.explanation);
+      setShowFeedback(true);
+    } catch {
+      setFeedback("Could not check answer.");
+      setShowFeedback(true);
+    }
+  };
+
+  const handleContinue = async () => {
+    if (current < questions.length - 1) {
+      setCurrent((c) => c + 1);
+      setSelected(null);
+      setShowFeedback(false);
+      setFeedback(null);
+      setCorrectAnswer(null);
+    } else if (sessionId) {
+      try {
+        await finishSession.mutateAsync(sessionId);
+      } catch {
+        // ignore
+      }
+      router.push("/practice/result" as any);
+    }
   };
 
   return (
@@ -34,32 +98,63 @@ export default function PracticeFillBlankScreen() {
             <Ionicons name="chevron-back" size={24} color={Colors.text} />
           </Pressable>
           <Text style={styles.title}>Fill in the blank</Text>
+          <Text style={styles.count}>
+            {questions.length ? `${current + 1} / ${questions.length}` : "…"}
+          </Text>
         </View>
-        <View style={styles.card}>
-          <Text style={styles.question}>{sentence.replace("_____", selected ?? "")}</Text>
-        </View>
-        <View style={styles.options}>
-          {options.map((opt) => (
-            <Pressable key={opt} style={[styles.option, selected === opt && styles.optionSelected]} onPress={() => handleSelect(opt)}>
-              <Text style={selected === opt ? styles.optionTextSelected : styles.optionText}>{opt}</Text>
-            </Pressable>
-          ))}
-        </View>
-        {showFeedback && selected && (
-          <View style={styles.feedbackCard}>
-            <Text style={styles.feedbackTitle}>
-              {selected === correctAnswer ? "Correct!" : "Not quite"}
-            </Text>
-            {selected !== correctAnswer && (
-              <Text style={styles.feedbackText}>Correct answer: {correctAnswer}. With he, she or it we add -s to the verb.</Text>
+        {currentQuestion ? (
+          <>
+            <View style={styles.card}>
+              <Text style={styles.question}>{currentQuestion.prompt}</Text>
+            </View>
+            <View style={styles.optionsRow}>
+              {currentQuestion.options.map((opt) => (
+                <Pressable
+                  key={opt}
+                  style={[
+                    styles.option,
+                    selected === opt && styles.optionSelected,
+                  ]}
+                  onPress={() => handleSelect(opt)}>
+                  <Text
+                    style={
+                      selected === opt ? styles.optionTextSelected : styles.optionText
+                    }>
+                    {opt}
+                  </Text>
+                </Pressable>
+              ))}
+            </View>
+            {showFeedback ? (
+              <View style={styles.feedbackCard}>
+                <Text style={styles.feedbackTitle}>
+                  {selected === correctAnswer ? "Correct" : "Not quite"}
+                </Text>
+                <Text style={styles.feedbackText}>
+                  Correct answer: {correctAnswer}.{" "}
+                  {feedback ?? "With he, she or it we add -s to the verb."}
+                </Text>
+                <Pressable style={styles.continueButton} onPress={handleContinue}>
+                  <Text style={styles.continueButtonText}>Continue</Text>
+                </Pressable>
+              </View>
+            ) : (
+              <Pressable style={styles.checkButton} onPress={handleCheck}>
+                <Text style={styles.checkButtonText}>Check</Text>
+              </Pressable>
             )}
+          </>
+        ) : (
+          <View style={{ padding: 24, alignItems: "center" }}>
+            <Text style={{ color: Colors.muted }}>Loading questions…</Text>
           </View>
         )}
-        <Pressable style={styles.primaryButton} onPress={handleContinue}>
-          <Text style={styles.primaryButtonText}>{showFeedback && selected ? "Continue" : "Check"}</Text>
-        </Pressable>
       </ScrollView>
-      <StudentBottomNav active="practice" onCoursePress={() => router.push("/course")} onPracticePress={() => {}} />
+      <StudentBottomNav
+        active="practice"
+        onCoursePress={() => router.push("/course")}
+        onPracticePress={() => {}}
+      />
     </View>
   );
 }
@@ -67,8 +162,9 @@ export default function PracticeFillBlankScreen() {
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: Colors.background },
   body: { paddingHorizontal: 24, paddingTop: 24, paddingBottom: 16, gap: 16 },
-  header: { flexDirection: "row", alignItems: "center" },
-  title: { fontFamily: Fonts.heading, fontSize: 18, color: Colors.text, marginLeft: -24 },
+  header: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
+  title: { fontFamily: Fonts.heading, fontSize: 18, color: Colors.text },
+  count: { fontFamily: Fonts.bodyHeavy, fontSize: 13, color: Colors.muted },
   card: {
     backgroundColor: Colors.white,
     borderWidth: 2,
@@ -76,42 +172,44 @@ const styles = StyleSheet.create({
     borderRadius: Radii.card,
     padding: 16,
   },
-  question: { fontFamily: Fonts.body, fontSize: 16, color: Colors.muted },
-  options: { flexDirection: "row", gap: 12, flexWrap: "wrap" },
+  question: { fontFamily: Fonts.heading, fontSize: 18, color: Colors.text },
+  optionsRow: { flexDirection: "row", flexWrap: "wrap", gap: 12 },
   option: {
-    flex: 1,
-    minWidth: 70,
-    backgroundColor: Colors.white,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: Radii.input,
     borderWidth: 2,
     borderColor: Colors.cardBorder,
-    borderRadius: 12,
-    paddingVertical: 12,
-    alignItems: "center",
-    justifyContent: "center",
+    backgroundColor: Colors.white,
   },
   optionSelected: { borderColor: Colors.primary, backgroundColor: Colors.primaryLight },
-  optionText: { fontFamily: Fonts.bodyHeavy, fontSize: 14, color: Colors.muted },
-  optionTextSelected: { fontFamily: Fonts.bodyHeavy, fontSize: 14, color: Colors.primaryDark },
+  optionText: { fontFamily: Fonts.body, fontSize: 16, color: Colors.text },
+  optionTextSelected: { fontFamily: Fonts.bodyHeavy, fontSize: 16, color: Colors.primaryDark },
   feedbackCard: {
-    backgroundColor: Colors.primaryLight,
+    backgroundColor: Colors.board,
+    borderWidth: 2,
+    borderStyle: "dashed",
+    borderColor: Colors.cardBorder,
     borderRadius: Radii.card,
     padding: 16,
-    borderLeftWidth: 4,
-    borderLeftColor: Colors.primary,
+    gap: 8,
   },
-  feedbackTitle: { fontFamily: Fonts.bodyHeavy, fontSize: 14, color: Colors.primaryDark },
-  feedbackText: { fontFamily: Fonts.body, fontSize: 13, color: Colors.primaryDark, marginTop: 6, lineHeight: 18 },
-  primaryButton: {
+  feedbackTitle: { fontFamily: Fonts.heading, fontSize: 16, color: Colors.text },
+  feedbackText: { fontFamily: Fonts.body, fontSize: 14, color: Colors.muted, lineHeight: 20 },
+  checkButton: {
     height: 54,
     borderRadius: Radii.button,
     backgroundColor: Colors.primary,
     alignItems: "center",
     justifyContent: "center",
-    shadowColor: Colors.primaryDark,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 1,
-    shadowRadius: 0,
-    elevation: 4,
   },
-  primaryButtonText: { fontFamily: Fonts.bodyHeavy, fontSize: 16, color: Colors.white },
+  checkButtonText: { fontFamily: Fonts.bodyHeavy, fontSize: 16, color: Colors.white },
+  continueButton: {
+    height: 48,
+    borderRadius: Radii.button,
+    backgroundColor: Colors.primary,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  continueButtonText: { fontFamily: Fonts.bodyHeavy, fontSize: 16, color: Colors.white },
 });

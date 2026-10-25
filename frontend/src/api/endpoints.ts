@@ -11,6 +11,18 @@ import type {
   SaveResourcesResponse,
   StudentCourse,
   User,
+  PlacementQuestion,
+  PlacementAnswer,
+  PlacementAttemptResponse,
+  SlideDeck,
+  Progress,
+  GameType,
+  PracticeSession,
+  PracticeAnswerResponse,
+  PracticeFinishResponse,
+  WritingTask,
+  WritingSubmission,
+  StudentMistake,
 } from "@/src/types/api";
 
 export const userApi = {
@@ -164,13 +176,245 @@ export const studentApi = {
       return mockApi.getCourse();
     }
     try {
-      const res = await apiClient.get("/api/me/course");
+      const res = await apiClient.get("/api/student/course");
       return res.data as StudentCourse;
     } catch (error) {
       const status = (error as { response?: { status?: number } })?.response
         ?.status;
       if (status && NOT_IMPLEMENTED.includes(status)) {
         return mockApi.getCourse();
+      }
+      throw error;
+    }
+  },
+
+  async getPlacementQuestions(): Promise<PlacementQuestion[]> {
+    if (API_MODE === "mock") {
+      return mockApi.getPlacementQuestions();
+    }
+    try {
+      const res = await apiClient.get("/api/student/placement-test/questions");
+      return res.data as PlacementQuestion[];
+    } catch (error) {
+      const status = (error as { response?: { status?: number } })?.response
+        ?.status;
+      if (status && NOT_IMPLEMENTED.includes(status)) {
+        return mockApi.getPlacementQuestions();
+      }
+      throw error;
+    }
+  },
+
+  async submitPlacementAttempt(
+    payload: { answers: PlacementAnswer[] }
+  ): Promise<PlacementAttemptResponse> {
+    if (API_MODE === "mock") {
+      return mockApi.submitPlacementAttempt(payload);
+    }
+    try {
+      const res = await apiClient.post(
+        "/api/student/placement-test/attempts",
+        payload
+      );
+      return res.data as PlacementAttemptResponse;
+    } catch (error) {
+      const status = (error as { response?: { status?: number } })?.response
+        ?.status;
+      if (status && NOT_IMPLEMENTED.includes(status)) {
+        return mockApi.submitPlacementAttempt(payload);
+      }
+      throw error;
+    }
+  },
+
+  async generateSlides(
+    lessonId: number,
+    language = "EN"
+  ): Promise<SlideDeck> {
+    if (API_MODE === "mock") {
+      return mockApi.generateSlides(lessonId, language);
+    }
+    try {
+      const res = await apiClient.post(
+        `/api/student/lessons/${lessonId}/slides/generate`,
+        null,
+        { params: { language } }
+      );
+      return res.data as SlideDeck;
+    } catch (error) {
+      const status = (error as { response?: { status?: number } })?.response
+        ?.status;
+      if (status && NOT_IMPLEMENTED.includes(status)) {
+        return mockApi.generateSlides(lessonId, language);
+      }
+      throw error;
+    }
+  },
+
+  async updateProgress(
+    lessonId: number,
+    lastSlideIndex: number
+  ): Promise<Progress> {
+    if (API_MODE === "mock") {
+      return mockApi.updateProgress(lessonId, lastSlideIndex);
+    }
+    try {
+      const res = await apiClient.patch(
+        `/api/student/lessons/${lessonId}/progress`,
+        { lastSlideIndex }
+      );
+      return res.data as Progress;
+    } catch (error) {
+      const status = (error as { response?: { status?: number } })?.response
+        ?.status;
+      if (status && NOT_IMPLEMENTED.includes(status)) {
+        return mockApi.updateProgress(lessonId, lastSlideIndex);
+      }
+      throw error;
+    }
+  },
+
+  async completeLesson(lessonId: number): Promise<Progress> {
+    if (API_MODE === "mock") {
+      return mockApi.completeLesson(lessonId);
+    }
+    try {
+      const res = await apiClient.post(
+        `/api/student/lessons/${lessonId}/complete`
+      );
+      return res.data as Progress;
+    } catch (error) {
+      const status = (error as { response?: { status?: number } })?.response
+        ?.status;
+      if (status && NOT_IMPLEMENTED.includes(status)) {
+        return mockApi.completeLesson(lessonId);
+      }
+      throw error;
+    }
+  },
+
+  async startPracticeSession(
+    lessonId: number,
+    gameType: GameType
+  ): Promise<PracticeSession> {
+    if (API_MODE === "mock") {
+      return mockApi.startPracticeSession(lessonId, gameType);
+    }
+    try {
+      const res = await apiClient.post(
+        `/api/student/lessons/${lessonId}/practice-sessions`,
+        { gameType }
+      );
+      return res.data as PracticeSession;
+    } catch (error) {
+      const status = (error as { response?: { status?: number } })?.response
+        ?.status;
+      if (status && NOT_IMPLEMENTED.includes(status)) {
+        return mockApi.startPracticeSession(lessonId, gameType);
+      }
+      throw error;
+    }
+  },
+
+  async submitPracticeAnswer(
+    sessionId: number,
+    questionIndex: number,
+    answer: string
+  ): Promise<PracticeAnswerResponse> {
+    if (API_MODE === "mock") {
+      return mockApi.submitPracticeAnswer(sessionId, questionIndex, answer);
+    }
+    try {
+      const res = await apiClient.post(
+        `/api/student/practice-sessions/${sessionId}/answers`,
+        { questionIndex, answer }
+      );
+      return res.data as PracticeAnswerResponse;
+    } catch (error) {
+      const status = (error as { response?: { status?: number } })?.response
+        ?.status;
+      if (status && NOT_IMPLEMENTED.includes(status)) {
+        return mockApi.submitPracticeAnswer(sessionId, questionIndex, answer);
+      }
+      throw error;
+    }
+  },
+
+  async finishPracticeSession(
+    sessionId: number
+  ): Promise<PracticeFinishResponse> {
+    if (API_MODE === "mock") {
+      return mockApi.finishPracticeSession(sessionId);
+    }
+    try {
+      const res = await apiClient.post(
+        `/api/student/practice-sessions/${sessionId}/finish`
+      );
+      return res.data as PracticeFinishResponse;
+    } catch (error) {
+      const status = (error as { response?: { status?: number } })?.response
+        ?.status;
+      if (status && NOT_IMPLEMENTED.includes(status)) {
+        return mockApi.finishPracticeSession(sessionId);
+      }
+      throw error;
+    }
+  },
+
+  async getWritingTask(lessonId: number): Promise<WritingTask> {
+    if (API_MODE === "mock") {
+      return mockApi.getWritingTask(lessonId);
+    }
+    try {
+      const res = await apiClient.get(
+        `/api/student/lessons/${lessonId}/writing-task`
+      );
+      return res.data as WritingTask;
+    } catch (error) {
+      const status = (error as { response?: { status?: number } })?.response
+        ?.status;
+      if (status && NOT_IMPLEMENTED.includes(status)) {
+        return mockApi.getWritingTask(lessonId);
+      }
+      throw error;
+    }
+  },
+
+  async submitWriting(
+    lessonId: number,
+    text: string
+  ): Promise<WritingSubmission> {
+    if (API_MODE === "mock") {
+      return mockApi.submitWriting(lessonId, text);
+    }
+    try {
+      const res = await apiClient.post(
+        `/api/student/lessons/${lessonId}/writing-submissions`,
+        { text }
+      );
+      return res.data as WritingSubmission;
+    } catch (error) {
+      const status = (error as { response?: { status?: number } })?.response
+        ?.status;
+      if (status && NOT_IMPLEMENTED.includes(status)) {
+        return mockApi.submitWriting(lessonId, text);
+      }
+      throw error;
+    }
+  },
+
+  async getMistakes(): Promise<StudentMistake[]> {
+    if (API_MODE === "mock") {
+      return mockApi.getMistakes();
+    }
+    try {
+      const res = await apiClient.get("/api/student/mistakes");
+      return res.data as StudentMistake[];
+    } catch (error) {
+      const status = (error as { response?: { status?: number } })?.response
+        ?.status;
+      if (status && NOT_IMPLEMENTED.includes(status)) {
+        return mockApi.getMistakes();
       }
       throw error;
     }
