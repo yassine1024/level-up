@@ -67,10 +67,14 @@ export const teacherApi = {
     try {
       const res = await apiClient.get("/api/lessons/levels");
       return { items: toItems<LessonLevel>(res.data), isDemo: false };
-    } catch {
-      // The lessons endpoints are not served by the backend yet: keep the
-      // screen usable with the mock course and flag it as demo data.
-      return { items: await mockApi.getLessonLevels(), isDemo: true };
+    } catch (error) {
+      // Fall back to mock data only when the endpoint is not implemented yet.
+      const status = (error as { response?: { status?: number } })?.response
+        ?.status;
+      if (status && NOT_IMPLEMENTED.includes(status)) {
+        return { items: await mockApi.getLessonLevels(), isDemo: true };
+      }
+      throw error;
     }
   },
 
@@ -81,8 +85,13 @@ export const teacherApi = {
     try {
       const res = await apiClient.get(`/api/lessons/levels/${levelId}/units`);
       return { items: toItems<LessonUnit>(res.data), isDemo: false };
-    } catch {
-      return { items: await mockApi.getLessonUnits(levelId), isDemo: true };
+    } catch (error) {
+      const status = (error as { response?: { status?: number } })?.response
+        ?.status;
+      if (status && NOT_IMPLEMENTED.includes(status)) {
+        return { items: await mockApi.getLessonUnits(levelId), isDemo: true };
+      }
+      throw error;
     }
   },
 
@@ -93,8 +102,13 @@ export const teacherApi = {
     try {
       const res = await apiClient.get(`/api/units/${unitId}/lessons`);
       return { items: toItems<Lesson>(res.data), isDemo: false };
-    } catch {
-      return { items: await mockApi.getLessons(unitId), isDemo: true };
+    } catch (error) {
+      const status = (error as { response?: { status?: number } })?.response
+        ?.status;
+      if (status && NOT_IMPLEMENTED.includes(status)) {
+        return { items: await mockApi.getLessons(unitId), isDemo: true };
+      }
+      throw error;
     }
   },
 
@@ -152,8 +166,13 @@ export const studentApi = {
     try {
       const res = await apiClient.get("/api/me/course");
       return res.data as StudentCourse;
-    } catch {
-      return mockApi.getCourse();
+    } catch (error) {
+      const status = (error as { response?: { status?: number } })?.response
+        ?.status;
+      if (status && NOT_IMPLEMENTED.includes(status)) {
+        return mockApi.getCourse();
+      }
+      throw error;
     }
   },
 };
