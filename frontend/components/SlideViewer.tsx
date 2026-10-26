@@ -6,6 +6,8 @@ import { Ionicons } from "@expo/vector-icons";
 
 import { Colors, Fonts, Radii } from "@/constants/theme";
 import { Chip } from "@/components/Chip";
+import { useCourse } from "@/src/hooks/useCourse";
+import { useUpdateProgress } from "@/src/hooks/useProgress";
 
 type Variant = "vocab" | "grammar";
 
@@ -54,12 +56,30 @@ export function SlideViewer({ variant = "vocab", initialSlide }: SlideViewerProp
   const [slide, setSlide] = useState(initialSlide ?? content.initial);
   const [lang, setLang] = useState<"EN" | "FR" | "AR">("EN");
 
+  const courseQuery = useCourse();
+  const updateProgress = useUpdateProgress();
+  const lessonId = courseQuery.data?.currentUnit?.currentLesson?.id ?? 1012;
+
+  const pushProgress = (index: number) => {
+    updateProgress.mutate({ lessonId, lastSlideIndex: index });
+  };
+
   const handleBack = () => {
-    if (slide > 0) setSlide((s) => s - 1);
+    if (slide > 0) {
+      const next = slide - 1;
+      setSlide(next);
+      pushProgress(next);
+    }
   };
   const handleNext = () => {
-    if (slide < TOTAL_SLIDES - 1) setSlide((s) => s + 1);
-    else router.push("/lesson/complete");
+    if (slide < TOTAL_SLIDES - 1) {
+      const next = slide + 1;
+      setSlide(next);
+      pushProgress(next);
+    } else {
+      updateProgress.mutate({ lessonId, lastSlideIndex: TOTAL_SLIDES - 1 });
+      router.push("/lesson/complete");
+    }
   };
 
   return (

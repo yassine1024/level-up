@@ -5,18 +5,27 @@ import { router } from "expo-router";
 import { Colors, Fonts, Radii } from "@/constants/theme";
 import { StudentBottomNav } from "@/components/StudentBottomNav";
 import { Chip } from "@/components/Chip";
+import { useMe } from "@/src/hooks/useMe";
+import { useCourse } from "@/src/hooks/useCourse";
 
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
+  const meQuery = useMe();
+  const courseQuery = useCourse();
 
-  const levelLabel = "Level A1";
+  const levelLabel = courseQuery.data
+    ? `Level ${courseQuery.data.levelId}`
+    : "Level A1";
+  const greeting = meQuery.data?.username
+    ? `Hello, ${meQuery.data.username}! Ready to learn?`
+    : "Hello! Ready to learn?";
 
   return (
     <View style={[styles.root, { paddingTop: insets.top }]}>
       <View style={styles.body}>
         <View style={{ height: 8 }} />
         <Chip label={levelLabel} variant="amber" style={{ alignSelf: "flex-start" }} />
-        <Text style={styles.title}>Hello! Ready to learn?</Text>
+        <Text style={styles.title}>{greeting}</Text>
         <Text style={styles.subtitle}>
           Open the Course tab to continue your lesson, or the Practice tab to play.
         </Text>
@@ -27,7 +36,7 @@ export default function HomeScreen() {
       <StudentBottomNav
         active="none"
         onCoursePress={() => router.push("/course")}
-        onPracticePress={() => {}}
+        onPracticePress={() => router.push("/practice")}
       />
     </View>
   );
