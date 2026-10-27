@@ -259,11 +259,16 @@ a spoken message.
 
 ## 11. Phase 10 — Security cleanup (part 2)
 
-- [ ] Retire or admin-gate `/api/agents/stream` once character endpoints exist
-- [ ] Lock down global `permitAll` for production (protect agent-forwarding routes)
-- [ ] Keep agents port unpublished (infra)
+- [x] Retire or admin-gate `/api/agents/stream` once character endpoints exist
+- [x] Lock down global `permitAll` for production (protect agent-forwarding routes)
+- [x] Keep agents port unpublished (infra)
 
 **Acceptance:** no unauthenticated path forwards arbitrary prompts to Gemini.
+
+**Update (2026-10-27):** The legacy arbitrary-prompt stream and its test page
+were removed. Spring Security now authenticates bearer JWTs for all application
+routes except login, registration, health, and preflight requests. The agents
+service remains reachable only by the internal Compose network.
 
 ---
 
