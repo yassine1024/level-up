@@ -12,6 +12,7 @@ import com.levelup.backend.student.dto.PracticeSessionResponse;
 import com.levelup.backend.student.entity.GameType;
 import com.levelup.backend.student.entity.PracticeAnswer;
 import com.levelup.backend.student.entity.PracticeSession;
+import com.levelup.backend.student.entity.MistakeSource;
 import com.levelup.backend.student.entity.StudentMistake;
 import com.levelup.backend.student.repository.PracticeAnswerRepository;
 import com.levelup.backend.student.repository.PracticeSessionRepository;
@@ -118,13 +119,18 @@ public class PracticeSessionService {
         ));
 
         if (!correct) {
+            String focus = question.get("focus") == null
+                    ? ""
+                    : String.valueOf(question.get("focus"));
             mistakeRepository.save(new StudentMistake(
                     user,
                     session.getLesson(),
                     prompt,
                     request.answer(),
                     correctAnswer,
-                    explanation
+                    explanation,
+                    focus,
+                    MistakeSource.GAME
             ));
         }
 

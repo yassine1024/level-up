@@ -9,6 +9,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.Lob;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
@@ -38,6 +39,10 @@ public class PlacementAttempt {
 
     @Column(nullable = false)
     private Instant completedAt = Instant.now();
+
+    @Lob
+    @Column(columnDefinition = "TEXT")
+    private String summary;
 
     protected PlacementAttempt() {
     }
@@ -72,6 +77,14 @@ public class PlacementAttempt {
 
     public Instant getCompletedAt() {
         return completedAt;
+    }
+
+    public String getSummary() {
+        return summary;
+    }
+
+    public void setSummary(String summary) {
+        this.summary = summary;
     }
 
     public void applyScore(int score, LessonLevel assignedLevel) {

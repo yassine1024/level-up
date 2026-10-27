@@ -11,6 +11,7 @@ import com.levelup.backend.student.entity.PlacementAnswer;
 import com.levelup.backend.student.entity.PlacementAttempt;
 import com.levelup.backend.student.entity.PlacementQuestion;
 import com.levelup.backend.student.entity.StudentMistake;
+import com.levelup.backend.student.entity.MistakeSource;
 import com.levelup.backend.student.repository.PlacementAnswerRepository;
 import com.levelup.backend.student.repository.PlacementAttemptRepository;
 import com.levelup.backend.student.repository.PlacementQuestionRepository;
@@ -120,7 +121,9 @@ public class PlacementService {
                         question.getPrompt(),
                         selected,
                         question.getCorrectOption(),
-                        question.getExplanation()
+                        question.getExplanation(),
+                        question.getFocus(),
+                        MistakeSource.PLACEMENT
                 ));
             }
         }

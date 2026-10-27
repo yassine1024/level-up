@@ -77,15 +77,22 @@ fallback sentinels; arbitrary agent streaming is disabled. Backend tests pass an
 
 ---
 
-## 3. Phase 2 — Database schema
+## 3. Phase 2 — Database schema (DONE)
 
-- [ ] `PlacementAttempt`: add `summary` (JSON `{en,fr,ar}`)
-- [ ] `StudentMistake`: add `focus`, `source` (`PLACEMENT`/`GAME`/`WRITING`/`CHAT`)
-- [ ] New `CharacterEpisode` (lesson, student, episode JSON, finished)
-- [ ] New `CharacterMessage` (episode, role, text, correction JSON, created-at)
-- [ ] Migration scripts for all of the above
+- [x] `PlacementAttempt`: add `summary` (JSON `{en,fr,ar}`)
+- [x] `StudentMistake`: add `focus`, `source` (`PLACEMENT`/`GAME`/`WRITING`/`CHAT`)
+- [x] New `CharacterEpisode` (lesson, student, episode JSON, finished)
+- [x] New `CharacterMessage` (episode, role, text, correction JSON, created-at)
+- [x] Migration scripts for all of the above
 
 **Acceptance:** app starts against migrated DB; new columns/tables present.
+
+**Update (2026-10-27):** Phase 2 is complete. Placement summaries and mistake
+metadata are persisted, character episodes/messages have entities and repositories,
+and the versioned schema script is available at
+`backend/src/main/resources/db/migration/V2__character_and_mistake_schema.sql`.
+Existing placement and practice mistakes now record their source and focus. Backend
+tests pass.
 
 ---
 
