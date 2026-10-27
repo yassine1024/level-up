@@ -39,35 +39,41 @@ Expo app  --REST+JWT-->  Spring Boot backend  --JSON/HTTP (internal)-->  Agents 
 
 ---
 
-## 2. Phase 1 — Fix blockers + AgentsClient
+## 2. Phase 1 — Fix blockers + AgentsClient (DONE)
 
 **Goal:** remove the caching bug and give the backend a typed way to call agents.
 
 ### 2.1 Fix content-version bug (CRITICAL)
-- [ ] `LessonResourceService.saveFile` → call `lesson.incrementContentVersion()` before save
-- [ ] `LessonResourceService.saveAudioFile` → same
-- [ ] `LessonResourceService.saveDescription` → same
+- [x] `LessonResourceService.saveFile` → call `lesson.incrementContentVersion()` before save
+- [x] `LessonResourceService.saveAudioFile` → same
+- [x] `LessonResourceService.saveDescription` → same
 - **Why:** without this, replaced files never invalidate cached slides/questions.
 
 ### 2.2 Placement schema (DB + seed)
-- [ ] `PlacementQuestion` entity: add `level`, `skill`, `focus` columns + constructor
-- [ ] `PlacementQuestionDataInitializer`: replace 15 generic questions with the 15 from
+- [x] `PlacementQuestion` entity: add `level`, `skill`, `focus` columns + constructor
+- [x] `PlacementQuestionDataInitializer`: replace 15 generic questions with the 15 from
       `docs/placement-test-bank.json` (A1–C1, 3 per level)
 - **Why:** current bank can't place above B1; product promises A1–C1.
 
 ### 2.3 Typed `AgentsClient`
-- [ ] Replace bare `WebClient` bean with typed methods for all endpoints
-- [ ] 45s response timeout
-- [ ] On 502/503 → return sentinel so callers fall back to local content (never block student)
-- [ ] Keep `AGENTS_BASE_URL` (default `http://localhost:8000`)
+- [x] Replace bare `WebClient` bean with typed methods for all endpoints
+- [x] 45s response timeout
+- [x] On 502/503 → return sentinel so callers fall back to local content (never block student)
+- [x] Keep `AGENTS_BASE_URL` (default `http://localhost:8000`)
 
 ### 2.4 Agents-side minor
-- [ ] `agents/app/main.py` stream: remove `temperature=0` (use Gemini 3 default)
+- [x] `agents/app/main.py` stream: remove `temperature=0` (use Gemini 3 default)
 
 ### 2.5 Security (part 1)
-- [ ] Gate or remove `/api/agents/stream` (forwards arbitrary prompts to Gemini — quota abuse)
+- [x] Gate or remove `/api/agents/stream` (forwards arbitrary prompts to Gemini — quota abuse)
 
 **Acceptance:** resource upload bumps `contentVersion`; agents client compiles and can call `/api/health`.
+
+**Update (2026-10-27):** Phase 1 is complete. Resource and description changes now
+invalidate generated-content caches; placement data covers A1–C1 with skill and focus
+metadata; `AgentsClient` provides typed calls with 45-second timeouts and 502/503
+fallback sentinels; arbitrary agent streaming is disabled. Backend tests pass and all
+62 agents tests pass.
 
 ---
 
