@@ -36,3 +36,24 @@ export function appendDocument(
     type: doc.mimeType ?? "application/octet-stream",
   });
 }
+
+export async function appendAudio(
+  form: FormData,
+  field: string,
+  uri: string,
+  fileName: string,
+  mimeType: string
+) {
+  if (Platform.OS === "web") {
+    const response = await fetch(uri);
+    const blob = await response.blob();
+    form.append(field, blob, fileName);
+    return;
+  }
+
+  const append = form.append as unknown as (
+    name: string,
+    value: unknown
+  ) => void;
+  append(field, { uri, name: fileName, type: mimeType });
+}

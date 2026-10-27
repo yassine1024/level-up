@@ -1,7 +1,8 @@
 import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { router } from "expo-router";
-import { useState } from "react";
+import { useRef, useState } from "react";
+import { Audio } from "expo-av";
 
 import { Colors, Fonts, Radii } from "@/constants/theme";
 import { StudentBottomNav } from "@/components/StudentBottomNav";
@@ -28,6 +29,8 @@ export default function PracticeCharacterScreen() {
   const [episodeId, setEpisodeId] = useState<number | null>(null);
   const [emotion, setEmotion] = useState("neutral");
   const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [recording, setRecording] = useState(false);
+  const recordingRef = useRef<Audio.Recording | null>(null);
   const courseQuery = useCourse();
   const lessonId = courseQuery.data?.currentUnit?.currentLesson?.id ?? 1012;
 
@@ -89,6 +92,58 @@ export default function PracticeCharacterScreen() {
       setMessages((m) => [...m, { role: "assistant", text: response.reply }]);
     } catch {
       setMessages((m) => [...m, { role: "assistant", text: "Sorry, I could not reply." }]);
+    } finally {
+      setSending(false);
+    }
+  };
+
+  const recordMessage = async () => {
+    if (recording || sending) return;
+    try {
+      const permission = await Audio.requestPermissionsAsync();
+      if (!permission.granted) {
+        throw new Error("Microphone permission is required.");
+      }
+      await Audio.setAudioModeAsync({
+        allowsRecordingIOS: true,
+        playsInSilentModeIOS: true,
+      });
+      const { recording: nextRecording } = await Audio.Recording.createAsync(
+        Audio.RecordingOptionsPresets.HIGH_QUALITY
+      );
+      recordingRef.current = nextRecording;
+      setRecording(true);
+    } catch {
+      setMessages((m) => [...m, { role: "assistant", text: "I could not start recording." }]);
+    }
+  };
+
+  const stopRecording = async () => {
+    const activeRecording = recordingRef.current;
+    if (!activeRecording) return;
+    setRecording(false);
+    recordingRef.current = null;
+    setSending(true);
+    try {
+      await activeRecording.stopAndUnloadAsync();
+      const uri = activeRecording.getURI();
+      if (!uri) throw new Error("Recording did not produce an audio file.");
+      const transcript = await studentApi.transcribeSpeech(uri);
+      if (!transcript.text.trim() || !episodeId) return;
+      setMessages((m) => [...m, { role: "user", text: transcript.text }]);
+      const response = await studentApi.sendCharacterMessage(
+        episodeId,
+        transcript.text,
+        true
+      );
+      setEmotion(response.emotion);
+      setSuggestions(response.nextInput.suggestions);
+      if (response.correction) {
+        setMessages((m) => [...m, { role: "correction", text: "", correction: response.correction }]);
+      }
+      setMessages((m) => [...m, { role: "assistant", text: response.reply }]);
+    } catch {
+      setMessages((m) => [...m, { role: "assistant", text: "Sorry, I could not transcribe that recording." }]);
     } finally {
       setSending(false);
     }
@@ -187,7 +242,14 @@ export default function PracticeCharacterScreen() {
             placeholder="Type your answer…"
             placeholderTextColor={Colors.placeholder}
           />
-          <Pressable style={styles.sendButton} onPress={sendMessage} disabled={sending}>
+          <Pressable
+            style={[styles.sendButton, recording && styles.recordingButton]}
+            onPress={recording ? stopRecording : recordMessage}
+            disabled={sending}
+          >
+            <Ionicons name={recording ? "stop" : "mic"} size={18} color={Colors.white} />
+          </Pressable>
+          <Pressable style={styles.sendButton} onPress={sendMessage} disabled={sending || recording}>
             <Ionicons name="send" size={18} color={Colors.white} />
           </Pressable>
         </View>
@@ -266,6 +328,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
+  recordingButton: { backgroundColor: Colors.errorBorder },
   correctionCard: {
     backgroundColor: Colors.white,
     borderWidth: 2,

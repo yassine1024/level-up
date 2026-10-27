@@ -29,6 +29,8 @@ import com.levelup.backend.student.service.StudentAccessService;
 import com.levelup.backend.student.service.StudentCourseService;
 import com.levelup.backend.student.service.StudentMistakeService;
 import com.levelup.backend.student.service.CharacterChatService;
+import com.levelup.backend.student.service.SpeechService;
+import com.levelup.backend.student.dto.SpeechTranscriptionResponse;
 import com.levelup.backend.student.dto.MistakeResponse;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -40,6 +42,8 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.RequestPart;
+import org.springframework.web.multipart.MultipartFile;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
@@ -58,6 +62,7 @@ public class StudentController {
     private final PracticeSessionService practiceSessionService;
     private final StudentMistakeService mistakeService;
     private final CharacterChatService characterChatService;
+    private final SpeechService speechService;
 
     public StudentController(
             StudentAccessService accessService,
@@ -66,7 +71,8 @@ public class StudentController {
             LessonStudyService lessonStudyService,
             PracticeSessionService practiceSessionService,
             StudentMistakeService mistakeService,
-            CharacterChatService characterChatService
+            CharacterChatService characterChatService,
+            SpeechService speechService
     ) {
         this.accessService = accessService;
         this.placementService = placementService;
@@ -75,6 +81,7 @@ public class StudentController {
         this.practiceSessionService = practiceSessionService;
         this.mistakeService = mistakeService;
         this.characterChatService = characterChatService;
+        this.speechService = speechService;
     }
 
     @GetMapping("/placement-test/questions")
@@ -197,6 +204,15 @@ public class StudentController {
     ) {
         User user = accessService.requireStudent(authorization);
         return characterChatService.reply(user, episodeId, request);
+    }
+
+    @PostMapping("/speech/transcribe")
+    public SpeechTranscriptionResponse transcribeSpeech(
+            @RequestHeader("Authorization") String authorization,
+            @RequestPart("audio") MultipartFile audio
+    ) {
+        accessService.requireStudent(authorization);
+        return speechService.transcribe(audio);
     }
 
     @GetMapping("/mistakes")

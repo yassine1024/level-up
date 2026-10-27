@@ -243,11 +243,17 @@ stream. Backend tests, agents tests, and frontend lint pass.
 
 ## 10. Phase 9 — Speech-to-text
 
-- [ ] New `POST /api/student/speech/transcribe` (multipart, ≤10MB) → forward to `POST /api/agents/speech/transcribe`
-- [ ] Frontend: record → transcribe → send transcript to character reply with `spoken: true`
+- [x] New `POST /api/student/speech/transcribe` (multipart, ≤10MB) → forward to `POST /api/agents/speech/transcribe`
+- [x] Frontend: record → transcribe → send transcript to character reply with `spoken: true`
 
 **Endpoint:** `POST /api/agents/speech/transcribe`  
 **Acceptance:** `.m4a` recordings transcribed verbatim (mistakes preserved).
+
+**Update (2026-10-27):** Authenticated students can upload supported recordings
+up to 10 MB through the backend speech endpoint. The backend validates the
+recording before forwarding multipart audio to the agents service. Character
+chat now records audio, transcribes it, and submits the verbatim transcript as
+a spoken message.
 
 ---
 

@@ -1,6 +1,6 @@
 import { API_MODE, apiClient, postMultipart } from "./client";
 import { mockApi } from "./mock";
-import { appendDocument } from "./upload";
+import { appendAudio, appendDocument } from "./upload";
 import type {
   Lesson,
   LessonLevel,
@@ -434,6 +434,23 @@ export const studentApi = {
       { studentMessage, spoken }
     );
     return res.data as CharacterReply;
+  },
+
+  async transcribeSpeech(
+    uri: string,
+    fileName = "speech.m4a",
+    mimeType = "audio/m4a"
+  ): Promise<{ text: string; language: string }> {
+    if (API_MODE === "mock") {
+      return { text: "I eat chicken and rice yesterday.", language: "en" };
+    }
+    const form = new FormData();
+    await appendAudio(form, "audio", uri, fileName, mimeType);
+    return postMultipart<{ text: string; language: string }>(
+      "/api/student/speech/transcribe",
+      form,
+      60000
+    );
   },
 
   async getMistakes(): Promise<StudentMistake[]> {

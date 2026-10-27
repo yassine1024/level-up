@@ -4,10 +4,15 @@ import com.fasterxml.jackson.databind.JsonNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatusCode;
+import org.springframework.http.MediaType;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientRequestException;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
+import org.springframework.http.client.MultipartBodyBuilder;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.reactive.function.BodyInserters;
 
+import java.io.IOException;
 import java.util.Optional;
 
 /**
@@ -59,8 +64,24 @@ public class AgentsClient {
         return post("/api/agents/character/reply", request);
     }
 
-    public Optional<JsonNode> transcribeSpeech(JsonNode request) {
-        return post("/api/agents/speech/transcribe", request);
+    public Optional<JsonNode> transcribeSpeech(MultipartFile audio) throws IOException {
+        MultipartBodyBuilder body = new MultipartBodyBuilder();
+        body.part("audio", audio.getResource())
+                .filename(audio.getOriginalFilename())
+                .contentType(MediaType.parseMediaType(audio.getContentType()));
+        try {
+            return Optional.ofNullable(webClient.post()
+                    .uri("/api/agents/speech/transcribe")
+                    .body(BodyInserters.fromMultipartData(body.build()))
+                    .retrieve()
+                    .bodyToMono(JsonNode.class)
+                    .block());
+        } catch (WebClientResponseException exception) {
+            return fallback("/api/agents/speech/transcribe", exception);
+        } catch (WebClientRequestException exception) {
+            logger.warn("Agents service unavailable for /api/agents/speech/transcribe", exception);
+            return Optional.empty();
+        }
     }
 
     private <T> Optional<T> get(String path, Class<T> responseType) {
