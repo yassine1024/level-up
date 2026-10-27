@@ -29,6 +29,12 @@ output and sends the problems back once when the answer fails its checks.
 | `GOOGLE_API_KEY` or `GEMINI_API_KEY` | none | Without it the agent endpoints answer `503` and the backend uses its fallback content |
 | `GEMINI_MODEL` | `gemini-3.5-flash-lite` | |
 
+Each developer uses their own key. Create one at
+[Google AI Studio](https://aistudio.google.com/apikey) with a personal Google account
+(school accounts may have AI Studio turned off), copy `.env.example` to `.env` at the
+repository root and paste the key there. `.env` is git-ignored. On the free tier Google
+may use the requests to improve its products, so real student data needs a paid key.
+
 ## Run locally
 
 ```bash
@@ -51,6 +57,18 @@ pytest
 
 The tests replace Gemini with a fake model (`tests/conftest.py`), so they need no
 API key and no network.
+
+To check the agents against the real model, run every endpoint once on a lesson and
+read the saved responses:
+
+```bash
+python scripts/live_smoke.py
+python scripts/live_smoke.py --lesson-dir path/to/lesson --title "Daily Routines" --audio answer.m4a
+```
+
+A lesson folder has one text file per upload slot of the lesson form
+(`vocabulary.txt`, `grammar.txt`, `pronunciation.txt`, `listening.txt`, `writing.txt`,
+`other.txt`); `scripts/sample-lesson` is an example.
 
 ## Adding a game
 
