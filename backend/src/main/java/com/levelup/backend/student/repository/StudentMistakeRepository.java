@@ -8,4 +8,6 @@ import java.util.List;
 public interface StudentMistakeRepository extends JpaRepository<StudentMistake, Long> {
 
     List<StudentMistake> findAllByUser_IdOrderByCreatedAtDesc(Long userId);
+
+    List<StudentMistake> findTop50ByUser_IdOrderByCreatedAtDesc(Long userId);
 }

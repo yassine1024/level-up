@@ -24,7 +24,8 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
+import java.util.ArrayList;
+import java.util.Collections;
 
 @Service
 public class PracticeSessionService {
@@ -55,7 +56,19 @@ public class PracticeSessionService {
     @Transactional
     public PracticeSessionResponse start(User user, Long lessonId, GameType gameType) {
         Lesson lesson = lessonLookupService.requirePublished(lessonId);
-        String questionsJson = contentService.exercisesFor(lesson, gameType);
+        String poolJson = contentService.exercisesFor(user, lesson, gameType);
+        List<Map<String, Object>> sessionQuestions = new ArrayList<>(contentService.parseQuestions(poolJson));
+        Collections.shuffle(sessionQuestions);
+        sessionQuestions = new ArrayList<>(sessionQuestions.subList(0, Math.min(3, sessionQuestions.size())));
+        for (int index = 0; index < sessionQuestions.size(); index++) {
+            sessionQuestions.get(index).put("index", index);
+        }
+        String questionsJson;
+        try {
+            questionsJson = objectMapper.writeValueAsString(sessionQuestions);
+        } catch (com.fasterxml.jackson.core.JsonProcessingException exception) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Could not start practice session");
+        }
         PracticeSession session = sessionRepository.save(
                 new PracticeSession(user, lesson, gameType, questionsJson)
         );
@@ -64,7 +77,8 @@ public class PracticeSessionService {
                 .map(question -> new PracticeQuestionResponse(
                         ((Number) question.get("index")).intValue(),
                         (String) question.get("prompt"),
-                        castOptions(question.get("options"))
+                        castOptions(question.get("options")),
+                        question.get("audioText") == null ? null : String.valueOf(question.get("audioText"))
                 ))
                 .toList();
 
@@ -103,7 +117,7 @@ public class PracticeSessionService {
         }
 
         String correctAnswer = String.valueOf(question.get("correctAnswer"));
-        String explanation = question.get("explanation") == null ? null : String.valueOf(question.get("explanation"));
+        String explanation = explanationText(question.get("explanation"));
         String prompt = question.get("prompt") == null ? null : String.valueOf(question.get("prompt"));
 
         boolean correct = request.answer().trim().equalsIgnoreCase(correctAnswer.trim());
@@ -176,5 +190,17 @@ public class PracticeSessionService {
             return list.stream().map(String::valueOf).toList();
         }
         return List.of();
+    }
+
+    private String explanationText(Object value) {
+        if (value == null) {
+            return null;
+        }
+        if (value instanceof String text) {
+            return text;
+        }
+        Map<?, ?> localized = objectMapper.convertValue(value, Map.class);
+        Object english = localized.get("en");
+        return english == null ? String.valueOf(value) : String.valueOf(english);
     }
 }

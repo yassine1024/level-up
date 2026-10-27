@@ -5,6 +5,7 @@ import java.util.List;
 public record PracticeQuestionResponse(
         int index,
         String prompt,
-        List<String> options
+        List<String> options,
+        String audioText
 ) {
 }

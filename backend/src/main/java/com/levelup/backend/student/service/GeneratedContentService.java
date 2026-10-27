@@ -4,6 +4,10 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.levelup.backend.agent.AgentsClient;
+import com.levelup.backend.auth.entity.User;
 import com.levelup.backend.catalog.entity.Lesson;
 import com.levelup.backend.resource.entity.LessonResource;
 import com.levelup.backend.resource.entity.LessonResourceType;
@@ -12,9 +16,13 @@ import com.levelup.backend.student.entity.ExplanationLanguage;
 import com.levelup.backend.student.entity.GameType;
 import com.levelup.backend.student.entity.GeneratedExerciseSet;
 import com.levelup.backend.student.entity.GeneratedSlideDeck;
+import com.levelup.backend.student.entity.StudentMistake;
 import com.levelup.backend.student.repository.GeneratedExerciseSetRepository;
 import com.levelup.backend.student.repository.GeneratedSlideDeckRepository;
+import com.levelup.backend.student.repository.StudentMistakeRepository;
 import org.springframework.http.HttpStatus;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
@@ -23,24 +31,34 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @Service
 public class GeneratedContentService {
 
+    private static final Logger logger = LoggerFactory.getLogger(GeneratedContentService.class);
+    private static final int EXERCISE_COUNT = 15;
+
     private final GeneratedSlideDeckRepository slideDeckRepository;
     private final GeneratedExerciseSetRepository exerciseSetRepository;
     private final LessonResourceRepository resourceRepository;
+    private final StudentMistakeRepository mistakeRepository;
+    private final AgentsClient agentsClient;
     private final ObjectMapper objectMapper;
 
     public GeneratedContentService(
             GeneratedSlideDeckRepository slideDeckRepository,
             GeneratedExerciseSetRepository exerciseSetRepository,
             LessonResourceRepository resourceRepository,
+            StudentMistakeRepository mistakeRepository,
+            AgentsClient agentsClient,
             ObjectMapper objectMapper
     ) {
         this.slideDeckRepository = slideDeckRepository;
         this.exerciseSetRepository = exerciseSetRepository;
         this.resourceRepository = resourceRepository;
+        this.mistakeRepository = mistakeRepository;
+        this.agentsClient = agentsClient;
         this.objectMapper = objectMapper;
     }
 
@@ -61,13 +79,14 @@ public class GeneratedContentService {
     }
 
     @Transactional
-    public String exercisesFor(Lesson lesson, GameType gameType) {
+    public String exercisesFor(User user, Lesson lesson, GameType gameType) {
         int version = lesson.getContentVersion();
         return exerciseSetRepository
                 .findByLesson_IdAndContentVersionAndGameType(lesson.getId(), version, gameType)
                 .map(GeneratedExerciseSet::getQuestionsJson)
                 .orElseGet(() -> {
-                    String json = toJson(buildExercises(lesson, gameType));
+                    String json = toJson(generateExercises(user, lesson, gameType)
+                            .orElseGet(() -> buildExercises(lesson, gameType)));
                     exerciseSetRepository.save(new GeneratedExerciseSet(lesson, version, gameType, json));
                     return json;
                 });
@@ -116,43 +135,161 @@ public class GeneratedContentService {
         List<String> tokens = sourceTokens(lesson);
         List<Map<String, Object>> questions = new ArrayList<>();
 
-        if (gameType == GameType.QUIZ) {
-            questions.add(question(
-                    0,
-                    "What is this lesson about?",
-                    List.of(lesson.getTitle(), "Sports news", "Cooking recipes", "Airport security"),
-                    lesson.getTitle(),
-                    "The lesson title is the topic."
-            ));
-            if (tokens.size() >= 1) {
-                String word = tokens.getFirst();
+        for (int index = 0; index < EXERCISE_COUNT; index++) {
+            String word = tokens.isEmpty() ? "name" : tokens.get(index % tokens.size());
+            if (gameType == GameType.QUIZ) {
                 questions.add(question(
-                        1,
+                        index,
                         "Which word appears in the lesson materials?",
                         List.of(word, "xylophone", "submarine", "volcano"),
                         word,
                         "This word was taken from the lesson text."
                 ));
+            } else {
+                List<String> options = new ArrayList<>();
+                options.add(word);
+                for (String token : tokens) {
+                    if (!options.contains(token)) {
+                        options.add(token);
+                    }
+                    if (options.size() == 4) {
+                        break;
+                    }
+                }
+                while (options.size() < 3) {
+                    options.add("different");
+                }
+                questions.add(question(
+                        index,
+                        "Complete: The lesson includes the word ____.",
+                        options,
+                        word,
+                        "Use a key word from the lesson."
+                ));
             }
-        } else {
-            String word = tokens.isEmpty() ? "name" : tokens.getFirst();
-            questions.add(question(
-                    0,
-                    "Complete: My ____ is used in this lesson.",
-                    List.of(),
-                    word,
-                    "Use a key word from the lesson."
-            ));
-            questions.add(question(
-                    1,
-                    "Complete: This lesson is called \"" + lesson.getTitle() + "\". The topic is ____.",
-                    List.of(),
-                    lesson.getTitle(),
-                    "Use the lesson title."
-            ));
         }
 
         return questions;
+    }
+
+    private Optional<List<Map<String, Object>>> generateExercises(
+            User user,
+            Lesson lesson,
+            GameType gameType
+    ) {
+        ObjectNode request = objectMapper.createObjectNode();
+        request.set("lesson", lessonInfo(lesson));
+        request.put("gameType", gameType.name());
+        request.put("count", EXERCISE_COUNT);
+        request.put("vocabularyText", resourceText(lesson, LessonResourceType.VOCABULARY));
+        request.put("grammarText", resourceText(lesson, LessonResourceType.GRAMMAR));
+        request.put("pronunciationText", "");
+        request.put("listeningTranscript", resourceText(lesson, LessonResourceType.LISTENING_1));
+        request.put("writingDescription", resourceText(lesson, LessonResourceType.WRITING_DESCRIPTION));
+
+        ArrayNode recentMistakes = request.putArray("recentMistakes");
+        ArrayNode excludePrompts = request.putArray("excludePrompts");
+        for (StudentMistake mistake : mistakeRepository.findTop50ByUser_IdOrderByCreatedAtDesc(user.getId())) {
+            ObjectNode recentMistake = recentMistakes.addObject();
+            recentMistake.put("prompt", mistake.getPrompt());
+            recentMistake.put("studentAnswer", mistake.getStudentAnswer());
+            recentMistake.put("correction", mistake.getCorrection());
+            recentMistake.put("focus", firstNonBlank(mistake.getFocus(), ""));
+            excludePrompts.add(mistake.getPrompt());
+        }
+
+        Optional<JsonNode> response = agentsClient.generatePracticeQuestions(request);
+        if (response.isEmpty()) {
+            return Optional.empty();
+        }
+        JsonNode body = response.get();
+        JsonNode items = body.get("items");
+        if (!gameType.name().equals(body.path("gameType").asText())
+                || !items.isArray() || items.size() < 10 || items.size() > EXERCISE_COUNT) {
+            logger.warn("Agents returned an invalid practice pool for lesson {} and game {}",
+                    lesson.getId(), gameType);
+            return Optional.empty();
+        }
+
+        List<Map<String, Object>> questions = new ArrayList<>();
+        for (int index = 0; index < items.size(); index++) {
+            JsonNode item = items.get(index);
+            if (!validAgentItem(item, index, gameType)) {
+                logger.warn("Agents returned an invalid practice item {} for lesson {} and game {}",
+                        index, lesson.getId(), gameType);
+                return Optional.empty();
+            }
+            Map<String, Object> question = new LinkedHashMap<>();
+            question.put("index", index);
+            question.put("prompt", item.get("prompt").asText());
+            question.put("options", objectMapper.convertValue(item.get("options"), List.class));
+            question.put("correctAnswer", item.get("correctAnswer").asText());
+            question.put("acceptedAnswers", objectMapper.convertValue(item.get("acceptedAnswers"), List.class));
+            question.put("explanation", item.get("explanation"));
+            question.put("focus", item.path("focus").asText(""));
+            if (item.has("audioText") && !item.get("audioText").isNull()) {
+                question.put("audioText", item.get("audioText").asText());
+            }
+            questions.add(question);
+        }
+        return Optional.of(questions);
+    }
+
+    private ObjectNode lessonInfo(Lesson lesson) {
+        ObjectNode info = objectMapper.createObjectNode();
+        info.put("title", lesson.getTitle());
+        info.put("level", lesson.getUnit().getLevel().getId());
+        info.put("unitTitle", lesson.getUnit().getTitle());
+        return info;
+    }
+
+    private String resourceText(Lesson lesson, LessonResourceType type) {
+        return resourceRepository.findAllByLesson_Id(lesson.getId()).stream()
+                .filter(resource -> resource.getType() == type)
+                .map(resource -> firstNonBlank(resource.getExtractedText(), resource.getDescription()))
+                .filter(text -> text != null && !text.isBlank())
+                .findFirst()
+                .orElse("");
+    }
+
+    private boolean validAgentItem(JsonNode item, int expectedIndex, GameType gameType) {
+        JsonNode options = item == null ? null : item.get("options");
+        int optionCount = options == null || !options.isArray() ? 0 : options.size();
+        boolean validOptions = gameType == GameType.QUIZ
+                ? optionCount == 4
+                : optionCount >= 3 && optionCount <= 4;
+        return item != null
+                && item.isObject()
+                && item.path("prompt").isTextual()
+                && !item.path("prompt").asText().isBlank()
+                && item.path("correctAnswer").isTextual()
+                && !item.path("correctAnswer").asText().isBlank()
+                && validOptions
+                && containsOption(options, item.path("correctAnswer").asText())
+                && item.path("acceptedAnswers").isArray()
+                && item.path("explanation").isObject()
+                && item.path("explanation").path("en").isTextual()
+                && item.path("explanation").path("fr").isTextual()
+                && item.path("explanation").path("ar").isTextual()
+                && item.path("focus").isTextual()
+                && item.has("index")
+                && item.path("index").isIntegralNumber()
+                && item.path("index").asInt() == expectedIndex
+                && (gameType != GameType.FILL_BLANK
+                || item.path("prompt").asText().split("____", -1).length - 1 == 1);
+    }
+
+    private boolean containsOption(JsonNode options, String answer) {
+        boolean found = false;
+        for (JsonNode option : options) {
+            if (!option.isTextual()) {
+                return false;
+            }
+            if (option.asText().equals(answer)) {
+                found = true;
+            }
+        }
+        return found;
     }
 
     private List<String> sourceTokens(Lesson lesson) {
@@ -198,7 +335,9 @@ public class GeneratedContentService {
         question.put("prompt", prompt);
         question.put("options", options);
         question.put("correctAnswer", correctAnswer);
+        question.put("acceptedAnswers", List.of());
         question.put("explanation", explanation);
+        question.put("focus", "");
         return question;
     }
 

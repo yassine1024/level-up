@@ -93,6 +93,7 @@ class QuestionsRequest(CamelModel):
     grammar_text: str = ""
     pronunciation_text: str = ""
     listening_transcript: str = ""
+    writing_description: str = ""
     recent_mistakes: list[MistakeRecord] = Field(default=[], max_length=50)
     exclude_prompts: list[str] = Field(default=[], max_length=200)
 
@@ -110,6 +111,7 @@ class QuestionsRequest(CamelModel):
             "grammar": self.grammar_text,
             "pronunciation": self.pronunciation_text,
             "listening_transcript": self.listening_transcript,
+            "writing_description": self.writing_description,
         }
         return {name: text for name, text in texts.items() if text.strip()}
 
