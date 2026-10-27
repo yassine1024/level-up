@@ -5,6 +5,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.reactive.function.client.WebClientRequestException;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 
 import java.util.Optional;
@@ -71,7 +72,7 @@ public class AgentsClient {
                     .block());
         } catch (WebClientResponseException exception) {
             return fallback(path, exception);
-        } catch (RuntimeException exception) {
+        } catch (WebClientRequestException exception) {
             logger.warn("Agents service unavailable for {}", path, exception);
             return Optional.empty();
         }
@@ -87,7 +88,7 @@ public class AgentsClient {
                     .block());
         } catch (WebClientResponseException exception) {
             return fallback(path, exception);
-        } catch (RuntimeException exception) {
+        } catch (WebClientRequestException exception) {
             logger.warn("Agents service unavailable for {}", path, exception);
             return Optional.empty();
         }

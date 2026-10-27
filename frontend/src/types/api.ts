@@ -176,6 +176,11 @@ export interface PlacementAttemptResponse {
   totalQuestions: number;
   assignedLevelId: string;
   assignedLevelName: string;
+  summary: {
+    en: string;
+    fr: string;
+    ar: string;
+  };
 }
 
 // ── Student · slides / progress ──────────────────────────────────────────

@@ -96,16 +96,23 @@ tests pass.
 
 ---
 
-## 4. Phase 3 — Placement
+## 4. Phase 3 — Placement (DONE)
 
-- [ ] `PlacementService.submitAttempt` → call `POST /api/agents/placement/evaluate`
+- [x] `PlacementService.submitAttempt` → call `POST /api/agents/placement/evaluate`
   - send: question bank (with `level`+`focus`), student answers, unit titles per level
   - store: `level` + `summary` (JSON)
   - fallback: keep current scoring bands
-- [ ] Frontend: verify `placement.tsx` consumes `level`/`summary`
+- [x] Frontend: verify `placement.tsx` consumes `level`/`summary`
 
 **Endpoint:** `POST /api/agents/placement/evaluate`  
 **Acceptance:** a student taking the test gets a CEFR level A1–C1 + localized summary; fallback works with no key.
+
+**Update (2026-10-27):** Placement submissions now send the complete question
+metadata, answers, and unit titles to the agents service. The validated agent level
+and localized summary are persisted on the attempt and returned to the frontend.
+Unavailable or invalid agent responses use the existing code-based placement level
+and a fixed localized fallback summary. The placement screen renders the selected
+summary language.
 
 ---
 
