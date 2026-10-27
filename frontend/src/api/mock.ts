@@ -256,7 +256,27 @@ export const mockApi = {
       submissionId: 1,
       lessonId,
       text,
-      feedback: "Good work. Two small verb mistakes to fix.",
+      feedback: "Clear ideas and good use of daily routine words. Two small verb mistakes to fix.",
+      correctedText:
+        "I wake up at 7. I go to the university by bus. My friend Sara {{w:study}} {{r:studies}} with me. We {{w:eats}} {{r:eat}} lunch together.",
+      corrections: [
+        {
+          category: "Verb form",
+          sentence: "My friend Sara study with me.",
+          wrong: "study",
+          right: "studies",
+          explanation:
+            "He, she and it take -s or -es in the present simple.",
+        },
+        {
+          category: "Verb form",
+          sentence: "We eats lunch together.",
+          wrong: "eats",
+          right: "eat",
+          explanation:
+            "With I, you, we and they, the verb has no -s.",
+        },
+      ],
     };
   },
 

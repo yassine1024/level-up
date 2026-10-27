@@ -22,13 +22,17 @@ export default function PracticeWritingScreen() {
   const [text, setText] = useState("");
   const [feedback, setFeedback] = useState<string | null>(null);
   const [corrected, setCorrected] = useState<string | null>(null);
+  const [corrections, setCorrections] = useState<
+    { category: string; sentence: string; wrong: string; right: string; explanation: string }[]
+  >([]);
 
   const handleSubmit = async () => {
     if (!text.trim()) return;
     try {
       const res = await submitWriting.mutateAsync({ lessonId, text });
       setFeedback(res.feedback);
-      setCorrected(res.text);
+      setCorrected(res.correctedText ?? res.text);
+      setCorrections(res.corrections ?? []);
     } catch {
       setFeedback("Could not get feedback.");
     }
@@ -64,14 +68,36 @@ export default function PracticeWritingScreen() {
         />
         {feedback ? (
           <View style={styles.feedbackCard}>
-            <Text style={styles.feedbackTitle}>Your feedback</Text>
+            <Text style={styles.feedbackHeadline}>Good work</Text>
             <Text style={styles.feedbackText}>{feedback}</Text>
             {corrected ? (
               <View style={styles.correctedBox}>
                 <Text style={styles.correctedLabel}>Corrected text</Text>
-                <Text style={styles.correctedText}>{corrected}</Text>
+                <Text style={styles.correctedText}>
+                  {renderCorrected(corrected)}
+                </Text>
               </View>
             ) : null}
+            {corrections.map((c, i) => (
+              <View key={i} style={styles.mistakeCard}>
+                <View style={styles.mistakeHeader}>
+                  <View style={styles.mistakeChip}>
+                    <Text style={styles.mistakeChipText}>{c.category}</Text>
+                  </View>
+                  <Text style={styles.mistakeDate}>Today</Text>
+                </View>
+                <Text style={styles.mistakeSentence}>{c.sentence}</Text>
+                <View style={styles.mistakeDiff}>
+                  <Text style={styles.wrongWord}>{c.wrong}</Text>
+                  <Text style={styles.diffArrow}> </Text>
+                  <Text style={styles.rightWord}>{c.right}</Text>
+                </View>
+                <Text style={styles.mistakeExplanation}>{c.explanation}</Text>
+              </View>
+            ))}
+            <Pressable style={styles.ghostButton} onPress={() => { setText(""); setFeedback(null); setCorrected(null); setCorrections([]); }}>
+              <Text style={styles.ghostButtonText}>Try another task</Text>
+            </Pressable>
           </View>
         ) : null}
       </ScrollView>
@@ -82,6 +108,29 @@ export default function PracticeWritingScreen() {
       />
     </View>
   );
+}
+
+function renderCorrected(input: string) {
+  const parts = input.split(/(\{\{w:.*?\}\}|\{\{r:.*?\}\})/g);
+  return parts.map((part, i) => {
+    const wm = part.match(/^\{\{w:(.*)\}\}$/);
+    if (wm) {
+      return (
+        <Text key={i} style={styles.wrongInline}>
+          {wm[1]}
+        </Text>
+      );
+    }
+    const rm = part.match(/^\{\{r:(.*)\}\}$/);
+    if (rm) {
+      return (
+        <Text key={i} style={styles.rightInline}>
+          {rm[1]}
+        </Text>
+      );
+    }
+    return <Text key={i}>{part}</Text>;
+  });
 }
 
 const styles = StyleSheet.create({
@@ -113,5 +162,51 @@ const styles = StyleSheet.create({
   feedbackText: { fontFamily: Fonts.body, fontSize: 14, color: Colors.muted, lineHeight: 20 },
   correctedBox: { marginTop: 8, gap: 4 },
   correctedLabel: { fontFamily: Fonts.bodyHeavy, fontSize: 13, color: Colors.text },
-  correctedText: { fontFamily: Fonts.body, fontSize: 14, color: Colors.text, lineHeight: 20 },
+  correctedText: { fontFamily: Fonts.body, fontSize: 14, color: Colors.text, lineHeight: 22 },
+  feedbackHeadline: { fontFamily: Fonts.heading, fontSize: 18, color: Colors.primaryDark },
+  wrongInline: {
+    color: "#C8401C",
+    textDecorationLine: "line-through",
+    fontFamily: Fonts.body,
+  },
+  rightInline: {
+    color: "#0A5A40",
+    backgroundColor: "#CDEFDD",
+    fontFamily: Fonts.bodyHeavy,
+    borderRadius: 4,
+    paddingHorizontal: 2,
+  },
+  mistakeCard: {
+    backgroundColor: Colors.white,
+    borderWidth: 2,
+    borderColor: Colors.cardBorder,
+    borderRadius: Radii.card,
+    padding: 14,
+    gap: 6,
+  },
+  mistakeHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
+  mistakeChip: {
+    backgroundColor: Colors.board,
+    paddingHorizontal: 10,
+    paddingVertical: 3,
+    borderRadius: Radii.input,
+  },
+  mistakeChipText: { fontFamily: Fonts.bodyHeavy, fontSize: 12, color: Colors.muted },
+  mistakeDate: { fontFamily: Fonts.body, fontSize: 12, color: Colors.muted },
+  mistakeSentence: { fontFamily: Fonts.bodyHeavy, fontSize: 15, color: Colors.text },
+  mistakeDiff: { flexDirection: "row", alignItems: "center", gap: 6 },
+  wrongWord: { fontFamily: Fonts.body, fontSize: 14, color: "#C8401C", textDecorationLine: "line-through" },
+  diffArrow: { fontFamily: Fonts.body, fontSize: 14, color: Colors.muted },
+  rightWord: { fontFamily: Fonts.bodyHeavy, fontSize: 14, color: "#0A5A40" },
+  mistakeExplanation: { fontFamily: Fonts.body, fontSize: 13, color: Colors.muted, lineHeight: 18 },
+  ghostButton: {
+    height: 44,
+    borderRadius: Radii.button,
+    borderWidth: 2,
+    borderColor: Colors.cardBorder,
+    backgroundColor: Colors.white,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  ghostButtonText: { fontFamily: Fonts.bodyHeavy, fontSize: 14, color: Colors.text },
 });

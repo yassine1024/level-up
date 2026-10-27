@@ -234,11 +234,21 @@ export interface WritingTask {
   instructions: string;
 }
 
+export interface WritingCorrection {
+  category: string;
+  sentence: string;
+  wrong: string;
+  right: string;
+  explanation: string;
+}
+
 export interface WritingSubmission {
   submissionId: number;
   lessonId: number;
   text: string;
   feedback: string;
+  correctedText?: string;
+  corrections?: WritingCorrection[];
 }
 
 // ── Student · mistakes ───────────────────────────────────────────────────

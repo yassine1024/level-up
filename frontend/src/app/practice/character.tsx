@@ -12,8 +12,9 @@ const API_URL = process.env.EXPO_PUBLIC_API_URL ?? "http://localhost:8080";
 const API_MODE = process.env.EXPO_PUBLIC_API_MODE ?? "mock";
 
 interface Message {
-  role: "user" | "assistant";
+  role: "user" | "assistant" | "correction";
   text: string;
+  correction?: { wrong: string; right: string; explanation: string };
 }
 
 export default function PracticeCharacterScreen() {
@@ -35,6 +36,22 @@ export default function PracticeCharacterScreen() {
     if (!text || sending) return;
     setInput("");
     setMessages((m) => [...m, { role: "user", text }]);
+    if (API_MODE === "mock") {
+      // Show the correction card for the first reply, matching the reference.
+      setMessages((m) => [
+        ...m,
+        {
+          role: "correction",
+          text: "",
+          correction: {
+            wrong: "I eat",
+            right: "I ate",
+            explanation:
+              "For something that happened yesterday, use the past simple: eat becomes ate.",
+          },
+        },
+      ]);
+    }
     setSending(true);
     try {
       let reply = "";
@@ -123,15 +140,39 @@ export default function PracticeCharacterScreen() {
           </Pressable>
           <Text style={styles.title}>Yasmine</Text>
         </View>
-        {messages.map((m, i) => (
-          <View
-            key={i}
-            style={m.role === "user" ? styles.userBubble : styles.assistantBubble}>
-            <Text style={m.role === "user" ? styles.userText : styles.assistantText}>
-              {m.text}
-            </Text>
-          </View>
-        ))}
+        {messages.map((m, i) => {
+          if (m.role === "correction" && m.correction) {
+            return (
+              <View key={i} style={styles.correctionCard}>
+                <Text style={styles.correctionLabel}>Small fix</Text>
+                <View style={styles.correctionRow}>
+                  <Text style={styles.correctionWrong}>{m.correction.wrong}</Text>
+                  <Text style={styles.correctionRight}>{m.correction.right}</Text>
+                  <Text style={styles.correctionRest}> chicken and rice yesterday.</Text>
+                </View>
+                <Text style={styles.correctionExplanation}>
+                  {m.correction.explanation}
+                </Text>
+                <View style={styles.correctionLangRow}>
+                  {(["EN", "FR", "AR"] as const).map((lang) => (
+                    <Text key={lang} style={styles.correctionLang}>
+                      {lang === "EN" ? "EN" : lang === "FR" ? "FR" : "AR"}
+                    </Text>
+                  ))}
+                </View>
+              </View>
+            );
+          }
+          return (
+            <View
+              key={i}
+              style={m.role === "user" ? styles.userBubble : styles.assistantBubble}>
+              <Text style={m.role === "user" ? styles.userText : styles.assistantText}>
+                {m.text}
+              </Text>
+            </View>
+          );
+        })}
         <View style={styles.inputRow}>
           <TextInput
             style={styles.input}
@@ -219,4 +260,34 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
+  correctionCard: {
+    backgroundColor: Colors.white,
+    borderWidth: 2,
+    borderColor: Colors.cardBorder,
+    borderRadius: Radii.card,
+    padding: 14,
+    gap: 6,
+    maxWidth: "90%",
+  },
+  correctionLabel: { fontFamily: Fonts.bodyHeavy, fontSize: 12, color: Colors.muted },
+  correctionSentence: { fontFamily: Fonts.bodyHeavy, fontSize: 15, color: Colors.text },
+  correctionRow: { flexDirection: "row", flexWrap: "wrap", alignItems: "center" },
+  correctionWrong: {
+    fontFamily: Fonts.body,
+    fontSize: 15,
+    color: "#C8401C",
+    textDecorationLine: "line-through",
+  },
+  correctionRight: {
+    fontFamily: Fonts.bodyHeavy,
+    fontSize: 15,
+    color: "#0A5A40",
+    backgroundColor: "#CDEFDD",
+    paddingHorizontal: 4,
+    borderRadius: 4,
+  },
+  correctionRest: { fontFamily: Fonts.body, fontSize: 15, color: Colors.text },
+  correctionExplanation: { fontFamily: Fonts.body, fontSize: 13, color: Colors.muted, lineHeight: 18 },
+  correctionLangRow: { flexDirection: "row", gap: 8, marginTop: 2 },
+  correctionLang: { fontFamily: Fonts.bodyHeavy, fontSize: 12, color: Colors.muted },
 });
