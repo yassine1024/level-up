@@ -15,11 +15,13 @@ export function useSubmitPracticeAnswer() {
       sessionId,
       questionIndex,
       answer,
+      spoken,
     }: {
       sessionId: number;
       questionIndex: number;
       answer: string;
-    }) => studentApi.submitPracticeAnswer(sessionId, questionIndex, answer),
+      spoken?: boolean;
+    }) => studentApi.submitPracticeAnswer(sessionId, questionIndex, answer, spoken),
   });
 }
 

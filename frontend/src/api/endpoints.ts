@@ -319,22 +319,23 @@ export const studentApi = {
   async submitPracticeAnswer(
     sessionId: number,
     questionIndex: number,
-    answer: string
+    answer: string,
+    spoken = false
   ): Promise<PracticeAnswerResponse> {
     if (API_MODE === "mock") {
-      return mockApi.submitPracticeAnswer(sessionId, questionIndex, answer);
+      return mockApi.submitPracticeAnswer(sessionId, questionIndex, answer, spoken);
     }
     try {
       const res = await apiClient.post(
         `/api/student/practice-sessions/${sessionId}/answers`,
-        { questionIndex, answer }
+        { questionIndex, answer, spoken }
       );
       return res.data as PracticeAnswerResponse;
     } catch (error) {
       const status = (error as { response?: { status?: number } })?.response
         ?.status;
       if (status && NOT_IMPLEMENTED.includes(status)) {
-        return mockApi.submitPracticeAnswer(sessionId, questionIndex, answer);
+        return mockApi.submitPracticeAnswer(sessionId, questionIndex, answer, spoken);
       }
       throw error;
     }

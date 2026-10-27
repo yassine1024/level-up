@@ -1,7 +1,11 @@
 package com.levelup.backend.student.service;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.levelup.backend.agent.AgentsClient;
 import com.levelup.backend.auth.entity.User;
 import com.levelup.backend.catalog.entity.Lesson;
 import com.levelup.backend.student.dto.PracticeAnswerRequest;
@@ -21,20 +25,35 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Locale;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Service
 public class PracticeSessionService {
+
+    private static final Logger logger = LoggerFactory.getLogger(PracticeSessionService.class);
+    private static final Pattern NON_ALPHANUMERIC = Pattern.compile("[^\\p{L}\\p{N}']+");
+    private static final Pattern CONTRACTION = Pattern.compile(
+            "\\b(i'm|you're|we're|they're|he's|she's|it's|that's|there's|what's|where's|who's"
+                    + "|isn't|aren't|wasn't|weren't|don't|doesn't|didn't|haven't|hasn't|hadn't"
+                    + "|can't|couldn't|won't|wouldn't|shouldn't|i've|you've|we've|they've"
+                    + "|i'll|you'll|he'll|she'll|we'll|they'll|i'd|let's)\\b"
+    );
 
     private final PracticeSessionRepository sessionRepository;
     private final PracticeAnswerRepository answerRepository;
     private final LessonLookupService lessonLookupService;
     private final GeneratedContentService contentService;
     private final StudentMistakeRepository mistakeRepository;
+    private final AgentsClient agentsClient;
     private final ObjectMapper objectMapper;
 
     public PracticeSessionService(
@@ -43,6 +62,7 @@ public class PracticeSessionService {
             LessonLookupService lessonLookupService,
             GeneratedContentService contentService,
             StudentMistakeRepository mistakeRepository,
+            AgentsClient agentsClient,
             ObjectMapper objectMapper
     ) {
         this.sessionRepository = sessionRepository;
@@ -50,6 +70,7 @@ public class PracticeSessionService {
         this.lessonLookupService = lessonLookupService;
         this.contentService = contentService;
         this.mistakeRepository = mistakeRepository;
+        this.agentsClient = agentsClient;
         this.objectMapper = objectMapper;
     }
 
@@ -120,8 +141,29 @@ public class PracticeSessionService {
         String explanation = explanationText(question.get("explanation"));
         String prompt = question.get("prompt") == null ? null : String.valueOf(question.get("prompt"));
 
-        boolean correct = request.answer().trim().equalsIgnoreCase(correctAnswer.trim());
+        List<String> acceptedAnswers = castOptions(question.get("acceptedAnswers"));
+        boolean correct = normalized(request.answer()).equals(normalized(correctAnswer))
+                || acceptedAnswers.stream()
+                .map(this::normalized)
+                .anyMatch(normalized -> normalized.equals(normalized(request.answer())));
         String correction = correct ? null : correctAnswer;
+        String focus = question.get("focus") == null ? "" : String.valueOf(question.get("focus"));
+        if (!correct) {
+            AnswerCheckResult agentResult = checkWithAgent(
+                    session,
+                    prompt,
+                    correctAnswer,
+                    acceptedAnswers,
+                    request.answer(),
+                    request.spoken()
+            );
+            if (agentResult != null) {
+                correct = agentResult.correct();
+                correction = correct ? null : firstNonBlank(agentResult.correction(), correctAnswer);
+                explanation = firstNonBlank(agentResult.explanation(), explanation);
+                focus = firstNonBlank(agentResult.focus(), focus);
+            }
+        }
 
         answerRepository.save(new PracticeAnswer(
                 session,
@@ -133,15 +175,12 @@ public class PracticeSessionService {
         ));
 
         if (!correct) {
-            String focus = question.get("focus") == null
-                    ? ""
-                    : String.valueOf(question.get("focus"));
             mistakeRepository.save(new StudentMistake(
                     user,
                     session.getLesson(),
                     prompt,
                     request.answer(),
-                    correctAnswer,
+                    correction,
                     explanation,
                     focus,
                     MistakeSource.GAME
@@ -154,6 +193,122 @@ public class PracticeSessionService {
                 correction,
                 explanation
         );
+    }
+
+    private AnswerCheckResult checkWithAgent(
+            PracticeSession session,
+            String prompt,
+            String correctAnswer,
+            List<String> acceptedAnswers,
+            String studentAnswer,
+            boolean spoken
+    ) {
+        ObjectNode request = objectMapper.createObjectNode();
+        request.put("level", session.getLesson().getUnit().getLevel().getId());
+        request.put("prompt", prompt);
+        request.put("correctAnswer", correctAnswer);
+        ArrayNode accepted = request.putArray("acceptedAnswers");
+        acceptedAnswers.forEach(accepted::add);
+        request.put("studentAnswer", studentAnswer);
+        request.put("spoken", spoken);
+
+        JsonNode response = agentsClient.checkPracticeAnswer(request).orElse(null);
+        if (response == null
+                || !response.path("correct").isBoolean()
+                || (!response.path("correct").asBoolean()
+                && (!response.path("correction").isTextual()
+                || response.path("correction").asText().isBlank()))) {
+            logger.warn("Agents returned an invalid answer check for practice session {}", session.getId());
+            return null;
+        }
+
+        String explanation = localizedEnglish(response.get("explanation"));
+        String focus = response.path("focus").isTextual() ? response.get("focus").asText() : null;
+        String correction = response.path("correction").isTextual()
+                ? response.get("correction").asText()
+                : null;
+        return new AnswerCheckResult(response.get("correct").asBoolean(), correction, explanation, focus);
+    }
+
+    private String normalized(String value) {
+        String normalized = value.toLowerCase(Locale.ROOT)
+                .replace('’', '\'')
+                .replace('‘', '\'');
+        Matcher matcher = CONTRACTION.matcher(normalized);
+        StringBuffer expanded = new StringBuffer();
+        while (matcher.find()) {
+            matcher.appendReplacement(expanded, Matcher.quoteReplacement(expandContraction(matcher.group(1))));
+        }
+        matcher.appendTail(expanded);
+        normalized = expanded.toString();
+        return NON_ALPHANUMERIC.matcher(normalized).replaceAll(" ")
+                .replace("'", "")
+                .trim()
+                .replaceAll("\\s+", " ");
+    }
+
+    private String expandContraction(String contraction) {
+        return switch (contraction) {
+            case "i'm" -> "i am";
+            case "you're" -> "you are";
+            case "we're" -> "we are";
+            case "they're" -> "they are";
+            case "he's" -> "he is";
+            case "she's" -> "she is";
+            case "it's" -> "it is";
+            case "that's" -> "that is";
+            case "there's" -> "there is";
+            case "what's" -> "what is";
+            case "where's" -> "where is";
+            case "who's" -> "who is";
+            case "isn't" -> "is not";
+            case "aren't" -> "are not";
+            case "wasn't" -> "was not";
+            case "weren't" -> "were not";
+            case "don't" -> "do not";
+            case "doesn't" -> "does not";
+            case "didn't" -> "did not";
+            case "haven't" -> "have not";
+            case "hasn't" -> "has not";
+            case "hadn't" -> "had not";
+            case "can't" -> "cannot";
+            case "couldn't" -> "could not";
+            case "won't" -> "will not";
+            case "wouldn't" -> "would not";
+            case "shouldn't" -> "should not";
+            case "i've" -> "i have";
+            case "you've" -> "you have";
+            case "we've" -> "we have";
+            case "they've" -> "they have";
+            case "i'll" -> "i will";
+            case "you'll" -> "you will";
+            case "he'll" -> "he will";
+            case "she'll" -> "she will";
+            case "we'll" -> "we will";
+            case "they'll" -> "they will";
+            case "i'd" -> "i would";
+            case "let's" -> "let us";
+            default -> contraction;
+        };
+    }
+
+    private String localizedEnglish(JsonNode localized) {
+        if (localized == null || !localized.isObject()) {
+            return null;
+        }
+        return localized.path("en").isTextual() ? localized.get("en").asText() : null;
+    }
+
+    private String firstNonBlank(String preferred, String fallback) {
+        return preferred != null && !preferred.isBlank() ? preferred : fallback;
+    }
+
+    private record AnswerCheckResult(
+            boolean correct,
+            String correction,
+            String explanation,
+            String focus
+    ) {
     }
 
     @Transactional

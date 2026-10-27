@@ -6,6 +6,7 @@ import jakarta.validation.constraints.NotNull;
 
 public record PracticeAnswerRequest(
         @NotNull @Min(0) Integer questionIndex,
-        @NotBlank String answer
+        @NotBlank String answer,
+        boolean spoken
 ) {
 }

@@ -140,29 +140,55 @@ language.
 
 ## 6. Phase 5 — Practice questions
 
-- [ ] `GeneratedContentService.buildExercises` → call `POST /api/agents/practice/questions`
-  - send: lesson text, Listening 1 transcript, Writing description, recent mistakes
-  - request `count` 10–15; support `excludePrompts`
-  - cache by `contentVersion` + `gameType`
-- [ ] Never send `correctAnswer`/`acceptedAnswers`/`explanation` to app before answering — only `index`, `prompt`, `options`, `audioText`
-- [ ] Frontend practice screens consume structured items (already partially wired)
+- [x] `GeneratedContentService.buildExercises` → call `POST /api/agents/practice/questions`
+  - send: lesson CEFR/unit context, vocabulary, grammar, Listening 1 transcript,
+    Writing description, recent mistakes, and `excludePrompts`
+  - request a pool of 15 items; cache by `contentVersion` + `gameType`
+- [x] Validate the agent response before caching: matching game type, 10–15 items,
+  sequential indexes, valid options, answer presence, localized explanation, and
+  fill-in-the-blank prompt shape
+- [x] Fall back to a deterministic 15-item local pool when the agents service is
+  unavailable or returns invalid content
+- [x] Never send `correctAnswer`/`acceptedAnswers`/`explanation` to app before
+  answering — session responses expose only `index`, `prompt`, `options`, and
+  `audioText`
+- [x] Practice sessions sample 3 questions from the cached pool and retain the
+  answer-bearing JSON server-side
+- [x] Frontend practice response shape supports structured `audioText` items
 
 **Endpoint:** `POST /api/agents/practice/questions`  
 **Acceptance:** a lesson yields a pool of 10–15 items per game; sessions sample 3–15 from it.
+
+**Update (2026-10-27):** Practice generation now sends lesson resources and
+student mistake history to the agents service, with excluded prompts to avoid
+repetition. Validated pools are cached per lesson content version and game type;
+invalid or unavailable agent responses use the local fallback pool. Practice
+sessions sample three items and keep answer keys, accepted answers, explanations,
+and focus metadata on the backend. Backend tests and all 62 agents tests pass.
 
 ---
 
 ## 7. Phase 6 — Answer checking (typed + spoken)
 
-- [ ] `PracticeSessionService.submitAnswer` → call `POST /api/agents/practice/check-answer`
+- [x] `PracticeSessionService.submitAnswer` → call `POST /api/agents/practice/check-answer`
   - normalize both sides first (case, punctuation, curly quotes, contractions)
-  - Gemini judges only when they still differ
-  - read `explanation.en` (or student language)
-- [ ] Save `focus` with each `StudentMistake`
-- [ ] Frontend: show correction/explanation in student language
+  - compare accepted answers locally before calling the agents service
+  - Gemini judges only when answers still differ
+  - read `explanation.en` and retain the existing explanation fallback
+- [x] Support typed and spoken submissions through the `spoken` request flag
+- [x] Save agent or question `focus` with each `StudentMistake`
+- [x] Frontend API and hook forward the spoken flag and expose correction/explanation
 
 **Endpoint:** `POST /api/agents/practice/check-answer`  
 **Acceptance:** typed/spoken answers graded correctly; mistakes carry `focus`.
+
+**Update (2026-10-27):** Practice answers now normalize case, punctuation,
+curly quotes, and common contractions before grading. Exact and accepted answers
+are handled without a model call; remaining mismatches are sent to the agents
+service with CEFR level and spoken context. Agent corrections, English
+explanations, and focus metadata are validated and persisted, with deterministic
+fallback grading when the service is unavailable. Backend tests, agents tests,
+and frontend lint pass.
 
 ---
 

@@ -217,6 +217,7 @@ export interface PracticeSession {
 export interface PracticeAnswer {
   questionIndex: number;
   answer: string;
+  spoken?: boolean;
 }
 
 export interface PracticeAnswerResponse {

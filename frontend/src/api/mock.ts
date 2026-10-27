@@ -219,7 +219,8 @@ export const mockApi = {
   async submitPracticeAnswer(
     _sessionId: number,
     questionIndex: number,
-    answer: string
+    answer: string,
+    _spoken = false
   ): Promise<PracticeAnswerResponse> {
     await delay();
     const correct = answer === "My name is Sara." || answer === "goes";
