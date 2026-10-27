@@ -194,13 +194,26 @@ and frontend lint pass.
 
 ## 8. Phase 7 — Writing feedback
 
-- [ ] `LessonStudyService.submitWriting` (`buildWritingFeedback`) → call `POST /api/agents/writing/feedback`
-  - send: student text, lesson text, writing description
-  - store JSON; save each mistake (`sentence`, `wrong`, `right`, `category`, `explanation`, `focus`) with `source=WRITING`
-- [ ] Frontend: render headline, comment, corrected text, per-mistake diff (already enriched)
+- [x] `LessonStudyService.submitWriting` (`generateWritingFeedback`) → call `POST /api/agents/writing/feedback`
+  - send: student text, lesson CEFR/unit context, writing description, vocabulary
+  - store the validated agent JSON; save each mistake (`sentence`, `wrong`,
+    `right`, `category`, `explanation`, `focus`) with `source=WRITING`
+- [x] Validate headline, localized comment, corrected text, mistake source spans,
+  replacements, categories, explanations, and focus before accepting feedback
+- [x] Fall back to the existing deterministic writing response when the agents
+  service is unavailable or returns invalid feedback
+- [x] Frontend response shape exposes headline, comment, corrected text, and
+  per-mistake corrections with focus
 
 **Endpoint:** `POST /api/agents/writing/feedback`  
 **Acceptance:** frame-25 content (corrections + mistakes) populated from agent; mistakes saved.
+
+**Update (2026-10-27):** Writing submissions now send the lesson context,
+writing task, student text, and vocabulary to the agents service. Validated
+feedback is stored as JSON and returned with structured corrections; every
+writing mistake is persisted with `source=WRITING` and its learning focus.
+Unavailable or invalid agent responses use the deterministic fallback. Backend
+tests and frontend lint pass.
 
 ---
 

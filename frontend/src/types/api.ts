@@ -246,6 +246,7 @@ export interface WritingCorrection {
   wrong: string;
   right: string;
   explanation: string;
+  focus?: string;
 }
 
 export interface WritingSubmission {

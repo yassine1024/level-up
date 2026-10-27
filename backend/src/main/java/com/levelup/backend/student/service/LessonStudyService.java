@@ -2,6 +2,7 @@ package com.levelup.backend.student.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.levelup.backend.agent.AgentsClient;
 import com.levelup.backend.auth.entity.User;
 import com.levelup.backend.catalog.entity.Lesson;
@@ -12,14 +13,18 @@ import com.levelup.backend.resource.repository.LessonResourceRepository;
 import com.levelup.backend.student.dto.ProgressResponse;
 import com.levelup.backend.student.dto.SlideDeckResponse;
 import com.levelup.backend.student.dto.WritingSubmissionResponse;
+import com.levelup.backend.student.dto.WritingCorrectionResponse;
 import com.levelup.backend.student.dto.WritingTaskResponse;
 import com.levelup.backend.student.entity.ExplanationLanguage;
 import com.levelup.backend.student.entity.GeneratedSlideDeck;
 import com.levelup.backend.student.entity.LessonProgress;
 import com.levelup.backend.student.entity.WritingSubmission;
+import com.levelup.backend.student.entity.MistakeSource;
+import com.levelup.backend.student.entity.StudentMistake;
 import com.levelup.backend.student.repository.GeneratedSlideDeckRepository;
 import com.levelup.backend.student.repository.LessonProgressRepository;
 import com.levelup.backend.student.repository.WritingSubmissionRepository;
+import com.levelup.backend.student.repository.StudentMistakeRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -39,6 +44,7 @@ public class LessonStudyService {
     private final LessonResourceRepository resourceRepository;
     private final GeneratedSlideDeckRepository slideDeckRepository;
     private final WritingSubmissionRepository writingSubmissionRepository;
+    private final StudentMistakeRepository mistakeRepository;
     private final ObjectMapper objectMapper;
     private final AgentsClient agentsClient;
 
@@ -48,6 +54,7 @@ public class LessonStudyService {
             LessonResourceRepository resourceRepository,
             GeneratedSlideDeckRepository slideDeckRepository,
             WritingSubmissionRepository writingSubmissionRepository,
+            StudentMistakeRepository mistakeRepository,
             ObjectMapper objectMapper,
             AgentsClient agentsClient
     ) {
@@ -56,6 +63,7 @@ public class LessonStudyService {
         this.resourceRepository = resourceRepository;
         this.slideDeckRepository = slideDeckRepository;
         this.writingSubmissionRepository = writingSubmissionRepository;
+        this.mistakeRepository = mistakeRepository;
         this.objectMapper = objectMapper;
         this.agentsClient = agentsClient;
     }
@@ -113,16 +121,31 @@ public class LessonStudyService {
     @Transactional
     public WritingSubmissionResponse submitWriting(User user, Long lessonId, String text) {
         Lesson lesson = requirePublishedLesson(lessonId);
-        getWritingTask(lessonId);
-        String feedback = buildWritingFeedback(text);
+        WritingTaskResponse task = getWritingTask(lessonId);
+        WritingFeedback feedback = generateWritingFeedback(lesson, task.instructions(), text);
         WritingSubmission submission = writingSubmissionRepository.save(
-                new WritingSubmission(user, lesson, text, feedback)
+                new WritingSubmission(user, lesson, text, feedback.json())
         );
+        for (WritingCorrectionResponse correction : feedback.corrections()) {
+            mistakeRepository.save(new StudentMistake(
+                    user,
+                    lesson,
+                    correction.sentence(),
+                    correction.wrong(),
+                    correction.right(),
+                    correction.explanation(),
+                    correction.focus(),
+                    MistakeSource.WRITING
+            ));
+        }
         return new WritingSubmissionResponse(
                 submission.getId(),
                 lessonId,
                 submission.getStudentText(),
-                submission.getFeedback()
+                feedback.comment(),
+                feedback.headline(),
+                feedback.correctedText(),
+                feedback.corrections()
         );
     }
 
@@ -319,10 +342,123 @@ public class LessonStudyService {
                 .orElse("");
     }
 
-    private String buildWritingFeedback(String text) {
+    private WritingFeedback generateWritingFeedback(Lesson lesson, String task, String text) {
+        ObjectNode request = objectMapper.createObjectNode();
+        request.set("lesson", lessonInfo(lesson));
+        request.put("task", task);
+        request.put("studentText", text);
+        request.put("vocabularyText", resourceText(lesson, LessonResourceType.VOCABULARY));
+
+        JsonNode response = agentsClient.generateWritingFeedback(request).orElse(null);
+        if (response != null && validWritingResponse(response, text)) {
+            List<WritingCorrectionResponse> corrections = writingCorrections(response.get("mistakes"));
+            return new WritingFeedback(
+                    response.path("headline").asText("Writing feedback"),
+                    localizedEnglish(response.get("comment")),
+                    response.get("correctedText").asText(),
+                    corrections,
+                    response.toString()
+            );
+        }
+
         int words = text.trim().isEmpty() ? 0 : text.trim().split("\\s+").length;
-        return "Thanks for your writing (" + words + " words). "
-                + "Check your capital letters and try to use full sentences. "
-                + "A richer AI review will be added when the writing agent is connected.";
+        return new WritingFeedback(
+                "Writing feedback",
+                "Thanks for your writing (" + words + " words). Check your capital letters and try to use full sentences.",
+                text,
+                List.of(),
+                fallbackJson(text)
+        );
+    }
+
+    private boolean validWritingResponse(JsonNode response, String studentText) {
+        JsonNode mistakes = response.get("mistakes");
+        if (!response.path("headline").isTextual()
+                || !response.path("comment").isObject()
+                || !response.path("correctedText").isTextual()
+                || !mistakes.isArray()) {
+            return false;
+        }
+        for (JsonNode mistake : mistakes) {
+            if (!mistake.path("sentence").isTextual()
+                    || !mistake.path("wrong").isTextual()
+                    || !mistake.path("right").isTextual()
+                    || !mistake.path("category").isTextual()
+                    || !mistake.path("explanation").isObject()
+                    || !mistake.path("focus").isTextual()
+                    || !containsWords(studentText, mistake.get("sentence").asText())
+                    || !containsWords(mistake.get("sentence").asText(), mistake.get("wrong").asText())
+                    || mistake.get("wrong").asText().equals(mistake.get("right").asText())) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private List<WritingCorrectionResponse> writingCorrections(JsonNode mistakes) {
+        List<WritingCorrectionResponse> corrections = new ArrayList<>();
+        for (JsonNode mistake : mistakes) {
+            corrections.add(new WritingCorrectionResponse(
+                    mistake.get("category").asText(),
+                    mistake.get("sentence").asText(),
+                    mistake.get("wrong").asText(),
+                    mistake.get("right").asText(),
+                    localizedEnglish(mistake.get("explanation")),
+                    mistake.get("focus").asText()
+            ));
+        }
+        return corrections;
+    }
+
+    private ObjectNode lessonInfo(Lesson lesson) {
+        ObjectNode info = objectMapper.createObjectNode();
+        info.put("title", lesson.getTitle());
+        info.put("level", lesson.getUnit().getLevel().getId());
+        info.put("unitTitle", lesson.getUnit().getTitle());
+        return info;
+    }
+
+    private String resourceText(Lesson lesson, LessonResourceType type) {
+        return resourceRepository.findAllByLesson_Id(lesson.getId()).stream()
+                .filter(resource -> resource.getType() == type)
+                .map(resource -> resource.getExtractedText() == null
+                        ? resource.getDescription()
+                        : resource.getExtractedText())
+                .filter(value -> value != null && !value.isBlank())
+                .findFirst()
+                .orElse("");
+    }
+
+    private String localizedEnglish(JsonNode localized) {
+        if (localized == null || !localized.path("en").isTextual()) {
+            return "";
+        }
+        return localized.get("en").asText();
+    }
+
+    private boolean containsWords(String text, String part) {
+        return text != null && part != null
+                && (" " + text.trim() + " ").contains(" " + part.trim() + " ");
+    }
+
+    private String fallbackJson(String text) {
+        try {
+            ObjectNode fallback = objectMapper.createObjectNode();
+            fallback.put("headline", "Writing feedback");
+            fallback.put("correctedText", text);
+            fallback.putArray("mistakes");
+            return objectMapper.writeValueAsString(fallback);
+        } catch (com.fasterxml.jackson.core.JsonProcessingException exception) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Could not store writing feedback");
+        }
+    }
+
+    private record WritingFeedback(
+            String headline,
+            String comment,
+            String correctedText,
+            List<WritingCorrectionResponse> corrections,
+            String json
+    ) {
     }
 }
