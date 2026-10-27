@@ -2,6 +2,7 @@ package com.levelup.backend.student.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.levelup.backend.agent.AgentsClient;
 import com.levelup.backend.auth.entity.User;
 import com.levelup.backend.catalog.entity.Lesson;
 import com.levelup.backend.catalog.repository.LessonRepository;
@@ -28,6 +29,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 @Service
 public class LessonStudyService {
@@ -38,6 +40,7 @@ public class LessonStudyService {
     private final GeneratedSlideDeckRepository slideDeckRepository;
     private final WritingSubmissionRepository writingSubmissionRepository;
     private final ObjectMapper objectMapper;
+    private final AgentsClient agentsClient;
 
     public LessonStudyService(
             LessonRepository lessonRepository,
@@ -45,7 +48,8 @@ public class LessonStudyService {
             LessonResourceRepository resourceRepository,
             GeneratedSlideDeckRepository slideDeckRepository,
             WritingSubmissionRepository writingSubmissionRepository,
-            ObjectMapper objectMapper
+            ObjectMapper objectMapper,
+            AgentsClient agentsClient
     ) {
         this.lessonRepository = lessonRepository;
         this.progressRepository = progressRepository;
@@ -53,6 +57,7 @@ public class LessonStudyService {
         this.slideDeckRepository = slideDeckRepository;
         this.writingSubmissionRepository = writingSubmissionRepository;
         this.objectMapper = objectMapper;
+        this.agentsClient = agentsClient;
     }
 
     @Transactional
@@ -163,6 +168,11 @@ public class LessonStudyService {
         List<LessonResource> resources = resourceRepository.findAllByLesson_Id(lesson.getId());
         String vocab = textOf(resources, LessonResourceType.VOCABULARY);
         String grammar = textOf(resources, LessonResourceType.GRAMMAR);
+        String pronunciation = "";
+        String agentJson = generateAgentSlides(lesson, language, vocab, grammar, pronunciation);
+        if (agentJson != null) {
+            return agentJson;
+        }
         String hint = switch (language) {
             case FR -> "Lis chaque diapositive et répète à voix haute.";
             case AR -> "اقرأ كل شريحة وكرر بصوت عال.";
@@ -182,6 +192,86 @@ public class LessonStudyService {
         } catch (Exception exception) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Could not generate slides");
         }
+    }
+
+    private String generateAgentSlides(
+            Lesson lesson,
+            ExplanationLanguage language,
+            String vocabulary,
+            String grammar,
+            String pronunciation
+    ) {
+        if (vocabulary.isBlank() && grammar.isBlank() && pronunciation.isBlank()) {
+            return null;
+        }
+
+        Map<String, Object> lessonInfo = new LinkedHashMap<>();
+        lessonInfo.put("title", lesson.getTitle());
+        lessonInfo.put("level", lesson.getUnit().getLevel().getId());
+        lessonInfo.put("unitTitle", lesson.getUnit().getTitle());
+
+        Map<String, Object> payload = new LinkedHashMap<>();
+        payload.put("lesson", lessonInfo);
+        payload.put("vocabularyText", vocabulary);
+        payload.put("grammarText", grammar);
+        payload.put("pronunciationText", pronunciation);
+        payload.put("language", language.name().toLowerCase());
+        payload.put("maxSlides", 10);
+
+        JsonNode request = objectMapper.valueToTree(payload);
+        return agentsClient.generateSlides(request)
+                .filter(response -> isValidAgentDeck(response, vocabulary, grammar, pronunciation))
+                .map(JsonNode::toString)
+                .orElse(null);
+    }
+
+    private boolean isValidAgentDeck(
+            JsonNode response,
+            String vocabulary,
+            String grammar,
+            String pronunciation
+    ) {
+        JsonNode slides = response.get("slides");
+        if (slides == null || !slides.isArray() || slides.size() < 3 || slides.size() > 10) {
+            return false;
+        }
+
+        java.util.Set<String> kinds = new java.util.HashSet<>();
+        for (JsonNode slide : slides) {
+            String kind = slide.path("kind").asText("");
+            if (!Set.of("intro", "vocabulary", "grammar", "pronunciation", "recap").contains(kind)) {
+                return false;
+            }
+            kinds.add(kind);
+            JsonNode bullets = slide.get("bullets");
+            if (bullets == null || !bullets.isArray() || bullets.size() < 1 || bullets.size() > 5) {
+                return false;
+            }
+            JsonNode exercise = slide.get("miniExercise");
+            if (exercise != null && !exercise.isNull()) {
+                JsonNode options = exercise.get("options");
+                String answer = exercise.path("answer").asText("");
+                if (options == null || !options.isArray() || options.size() < 2
+                        || options.size() > 4 || answer.isBlank()) {
+                    return false;
+                }
+                boolean answerFound = false;
+                for (JsonNode option : options) {
+                    if (answer.equals(option.asText())) {
+                        answerFound = true;
+                        break;
+                    }
+                }
+                if (!answerFound) {
+                    return false;
+                }
+            }
+        }
+        return (!vocabulary.isBlank() && kinds.contains("vocabulary")
+                || vocabulary.isBlank())
+                && (!grammar.isBlank() && kinds.contains("grammar") || grammar.isBlank())
+                && (!pronunciation.isBlank() && kinds.contains("pronunciation")
+                || pronunciation.isBlank());
     }
 
     private void addContentSlides(

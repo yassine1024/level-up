@@ -116,17 +116,25 @@ summary language.
 
 ---
 
-## 5. Phase 4 — Course slides
+## 5. Phase 4 — Course slides (DONE)
 
-- [ ] `LessonStudyService.buildSlidesJson` → call `POST /api/agents/slides/generate`
+- [x] `LessonStudyService.buildSlidesJson` → call `POST /api/agents/slides/generate`
   - send: lesson title + level, extracted text (Vocabulary/Grammar/Pronunciation), language
   - store: `{"slides":[...]}` in same column, keyed by `contentVersion` + language
   - fallback: keep chunking
-- [ ] Validate agent output (every material ≥1 slide, mini-exercise answer ∈ options, short bullets) else fall back
+- [x] Validate agent output (every material ≥1 slide, mini-exercise answer ∈ options, short bullets) else fall back
 - [ ] (Optional) Teacher preview of generated slides on saved-resources screen
 
 **Endpoint:** `POST /api/agents/slides/generate`  
 **Acceptance:** slides reflect uploaded content; re-uploading a file regenerates (via contentVersion); fallback on 502.
+
+**Update (2026-10-27):** Slide cache misses now send lesson/unit CEFR context,
+vocabulary, grammar, pronunciation, language, and the current content version's
+resources to the agents service. Backend validation requires a bounded deck,
+short bullets, valid mini-exercise answers, and one slide for every supplied
+material type. Any unavailable or invalid response falls back to the existing
+chunked slide generator; generated decks remain cached by content version and
+language.
 
 ---
 
