@@ -282,10 +282,19 @@ service remains reachable only by the internal Compose network.
 
 ## 13. Phase 12 — Validation
 
-- [ ] Run `python scripts/live_smoke.py` against `scripts/sample-lesson` — inspect real output
+- [x] Run `python scripts/live_smoke.py` against `scripts/sample-lesson` — inspect real output
 - [ ] Integration tests for each wired service (fallback on 502)
 - [ ] End-to-end: teacher uploads → student sees new slides/questions
-- [ ] Update `docs/agents-api-contract.md` if any request/response fields change
+- [x] Update `docs/agents-api-contract.md` if any request/response fields change
+
+**Validation (2026-10-27):** The live smoke test completed all 19 real-model
+calls successfully: placement, slides, every practice game, repeated-mistake
+review, answer checking, writing feedback, character episode/replies, and the
+spoken-mistake character path. Backend tests, all 62 agents tests, frontend
+lint, and Compose configuration validation also pass. The API contract already
+contains the `writingDescription` practice request field. Dedicated backend
+HTTP fallback tests and teacher-upload-to-student end-to-end tests still need
+an integration-test harness.
 
 ---
 
