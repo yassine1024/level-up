@@ -14,7 +14,7 @@ const GAMES: Record<Tab, { key: string; title: string; sub: string; count: strin
   Writing: [
     { key: "fill", title: "Fill in the blank", sub: "Complete the sentence", count: "3 questions", route: "/practice/fill-blank" },
   ],
-  Listening: [{ key: "listening", title: "Listening", sub: "Coming soon", count: "Soon", route: "", locked: true }],
+  Listening: [{ key: "listening", title: "Listening", sub: "Dialogue at the café", count: "3 questions", route: "/practice/listening", locked: false }],
   Practising: [
     { key: "quiz", title: "Quiz", sub: "Choose the right answer", count: "3 questions", route: "/practice/quiz" },
   ],
@@ -49,6 +49,7 @@ export default function PracticeGamesScreen() {
               if (g.locked) return;
               if (g.key === "quiz") router.push("/practice/quiz");
               else if (g.key === "fill") router.push("/practice/fill-blank");
+else if (g.key === "listening") router.push("/practice/listening");
             }}
             disabled={g.locked}>
             <View style={{ flex: 1 }}>
