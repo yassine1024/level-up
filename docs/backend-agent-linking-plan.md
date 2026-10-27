@@ -219,15 +219,25 @@ tests and frontend lint pass.
 
 ## 9. Phase 8 — Character chat
 
-- [ ] New backend endpoints:
+- [x] New backend endpoints:
   - `POST /api/student/lessons/{id}/character/episodes`
   - `POST /api/student/character/episodes/{id}/messages`
-- [ ] Store episode + messages; send last ~20 messages + episode JSON each turn
-- [ ] `spoken: true` path: ignore punctuation/capitals
-- [ ] Frontend `practice/character.tsx`: switch from open `/api/agents/stream` to new endpoints; render `emotion`, correction, reply modes
+- [x] Store episode + messages; send the last 20 messages plus episode JSON each turn
+- [x] Support `spoken: true` and pass the transcript context to the character agent
+- [x] Frontend `practice/character.tsx`: use authenticated backend endpoints instead
+  of `/api/agents/stream`; render emotion, correction, and reply suggestions
+- [x] Save character corrections as `StudentMistake` records with `source=CHAT`
+- [x] Fall back to a safe deterministic episode/reply when the agents service is unavailable
 
 **Endpoints:** `POST /api/agents/character/episode`, `POST /api/agents/character/reply`  
 **Acceptance:** role-play chat works in text; character keeps personality across turns.
+
+**Update (2026-10-27):** Character episodes and messages are now owned by the
+backend. Episode creation sends lesson resources and student choices to the
+agents service; replies send the persisted episode and bounded conversation
+history, validate the response, persist both sides, and save corrections as
+chat mistakes. The frontend no longer forwards arbitrary prompts to the agents
+stream. Backend tests, agents tests, and frontend lint pass.
 
 ---
 

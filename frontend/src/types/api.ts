@@ -258,6 +258,35 @@ export interface WritingSubmission {
   corrections?: WritingCorrection[];
 }
 
+export interface CharacterEpisode {
+  episodeId: number;
+  lessonId: number;
+  episode: {
+    title: string;
+    setting: string;
+    character: { name: string; role: string; personality: string };
+    goals: string[];
+    targetWords: string[];
+    openingLine: string;
+  };
+  openingLine: string;
+}
+
+export interface CharacterReply {
+  episodeId: number;
+  reply: string;
+  emotion: string;
+  correction: {
+    original: string;
+    corrected: string;
+    explanation: { en: string; fr: string; ar: string };
+    focus: string;
+    segments: { text: string; change: "same" | "removed" | "added" }[];
+  } | null;
+  nextInput: { mode: string; suggestions: string[] };
+  episodeComplete: boolean;
+}
+
 // ── Student · mistakes ───────────────────────────────────────────────────
 export interface StudentMistake {
   id: number;

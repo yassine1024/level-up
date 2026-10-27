@@ -7,14 +7,16 @@ import { Colors, Fonts, Radii } from "@/constants/theme";
 import { StudentBottomNav } from "@/components/StudentBottomNav";
 import { Ionicons } from "@expo/vector-icons";
 import { Button } from "@/components/Button";
+import { studentApi } from "@/src/api/endpoints";
+import type { CharacterReply } from "@/src/types/api";
+import { useCourse } from "@/src/hooks/useCourse";
 
-const API_URL = process.env.EXPO_PUBLIC_API_URL ?? "http://localhost:8080";
 const API_MODE = process.env.EXPO_PUBLIC_API_MODE ?? "mock";
 
 interface Message {
   role: "user" | "assistant" | "correction";
   text: string;
-  correction?: { wrong: string; right: string; explanation: string };
+  correction?: CharacterReply["correction"];
 }
 
 export default function PracticeCharacterScreen() {
@@ -23,12 +25,30 @@ export default function PracticeCharacterScreen() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
+  const [episodeId, setEpisodeId] = useState<number | null>(null);
+  const [emotion, setEmotion] = useState("neutral");
+  const [suggestions, setSuggestions] = useState<string[]>([]);
+  const courseQuery = useCourse();
+  const lessonId = courseQuery.data?.currentUnit?.currentLesson?.id ?? 1012;
 
-  const startChat = () => {
-    setPhase("chat");
-    setMessages([
-      { role: "assistant", text: "Hi! I am Yasmine. What did you have for dinner last night?" },
-    ]);
+  const startChat = async () => {
+    setSending(true);
+    try {
+      if (API_MODE === "mock") {
+        setEpisodeId(1);
+        setPhase("chat");
+        setMessages([{ role: "assistant", text: "Hi! I am Yasmine. What did you have for dinner last night?" }]);
+        return;
+      }
+      const episode = await studentApi.startCharacterEpisode(lessonId, "cousin", "At a family dinner");
+      setEpisodeId(episode.episodeId);
+      setPhase("chat");
+      setMessages([{ role: "assistant", text: episode.openingLine }]);
+    } catch {
+      setMessages([{ role: "assistant", text: "Sorry, I could not start this episode." }]);
+    } finally {
+      setSending(false);
+    }
   };
 
   const sendMessage = async () => {
@@ -36,60 +56,37 @@ export default function PracticeCharacterScreen() {
     if (!text || sending) return;
     setInput("");
     setMessages((m) => [...m, { role: "user", text }]);
-    if (API_MODE === "mock") {
-      // Show the correction card for the first reply, matching the reference.
-      setMessages((m) => [
-        ...m,
-        {
-          role: "correction",
-          text: "",
-          correction: {
-            wrong: "I eat",
-            right: "I ate",
-            explanation:
-              "For something that happened yesterday, use the past simple: eat becomes ate.",
-          },
-        },
-      ]);
-    }
+    if (!episodeId) return;
     setSending(true);
     try {
-      let reply = "";
       if (API_MODE === "mock") {
-        await new Promise((r) => setTimeout(r, 600));
-        reply = "Nice! Did you cook it yourself?";
-      } else {
-        const prompt = `You are Yasmine, a friendly English conversation partner. The student said: "${text}". Reply briefly in English and gently fix any mistakes.`;
-        const res = await fetch(`${API_URL}/api/agents/stream`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ prompt }),
-        });
-        if (!res.ok) throw new Error("stream failed");
-        const reader = res.body?.getReader();
-        if (reader) {
-          const decoder = new TextDecoder();
-          while (true) {
-            const { done, value } = await reader.read();
-            if (done) break;
-            reply += decoder.decode(value, { stream: true });
-            setMessages((m) => {
-              const last = m[m.length - 1];
-              if (last && last.role === "assistant" && last.text.startsWith("__stream__")) {
-                const copy = m.slice(0, -1);
-                return [...copy, { role: "assistant", text: reply }];
-              }
-              return [...m, { role: "assistant", text: reply }];
-            });
-          }
-        } else {
-          reply = await res.text();
-          setMessages((m) => [...m, { role: "assistant", text: reply }]);
-        }
+        setMessages((m) => [...m,
+          {
+            role: "correction",
+            text: "",
+            correction: {
+              original: "I eat chicken and rice yesterday.",
+              corrected: "I ate chicken and rice yesterday.",
+              explanation: {
+                en: "For yesterday, use the past simple: eat becomes ate.",
+                fr: "",
+                ar: "",
+              },
+              focus: "past simple",
+              segments: [],
+            },
+          },
+          { role: "assistant", text: "Nice! Did you cook it yourself?" },
+        ]);
+        return;
       }
-      if (API_MODE === "mock") {
-        setMessages((m) => [...m, { role: "assistant", text: reply }]);
+      const response = await studentApi.sendCharacterMessage(episodeId, text);
+      setEmotion(response.emotion);
+      setSuggestions(response.nextInput.suggestions);
+      if (response.correction) {
+        setMessages((m) => [...m, { role: "correction", text: "", correction: response.correction }]);
       }
+      setMessages((m) => [...m, { role: "assistant", text: response.reply }]);
     } catch {
       setMessages((m) => [...m, { role: "assistant", text: "Sorry, I could not reply." }]);
     } finally {
@@ -140,18 +137,18 @@ export default function PracticeCharacterScreen() {
           </Pressable>
           <Text style={styles.title}>Yasmine</Text>
         </View>
+        <Text style={styles.emotion}>Feeling {emotion}</Text>
         {messages.map((m, i) => {
           if (m.role === "correction" && m.correction) {
             return (
               <View key={i} style={styles.correctionCard}>
                 <Text style={styles.correctionLabel}>Small fix</Text>
                 <View style={styles.correctionRow}>
-                  <Text style={styles.correctionWrong}>{m.correction.wrong}</Text>
-                  <Text style={styles.correctionRight}>{m.correction.right}</Text>
-                  <Text style={styles.correctionRest}> chicken and rice yesterday.</Text>
+                  <Text style={styles.correctionWrong}>{m.correction.original}</Text>
+                  <Text style={styles.correctionRight}>{m.correction.corrected}</Text>
                 </View>
                 <Text style={styles.correctionExplanation}>
-                  {m.correction.explanation}
+                  {m.correction.explanation.en}
                 </Text>
                 <View style={styles.correctionLangRow}>
                   {(["EN", "FR", "AR"] as const).map((lang) => (
@@ -173,6 +170,15 @@ export default function PracticeCharacterScreen() {
             </View>
           );
         })}
+        {suggestions.length > 0 ? (
+          <View style={styles.suggestionRow}>
+            {suggestions.map((suggestion) => (
+              <Pressable key={suggestion} style={styles.suggestion} onPress={() => setInput(suggestion)}>
+                <Text style={styles.suggestionText}>{suggestion}</Text>
+              </Pressable>
+            ))}
+          </View>
+        ) : null}
         <View style={styles.inputRow}>
           <TextInput
             style={styles.input}
@@ -290,4 +296,15 @@ const styles = StyleSheet.create({
   correctionExplanation: { fontFamily: Fonts.body, fontSize: 13, color: Colors.muted, lineHeight: 18 },
   correctionLangRow: { flexDirection: "row", gap: 8, marginTop: 2 },
   correctionLang: { fontFamily: Fonts.bodyHeavy, fontSize: 12, color: Colors.muted },
+  emotion: { fontFamily: Fonts.body, fontSize: 13, color: Colors.muted },
+  suggestionRow: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
+  suggestion: {
+    borderWidth: 1,
+    borderColor: Colors.cardBorder,
+    borderRadius: Radii.input,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    backgroundColor: Colors.white,
+  },
+  suggestionText: { fontFamily: Fonts.body, fontSize: 13, color: Colors.text },
 });

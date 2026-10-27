@@ -22,6 +22,8 @@ import type {
   PracticeFinishResponse,
   WritingTask,
   WritingSubmission,
+  CharacterEpisode,
+  CharacterReply,
   StudentMistake,
 } from "@/src/types/api";
 
@@ -402,6 +404,36 @@ export const studentApi = {
       }
       throw error;
     }
+  },
+
+  async startCharacterEpisode(
+    lessonId: number,
+    characterRole = "friend",
+    scenario = ""
+  ): Promise<CharacterEpisode> {
+    if (API_MODE === "mock") {
+      throw new Error("Character chat is not available in mock mode");
+    }
+    const res = await apiClient.post(
+      `/api/student/lessons/${lessonId}/character/episodes`,
+      { characterRole, scenario }
+    );
+    return res.data as CharacterEpisode;
+  },
+
+  async sendCharacterMessage(
+    episodeId: number,
+    studentMessage: string,
+    spoken = false
+  ): Promise<CharacterReply> {
+    if (API_MODE === "mock") {
+      throw new Error("Character chat is not available in mock mode");
+    }
+    const res = await apiClient.post(
+      `/api/student/character/episodes/${episodeId}/messages`,
+      { studentMessage, spoken }
+    );
+    return res.data as CharacterReply;
   },
 
   async getMistakes(): Promise<StudentMistake[]> {
