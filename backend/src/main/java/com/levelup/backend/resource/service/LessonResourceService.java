@@ -94,6 +94,10 @@ public class LessonResourceService {
                 extractedText
         );
 
+        // A new/changed file invalidates cached generated content (slides, exercises).
+        lesson.incrementContentVersion();
+        lessonRepository.save(lesson);
+
         resourceRepository.save(resource);
     }
 
@@ -136,6 +140,10 @@ public class LessonResourceService {
                 ""
         );
 
+        // A new/changed file invalidates cached generated content (slides, exercises).
+        lesson.incrementContentVersion();
+        lessonRepository.save(lesson);
+
         resourceRepository.save(resource);
     }
 
@@ -175,6 +183,8 @@ public class LessonResourceService {
 
         // An empty description clears the saved description.
         resource.updateDescription(description);
+        lesson.incrementContentVersion();
+        lessonRepository.save(lesson);
         resourceRepository.save(resource);
     }
 }

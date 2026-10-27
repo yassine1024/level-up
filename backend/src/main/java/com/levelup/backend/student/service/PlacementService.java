@@ -1,8 +1,14 @@
 package com.levelup.backend.student.service;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.levelup.backend.agent.AgentsClient;
 import com.levelup.backend.auth.entity.User;
 import com.levelup.backend.catalog.entity.LessonLevel;
+import com.levelup.backend.catalog.entity.LessonUnit;
 import com.levelup.backend.catalog.repository.LessonLevelRepository;
+import com.levelup.backend.catalog.repository.LessonUnitRepository;
 import com.levelup.backend.student.dto.PlacementAnswerRequest;
 import com.levelup.backend.student.dto.PlacementAttemptRequest;
 import com.levelup.backend.student.dto.PlacementAttemptResponse;
@@ -11,6 +17,7 @@ import com.levelup.backend.student.entity.PlacementAnswer;
 import com.levelup.backend.student.entity.PlacementAttempt;
 import com.levelup.backend.student.entity.PlacementQuestion;
 import com.levelup.backend.student.entity.StudentMistake;
+import com.levelup.backend.student.entity.MistakeSource;
 import com.levelup.backend.student.repository.PlacementAnswerRepository;
 import com.levelup.backend.student.repository.PlacementAttemptRepository;
 import com.levelup.backend.student.repository.PlacementQuestionRepository;
@@ -24,6 +31,7 @@ import org.springframework.web.server.ResponseStatusException;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.LinkedHashMap;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
@@ -37,19 +45,28 @@ public class PlacementService {
     private final PlacementAnswerRepository answerRepository;
     private final LessonLevelRepository levelRepository;
     private final StudentMistakeRepository mistakeRepository;
+    private final LessonUnitRepository unitRepository;
+    private final AgentsClient agentsClient;
+    private final ObjectMapper objectMapper;
 
     public PlacementService(
             PlacementQuestionRepository questionRepository,
             PlacementAttemptRepository attemptRepository,
             PlacementAnswerRepository answerRepository,
             LessonLevelRepository levelRepository,
-            StudentMistakeRepository mistakeRepository
+            StudentMistakeRepository mistakeRepository,
+            LessonUnitRepository unitRepository,
+            AgentsClient agentsClient,
+            ObjectMapper objectMapper
     ) {
         this.questionRepository = questionRepository;
         this.attemptRepository = attemptRepository;
         this.answerRepository = answerRepository;
         this.levelRepository = levelRepository;
         this.mistakeRepository = mistakeRepository;
+        this.unitRepository = unitRepository;
+        this.agentsClient = agentsClient;
+        this.objectMapper = objectMapper;
     }
 
     @Transactional(readOnly = true)
@@ -104,9 +121,12 @@ public class PlacementService {
         }
 
         LessonLevel assignedLevel = assignLevel(score, questions.size());
+        AgentEvaluation evaluation = evaluateWithAgent(questions, request, assignedLevel);
+        assignedLevel = findLevel(evaluation.level()).orElse(assignedLevel);
         PlacementAttempt attempt = attemptRepository.save(
                 new PlacementAttempt(user, score, questions.size(), assignedLevel)
         );
+        attempt.setSummary(evaluation.summaryJson());
 
         for (PlacementAnswerRequest submitted : request.answers()) {
             PlacementQuestion question = byId.get(submitted.questionId());
@@ -120,7 +140,9 @@ public class PlacementService {
                         question.getPrompt(),
                         selected,
                         question.getCorrectOption(),
-                        question.getExplanation()
+                        question.getExplanation(),
+                        question.getFocus(),
+                        MistakeSource.PLACEMENT
                 ));
             }
         }
@@ -130,8 +152,95 @@ public class PlacementService {
                 attempt.getScore(),
                 attempt.getTotalQuestions(),
                 assignedLevel.getId(),
-                assignedLevel.getName()
+                assignedLevel.getName(),
+                evaluation.summary()
         );
+    }
+
+    private AgentEvaluation evaluateWithAgent(
+            List<PlacementQuestion> questions,
+            PlacementAttemptRequest request,
+            LessonLevel fallbackLevel
+    ) {
+        List<Map<String, Object>> questionPayload = questions.stream()
+                .map(question -> Map.<String, Object>of(
+                        "id", question.getId(),
+                        "prompt", question.getPrompt(),
+                        "correctOption", question.getCorrectOption(),
+                        "level", question.getLevel(),
+                        "skill", question.getSkill(),
+                        "focus", question.getFocus()
+                ))
+                .toList();
+        List<Map<String, Object>> answerPayload = request.answers().stream()
+                .map(answer -> Map.<String, Object>of(
+                        "questionId", answer.questionId(),
+                        "selectedOption", answer.selectedOption()
+                ))
+                .toList();
+        Map<String, List<String>> unitTitles = unitRepository.findAll(
+                        Sort.by(Sort.Direction.ASC, "number")
+                ).stream().collect(Collectors.groupingBy(
+                        unit -> unit.getLevel().getId(),
+                        LinkedHashMap::new,
+                        Collectors.mapping(LessonUnit::getTitle, Collectors.toList())
+                ));
+        JsonNode payload = objectMapper.valueToTree(Map.of(
+                "questions", questionPayload,
+                "answers", answerPayload,
+                "unitTitles", unitTitles
+        ));
+
+        try {
+            return agentsClient.evaluatePlacement(payload)
+                    .map(this::readAgentEvaluation)
+                    .orElseGet(() -> fallbackEvaluation(fallbackLevel));
+        } catch (RuntimeException exception) {
+            return fallbackEvaluation(fallbackLevel);
+        }
+    }
+
+    private AgentEvaluation readAgentEvaluation(JsonNode response) {
+        String level = response.path("level").asText("");
+        Map<String, String> summary = new LinkedHashMap<>();
+        JsonNode summaryNode = response.path("summary");
+        for (String language : List.of("en", "fr", "ar")) {
+            if (summaryNode.hasNonNull(language)) {
+                summary.put(language, summaryNode.get(language).asText());
+            }
+        }
+        if (summary.size() != 3 || level.isBlank()) {
+            throw new IllegalArgumentException("Invalid placement agent response");
+        }
+        return new AgentEvaluation(level, summary, summaryNode.toString());
+    }
+
+    private AgentEvaluation fallbackEvaluation(LessonLevel level) {
+        Map<String, String> summary = Map.of(
+                "en", "You can make some progress in English. Next you will continue with the " + level.getName() + " course.",
+                "fr", "Tu peux déjà progresser en anglais. Ensuite, tu vas continuer avec le cours " + level.getName() + ".",
+                "ar", "يمكنك التقدم في اللغة الإنجليزية. ستتابع بعد ذلك دورة " + level.getName() + "."
+        );
+        try {
+            return new AgentEvaluation(
+                    level.getId(),
+                    summary,
+                    objectMapper.writeValueAsString(summary)
+            );
+        } catch (JsonProcessingException exception) {
+            throw new IllegalStateException("Could not serialize placement summary", exception);
+        }
+    }
+
+    private Optional<LessonLevel> findLevel(String levelId) {
+        return levelRepository.findById(levelId);
+    }
+
+    private record AgentEvaluation(
+            String level,
+            Map<String, String> summary,
+            String summaryJson
+    ) {
     }
 
     private LessonLevel assignLevel(int score, int total) {

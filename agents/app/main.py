@@ -85,7 +85,6 @@ async def stream_agent(request: AgentStreamRequest):
 
     model = init_chat_model(
         model=f"google_genai:{model_name}",
-        temperature=0,
     )
 
     async def generate():

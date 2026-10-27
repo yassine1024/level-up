@@ -32,6 +32,7 @@ export default function PlacementScreen() {
     totalQuestions: number;
     assignedLevelId: string;
     assignedLevelName: string;
+    summary: { en: string; fr: string; ar: string };
   } | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [hintLang, setHintLang] = useState<"EN" | "FR" | "AR">("EN");
@@ -56,6 +57,7 @@ export default function PlacementScreen() {
           totalQuestions: res.totalQuestions,
           assignedLevelId: res.assignedLevelId,
           assignedLevelName: res.assignedLevelName,
+          summary: res.summary,
         });
         setPhase("result");
       })
@@ -244,7 +246,9 @@ export default function PlacementScreen() {
 
   // ── Result ─────────────────────────────────────────────────────────────────
   const levelId = result?.assignedLevelId ?? "A1";
-  const description = LEVEL_DESCRIPTIONS[levelId] ?? LEVEL_DESCRIPTIONS.A1;
+  const description = result?.summary?.[hintLang.toLowerCase() as "en" | "fr" | "ar"]
+    ?? LEVEL_DESCRIPTIONS[levelId]
+    ?? LEVEL_DESCRIPTIONS.A1;
   return (
     <View style={[styles.root, { paddingTop: insets.top }]}>
       <ScrollView contentContainerStyle={styles.body} showsVerticalScrollIndicator={false}>

@@ -18,6 +18,15 @@ public class PlacementQuestion {
     @Column(nullable = false, length = 500)
     private String prompt;
 
+    @Column(nullable = false, length = 2)
+    private String level;
+
+    @Column(nullable = false, length = 50)
+    private String skill;
+
+    @Column(nullable = false, length = 150)
+    private String focus;
+
     @Column(nullable = false, length = 255)
     private String optionA;
 
@@ -44,6 +53,9 @@ public class PlacementQuestion {
 
     public PlacementQuestion(
             String prompt,
+            String level,
+            String skill,
+            String focus,
             String optionA,
             String optionB,
             String optionC,
@@ -53,6 +65,9 @@ public class PlacementQuestion {
             int sortOrder
     ) {
         this.prompt = prompt;
+        this.level = level;
+        this.skill = skill;
+        this.focus = focus;
         this.optionA = optionA;
         this.optionB = optionB;
         this.optionC = optionC;
@@ -68,6 +83,18 @@ public class PlacementQuestion {
 
     public String getPrompt() {
         return prompt;
+    }
+
+    public String getLevel() {
+        return level;
+    }
+
+    public String getSkill() {
+        return skill;
+    }
+
+    public String getFocus() {
+        return focus;
     }
 
     public String getOptionA() {

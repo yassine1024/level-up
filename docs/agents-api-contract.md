@@ -120,6 +120,7 @@ lesson version serves every student. A slide's position in the list is the
   "grammarText": "…",
   "pronunciationText": "",
   "listeningTranscript": "",
+  "writingDescription": "…",
   "recentMistakes": [
     {
       "prompt": "She ____ to school every day.",

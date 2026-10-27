@@ -176,6 +176,11 @@ export interface PlacementAttemptResponse {
   totalQuestions: number;
   assignedLevelId: string;
   assignedLevelName: string;
+  summary: {
+    en: string;
+    fr: string;
+    ar: string;
+  };
 }
 
 // ── Student · slides / progress ──────────────────────────────────────────
@@ -212,6 +217,7 @@ export interface PracticeSession {
 export interface PracticeAnswer {
   questionIndex: number;
   answer: string;
+  spoken?: boolean;
 }
 
 export interface PracticeAnswerResponse {
@@ -240,6 +246,7 @@ export interface WritingCorrection {
   wrong: string;
   right: string;
   explanation: string;
+  focus?: string;
 }
 
 export interface WritingSubmission {
@@ -249,6 +256,35 @@ export interface WritingSubmission {
   feedback: string;
   correctedText?: string;
   corrections?: WritingCorrection[];
+}
+
+export interface CharacterEpisode {
+  episodeId: number;
+  lessonId: number;
+  episode: {
+    title: string;
+    setting: string;
+    character: { name: string; role: string; personality: string };
+    goals: string[];
+    targetWords: string[];
+    openingLine: string;
+  };
+  openingLine: string;
+}
+
+export interface CharacterReply {
+  episodeId: number;
+  reply: string;
+  emotion: string;
+  correction: {
+    original: string;
+    corrected: string;
+    explanation: { en: string; fr: string; ar: string };
+    focus: string;
+    segments: { text: string; change: "same" | "removed" | "added" }[];
+  } | null;
+  nextInput: { mode: string; suggestions: string[] };
+  episodeComplete: boolean;
 }
 
 // ── Student · mistakes ───────────────────────────────────────────────────

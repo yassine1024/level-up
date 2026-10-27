@@ -17,6 +17,10 @@ import com.levelup.backend.student.dto.StudentCourseResponse;
 import com.levelup.backend.student.dto.WritingSubmissionResponse;
 import com.levelup.backend.student.dto.WritingSubmitRequest;
 import com.levelup.backend.student.dto.WritingTaskResponse;
+import com.levelup.backend.student.dto.CharacterEpisodeResponse;
+import com.levelup.backend.student.dto.CharacterEpisodeStartRequest;
+import com.levelup.backend.student.dto.CharacterMessageRequest;
+import com.levelup.backend.student.dto.CharacterReplyResponse;
 import com.levelup.backend.student.entity.ExplanationLanguage;
 import com.levelup.backend.student.service.LessonStudyService;
 import com.levelup.backend.student.service.PlacementService;
@@ -24,6 +28,7 @@ import com.levelup.backend.student.service.PracticeSessionService;
 import com.levelup.backend.student.service.StudentAccessService;
 import com.levelup.backend.student.service.StudentCourseService;
 import com.levelup.backend.student.service.StudentMistakeService;
+import com.levelup.backend.student.service.CharacterChatService;
 import com.levelup.backend.student.dto.MistakeResponse;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -52,6 +57,7 @@ public class StudentController {
     private final LessonStudyService lessonStudyService;
     private final PracticeSessionService practiceSessionService;
     private final StudentMistakeService mistakeService;
+    private final CharacterChatService characterChatService;
 
     public StudentController(
             StudentAccessService accessService,
@@ -59,7 +65,8 @@ public class StudentController {
             StudentCourseService courseService,
             LessonStudyService lessonStudyService,
             PracticeSessionService practiceSessionService,
-            StudentMistakeService mistakeService
+            StudentMistakeService mistakeService,
+            CharacterChatService characterChatService
     ) {
         this.accessService = accessService;
         this.placementService = placementService;
@@ -67,6 +74,7 @@ public class StudentController {
         this.lessonStudyService = lessonStudyService;
         this.practiceSessionService = practiceSessionService;
         this.mistakeService = mistakeService;
+        this.characterChatService = characterChatService;
     }
 
     @GetMapping("/placement-test/questions")
@@ -169,6 +177,26 @@ public class StudentController {
     ) {
         User user = accessService.requireStudent(authorization);
         return lessonStudyService.submitWriting(user, lessonId, request.text());
+    }
+
+    @PostMapping("/lessons/{lessonId}/character/episodes")
+    public CharacterEpisodeResponse startCharacterEpisode(
+            @RequestHeader("Authorization") String authorization,
+            @PathVariable Long lessonId,
+            @Valid @RequestBody CharacterEpisodeStartRequest request
+    ) {
+        User user = accessService.requireStudent(authorization);
+        return characterChatService.start(user, lessonId, request);
+    }
+
+    @PostMapping("/character/episodes/{episodeId}/messages")
+    public CharacterReplyResponse sendCharacterMessage(
+            @RequestHeader("Authorization") String authorization,
+            @PathVariable Long episodeId,
+            @Valid @RequestBody CharacterMessageRequest request
+    ) {
+        User user = accessService.requireStudent(authorization);
+        return characterChatService.reply(user, episodeId, request);
     }
 
     @GetMapping("/mistakes")

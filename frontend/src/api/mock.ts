@@ -155,6 +155,11 @@ export const mockApi = {
       totalQuestions: 15,
       assignedLevelId: "A1",
       assignedLevelName: "Beginner",
+      summary: {
+        en: "You already know some English words. Next you will learn to introduce yourself and talk about everyday things.",
+        fr: "Tu connais déjà quelques mots d'anglais. Ensuite, tu vas apprendre à te présenter et à parler de la vie de tous les jours.",
+        ar: "أنت تعرف بعض الكلمات الإنجليزية. ستتعلم بعد ذلك كيف تقدّم نفسك وتتحدث عن الحياة اليومية.",
+      },
     };
   },
 
@@ -214,7 +219,8 @@ export const mockApi = {
   async submitPracticeAnswer(
     _sessionId: number,
     questionIndex: number,
-    answer: string
+    answer: string,
+    _spoken = false
   ): Promise<PracticeAnswerResponse> {
     await delay();
     const correct = answer === "My name is Sara." || answer === "goes";
