@@ -25,8 +25,9 @@ export function appendDocument(
   }
 
   // React Native's FormData takes `{ uri, name, type }` where the DOM
-  // typings only allow string | Blob, hence the cast.
-  const append = form.append as unknown as (
+  // typings only allow string | Blob, hence the cast. Bind `append` to the
+  // form instance so `this._parts` stays defined.
+  const append = form.append.bind(form) as unknown as (
     name: string,
     value: unknown
   ) => void;
@@ -35,4 +36,25 @@ export function appendDocument(
     name: doc.fileName,
     type: doc.mimeType ?? "application/octet-stream",
   });
+}
+
+export async function appendAudio(
+  form: FormData,
+  field: string,
+  uri: string,
+  fileName: string,
+  mimeType: string
+) {
+  if (Platform.OS === "web") {
+    const response = await fetch(uri);
+    const blob = await response.blob();
+    form.append(field, blob, fileName);
+    return;
+  }
+
+  const append = form.append.bind(form) as unknown as (
+    name: string,
+    value: unknown
+  ) => void;
+  append(field, { uri, name: fileName, type: mimeType });
 }

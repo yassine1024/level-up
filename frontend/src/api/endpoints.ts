@@ -145,7 +145,7 @@ export const teacherApi = {
     ];
     for (const field of fileFields) {
       const file = payload[field];
-      if (file) appendDocument(form, field, file);
+      if (file) await appendDocument(form, field, file);
     }
     if (payload.writingDescription?.trim()) {
       form.append("writingDescription", payload.writingDescription.trim());
