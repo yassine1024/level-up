@@ -112,123 +112,53 @@ export default function PlacementScreen() {
   if (phase === "intro") {
     return (
       <View style={[styles.root, { paddingTop: insets.top }]}>
-        <ScrollView contentContainerStyle={styles.body} showsVerticalScrollIndicator={false}>
-          <View style={styles.header}>
-            <Text style={styles.eyebrow}>Student onboarding</Text>
-            <Text style={styles.title}>Placement test · intro</Text>
+        <View style={styles.introHeader}>
+          <View style={styles.backButton}>
+            <Ionicons name="chevron-back" size={22} color={Colors.text} />
           </View>
-
-          <View style={styles.levelRow}>
-            {["A1", "A2", "B1", "C1"].map((l) => (
-              <View key={l} style={styles.levelChip}>
-                <Text style={styles.levelChipText}>{l}</Text>
-              </View>
-            ))}
-          </View>
-
-          <View style={styles.card}>
-            <Text style={styles.cardTitle}>Let us find your level</Text>
-            <Text style={styles.cardBody}>
-              A short test so your course starts at the right place. There is no pass or fail.
-            </Text>
-          </View>
-
-          <View style={styles.statsRow}>
-            <View style={styles.stat}>
-              <Text style={styles.statValue}>15</Text>
-              <Text style={styles.statLabel}>questions</Text>
-            </View>
-            <View style={styles.stat}>
-              <Text style={styles.statValue}>~10</Text>
-              <Text style={styles.statLabel}>minutes</Text>
-            </View>
-            <View style={styles.stat}>
-              <Text style={styles.statValue}>1</Text>
-              <Text style={styles.statLabel}>answer each</Text>
-            </View>
-          </View>
-
-          {questionsQuery.isLoading ? (
-            <View style={styles.loadingBox}>
-              <ActivityIndicator color={Colors.primary} />
-              <Text style={styles.loadingText}>Loading questions…</Text>
-            </View>
-          ) : questionsQuery.isError ? (
-            <View style={styles.loadingBox}>
-              <Text style={styles.loadingText}>Could not load questions.</Text>
-              <Pressable onPress={() => questionsQuery.refetch()}>
-                <Text style={styles.retryText}>Retry</Text>
-              </Pressable>
-            </View>
-          ) : (
-            <Button title="Start the test" onPress={handleStart} />
-          )}
-        </ScrollView>
-      </View>
-    );
-  }
-
-  // ── Question ───────────────────────────────────────────────────────────────
-  if (phase === "question") {
-    if (!currentQuestion) {
-      return (
-        <View style={[styles.root, { paddingTop: insets.top, justifyContent: "center", alignItems: "center" }]}>
-          <ActivityIndicator color={Colors.primary} />
         </View>
-      );
-    }
-    const options = [
-      { letter: "A", text: currentQuestion.optionA },
-      { letter: "B", text: currentQuestion.optionB },
-      { letter: "C", text: currentQuestion.optionC },
-      { letter: "D", text: currentQuestion.optionD },
-    ];
-    return (
-      <View style={[styles.root, { paddingTop: insets.top }]}>
-        <ScrollView contentContainerStyle={styles.body} showsVerticalScrollIndicator={false}>
-          <View style={styles.header}>
-            <Pressable onPress={() => (currentIndex > 0 ? setCurrentIndex((i) => i - 1) : setPhase("intro"))}>
-              <Ionicons name="chevron-back" size={24} color={Colors.text} />
-            </Pressable>
-            <Text style={styles.questionCount}>
-              {currentIndex + 1} / {questions.length || total}
-            </Text>
-          </View>
-
-          {submitError ? (
-            <View style={styles.errorBox}>
-              <Text style={styles.errorText}>{submitError}</Text>
-              <Pressable onPress={handleRetrySubmit}>
-                <Text style={styles.retryText}>Retry</Text>
-              </Pressable>
+        <View style={styles.hero}>
+          <View style={styles.heroImage} />
+        </View>
+        <View style={styles.introText}>
+          <Text style={styles.introTitle}>Let&apos;s find your level</Text>
+          <Text style={styles.introBody}>Answer a few quick questions so we can start you at the right place.</Text>
+        </View>
+        <View style={styles.infoList}>
+          <View style={styles.infoCard}>
+            <View style={[styles.infoIcon, { backgroundColor: Colors.primaryLight }]}>
+              <Ionicons name="time-outline" size={22} color={Colors.text} />
             </View>
-          ) : null}
-
-          <View style={styles.card}>
-            <Text style={styles.sectionLabel}>Choose the correct word</Text>
-            <Text style={styles.questionText}>{currentQuestion.prompt}</Text>
+            <View style={{ flex: 1, gap: 2 }}>
+              <Text style={styles.infoTitle}>About 10 minutes</Text>
+              <Text style={styles.infoBody}>Take your time, no rush</Text>
+            </View>
           </View>
-
-          {options.map((opt) => (
-            <Pressable
-              key={opt.letter}
-              style={[styles.optionCard, selected === opt.letter && styles.optionCardSelected]}
-              onPress={() => handleSelect(opt.letter)}>
-              <View style={[styles.optionBadge, selected === opt.letter && styles.optionBadgeSelected]}>
-                <Text style={[styles.optionBadgeText, selected === opt.letter && styles.optionBadgeTextSelected]}>
-                  {opt.letter}
-                </Text>
-              </View>
-              <Text style={styles.optionText}>{opt.text}</Text>
-            </Pressable>
-          ))}
-
-          <Button
-            title="Next"
-            onPress={handleNext}
-            disabled={!selected}
-          />
-        </ScrollView>
+          <View style={styles.infoCard}>
+            <View style={[styles.infoIcon, { backgroundColor: Colors.purpleLight }]}>
+              <Ionicons name="list-outline" size={22} color={Colors.text} />
+            </View>
+            <View style={{ flex: 1, gap: 2 }}>
+              <Text style={styles.infoTitle}>Multiple choice</Text>
+              <Text style={styles.infoBody}>Pick the best answer each time</Text>
+            </View>
+          </View>
+          <View style={styles.infoCard}>
+            <View style={[styles.infoIcon, { backgroundColor: "#FCE3C4" }]}>
+              <Ionicons name="happy-outline" size={22} color={Colors.text} />
+            </View>
+            <View style={{ flex: 1, gap: 2 }}>
+              <Text style={styles.infoTitle}>No pressure</Text>
+              <Text style={styles.infoBody}>It is not graded, it just places you</Text>
+            </View>
+          </View>
+        </View>
+        <View style={styles.actions}>
+          <Pressable style={styles.startButton} onPress={handleStart}>
+            <Text style={styles.startButtonText}>Start test</Text>
+          </Pressable>
+          <Text style={styles.maybeLater}>Maybe later</Text>
+        </View>
       </View>
     );
   }
@@ -280,6 +210,11 @@ export default function PlacementScreen() {
           ))}
         </View>
 
+        {isRetake ? (
+          <View style={styles.resultCard}>
+            <Text style={styles.scoreText}>Previous level: A1 · New level: {result?.assignedLevelName ?? "Beginner"}</Text>
+          </View>
+        ) : null}
         {isRetake ? (
           <View style={styles.resultCard}>
             <Text style={styles.scoreText}>Previous level: A1 · New level: {result?.assignedLevelName ?? "Beginner"}</Text>
@@ -393,4 +328,21 @@ const styles = StyleSheet.create({
   langChipSelected: { borderColor: Colors.primary, backgroundColor: Colors.primaryLight },
   langChipText: { fontFamily: Fonts.bodyHeavy, fontSize: 13, color: Colors.muted },
   langChipTextSelected: { color: Colors.primaryDark },
+
+  introHeader: { paddingHorizontal: 24, paddingTop: 24, height: 40, justifyContent: "center" },
+  backButton: { width: 40, height: 40, borderRadius: 20, backgroundColor: "#F7F8FA", alignItems: "center", justifyContent: "center" },
+  hero: { alignItems: "center", marginTop: 24 },
+  heroImage: { width: 125, height: 125, borderRadius: 62.5, backgroundColor: Colors.primaryLight },
+  introText: { alignItems: "center", paddingHorizontal: 24, marginTop: 24, gap: 8 },
+  introTitle: { fontFamily: Fonts.bodyHeavy, fontSize: 28, color: Colors.text, textAlign: "center", lineHeight: 36 },
+  introBody: { fontFamily: Fonts.bodyBold, fontSize: 15, color: Colors.muted, textAlign: "center", lineHeight: 22 },
+  infoList: { paddingHorizontal: 24, marginTop: 24, gap: 12 },
+  infoCard: { flexDirection: "row", alignItems: "center", gap: 14, backgroundColor: Colors.white, borderWidth: 1, borderColor: Colors.border, borderRadius: 16, paddingLeft: 12, paddingRight: 16, paddingVertical: 12 },
+  infoIcon: { width: 40, height: 40, borderRadius: 20, alignItems: "center", justifyContent: "center" },
+  infoTitle: { fontFamily: Fonts.semiBold, fontSize: 15, color: Colors.text },
+  infoBody: { fontFamily: Fonts.bodyBold, fontSize: 13, color: Colors.muted, lineHeight: 18 },
+  actions: { position: "absolute", left: 24, right: 24, top: 696, alignItems: "center", gap: 12 },
+  startButton: { width: "100%", height: 52, borderRadius: 16, backgroundColor: Colors.primary, alignItems: "center", justifyContent: "center" },
+  startButtonText: { fontFamily: Fonts.semiBold, fontSize: 16, color: Colors.white },
+  maybeLater: { fontFamily: Fonts.semiBold, fontSize: 14, color: Colors.muted },
 });
