@@ -1,126 +1,102 @@
 import { StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { router } from "expo-router";
-import Animated, { FadeInUp } from "react-native-reanimated";
 
 import { Button } from "@/components/Button";
-import { Colors, Fonts } from "@/constants/theme";
+import { Colors, Fonts, Radii } from "@/constants/theme";
 
 export default function WelcomeScreen() {
   const insets = useSafeAreaInsets();
+
   return (
-    <View style={styles.root}>
-      {/* Green hero */}
-      <View style={styles.hero}>
-        <View style={styles.bubbleLeft}>
-          <Text style={styles.bubbleLeftText}>Hello!</Text>
-        </View>
-        <View style={styles.bubbleRight}>
-          <Text style={styles.bubbleRightText}>Salam!</Text>
-        </View>
+    <View style={[styles.root, { paddingTop: insets.top }]}>
+      {/* Illustration */}
+      <View style={styles.illustration} />
+
+      {/* Title */}
+      <View style={styles.titleBlock}>
+        <Text style={styles.title}>
+          <Text style={styles.titleLevel}>Level</Text>
+          <Text style={styles.titleUp}>Up</Text>
+        </Text>
+        <Text style={styles.subtitle}>Your journey starts here</Text>
       </View>
 
-      {/* Body */}
-      <View style={[styles.body, { paddingBottom: insets.bottom + 20 }]}>
-        <View style={styles.chip}>
-          <Text style={styles.chipText}>Lisan · working name</Text>
+      {/* Actions */}
+      <View style={[styles.actions, { paddingBottom: insets.bottom + 24 }]}>
+        <Button title="Start learning" onPress={() => router.push("/signup")} />
+        <View style={{ height: 34 }} />
+        <View style={styles.secondaryButton}>
+          <Text
+            style={styles.secondaryText}
+            onPress={() => router.push("/login")}>
+            I have already an account
+          </Text>
         </View>
-        <Text style={styles.title}>Learn English the fun way.</Text>
-        <Text style={styles.subtitle}>
-          Lessons from your teacher, games to practice, and a character who chats
-          with you and fixes your mistakes.
-        </Text>
-        <View style={{ flex: 1 }} />
-        <Animated.View entering={FadeInUp.delay(100).springify()}>
-          <Button title="Create account" onPress={() => router.push("/signup")} />
-        </Animated.View>
-        <View style={{ height: 12 }} />
-        <Animated.View entering={FadeInUp.delay(220).springify()}>
-          <Button
-            title="I already have an account"
-            variant="ghost"
-            onPress={() => router.push("/login")}
-          />
-        </Animated.View>
-        <View style={{ height: 20 }} />
       </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: Colors.background },
-  hero: {
-    height: 400,
-    backgroundColor: Colors.primary,
-    borderBottomLeftRadius: 48,
-    borderBottomRightRadius: 48,
-    alignItems: "center",
-    justifyContent: "center",
-    position: "relative",
-  },
-  bubbleLeft: {
-    position: "absolute",
-    top: 60,
-    left: 30,
-    width: 176,
-    height: 92,
-    borderRadius: 30,
-    backgroundColor: Colors.amber,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  bubbleLeftText: {
-    fontFamily: Fonts.heading,
-    fontSize: 36,
-    color: Colors.text,
-  },
-  bubbleRight: {
-    position: "absolute",
-    top: 170,
-    right: 30,
-    width: 176,
-    height: 92,
-    borderRadius: 30,
-    backgroundColor: Colors.white,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  bubbleRightText: {
-    fontFamily: Fonts.heading,
-    fontSize: 36,
-    color: Colors.primaryDark,
-  },
-  body: {
+  root: {
     flex: 1,
-    paddingHorizontal: 24,
-    paddingTop: 32,
-    gap: 12,
+    backgroundColor: Colors.background,
+    paddingHorizontal: 27,
   },
-  chip: {
-    alignSelf: "flex-start",
-    height: 28,
-    paddingHorizontal: 12,
-    borderRadius: 14,
+  illustration: {
+    position: "absolute",
+    left: 229,
+    top: 168,
+    width: 146,
+    height: 146,
+    borderRadius: 73,
     backgroundColor: Colors.primaryLight,
-    alignItems: "center",
-    justifyContent: "center",
   },
-  chipText: {
-    fontFamily: Fonts.bodyHeavy,
-    fontSize: 12,
-    color: Colors.primaryDark,
+  titleBlock: {
+    position: "absolute",
+    left: 56,
+    top: 270,
+    width: 269,
+    alignItems: "center",
   },
   title: {
-    fontFamily: Fonts.heading,
-    fontSize: 32,
+    fontFamily: Fonts.semiBold,
+    fontSize: 70,
+    letterSpacing: -0.98,
+    textAlign: "center",
+  },
+  titleLevel: {
     color: Colors.text,
-    marginTop: 4,
+  },
+  titleUp: {
+    color: Colors.primary,
   },
   subtitle: {
-    fontFamily: Fonts.body,
-    fontSize: 15,
-    lineHeight: 22,
-    color: Colors.muted,
+    fontFamily: Fonts.bodyBold,
+    fontSize: 16,
+    color: "#8E8E93",
+    textAlign: "center",
+    marginTop: 8,
+    letterSpacing: -0.224,
+  },
+  actions: {
+    position: "absolute",
+    left: 27,
+    top: 414,
+    width: 327,
+  },
+  secondaryButton: {
+    height: 52,
+    borderRadius: 12,
+    borderWidth: 1.5,
+    borderColor: Colors.primary,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  secondaryText: {
+    fontFamily: Fonts.bodyHeavy,
+    fontSize: 16,
+    color: Colors.primary,
   },
 });

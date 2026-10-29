@@ -37,6 +37,7 @@ export const Colors = {
 
 export const Fonts = {
   heading: "PlusJakartaSans_700Bold",
+  semiBold: "PlusJakartaSans_600SemiBold",
   body: "PlusJakartaSans_400Regular",
   bodyBold: "PlusJakartaSans_500Medium",
   bodyHeavy: "PlusJakartaSans_700Bold",
