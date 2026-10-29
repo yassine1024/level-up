@@ -1,4 +1,5 @@
 import {
+  Pressable,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -6,6 +7,7 @@ import {
   Text,
   View,
 } from "react-native";
+import { useState } from "react";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { router } from "expo-router";
 
@@ -23,7 +25,7 @@ import {
 import { useMe } from "@/src/hooks/useMe";
 import { useAuthStore } from "@/src/store/auth";
 import { useTeacherStore } from "@/src/store/teacher";
-import { Colors, Fonts } from "@/constants/theme";
+import { Colors, Fonts, Radii } from "@/constants/theme";
 import type {
   ResourceFileField,
   SaveResourcesPayload,
@@ -168,6 +170,40 @@ export default function CourseResourcesScreen() {
   })();
 
   const initials = (me.data?.username ?? "TA").slice(0, 2).toUpperCase();
+  const [view, setView] = useState<"upload" | "list">("upload");
+
+  if (view === "list") {
+    return (
+      <ScrollView
+        contentContainerStyle={[styles.body, { paddingTop: insets.top + 28, paddingBottom: insets.bottom + 28 }]}
+        showsVerticalScrollIndicator={false}>
+        <View style={styles.header}>
+          <Chip label="Teacher" variant="amber" />
+          <View style={styles.avatar}>
+            <Text style={styles.avatarText}>{initials}</Text>
+          </View>
+        </View>
+        <Text style={styles.title}>Course resources</Text>
+        <View style={styles.toggleRow}>
+          <Pressable style={[styles.toggleBtn, styles.toggleBtnInactive]} onPress={() => setView("upload")}>
+            <Text style={styles.toggleText}>Upload</Text>
+          </Pressable>
+          <Pressable style={styles.toggleBtn} onPress={() => setView("list")}>
+            <Text style={styles.toggleText}>List</Text>
+          </Pressable>
+        </View>
+        {["Vocabulary", "Grammar", "Pronunciation", "Listening 1", "Listening 2", "Other"].map((label, i) => (
+          <View key={label} style={styles.listCard}>
+            <Text style={styles.listLabel}>{label}</Text>
+            <Pressable onPress={() => router.push({ pathname: "/teacher/edit-resource", params: { resourceId: String(i + 1) } })}>
+              <Text style={styles.editLink}>Edit</Text>
+            </Pressable>
+          </View>
+        ))}
+        <View style={{ height: 24 }} />
+      </ScrollView>
+    );
+  }
 
   return (
     <KeyboardAvoidingView
@@ -191,6 +227,15 @@ export default function CourseResourcesScreen() {
         <Text style={styles.subtitle}>
           Pick a lesson, then add the files your students will learn from.
         </Text>
+
+        <View style={styles.toggleRow}>
+          <Pressable style={styles.toggleBtn} onPress={() => setView("upload")}>
+            <Text style={styles.toggleText}>Upload</Text>
+          </Pressable>
+          <Pressable style={[styles.toggleBtn, styles.toggleBtnInactive]} onPress={() => setView("list")}>
+            <Text style={styles.toggleText}>List</Text>
+          </Pressable>
+        </View>
 
         {isDemo ? (
           <Chip label="Demo data" variant="grey" style={{ alignSelf: "flex-start" }} />
@@ -371,5 +416,47 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     paddingHorizontal: 16,
     paddingVertical: 12,
+  },
+  toggleRow: {
+    flexDirection: "row",
+    gap: 8,
+    marginBottom: 8,
+  },
+  toggleBtn: {
+    flex: 1,
+    height: 40,
+    borderRadius: Radii.button,
+    backgroundColor: Colors.primary,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  toggleBtnInactive: {
+    backgroundColor: Colors.disabled,
+  },
+  toggleText: {
+    fontFamily: Fonts.bodyHeavy,
+    fontSize: 14,
+    color: Colors.white,
+  },
+  listCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    padding: 14,
+    borderRadius: Radii.card,
+    borderWidth: 1,
+    borderColor: Colors.cardBorder,
+    backgroundColor: Colors.white,
+    marginBottom: 8,
+  },
+  listLabel: {
+    fontFamily: Fonts.bodyBold,
+    fontSize: 15,
+    color: Colors.text,
+  },
+  editLink: {
+    fontFamily: Fonts.bodyHeavy,
+    fontSize: 14,
+    color: Colors.primaryDark,
   },
 });
