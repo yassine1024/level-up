@@ -18,7 +18,7 @@ Source of truth: Figma file `Level-Up` (`RCBBarEPLzzrBuDp6PHN6m`), Page 1.
 
 ## Implemented (functional, theme aligned; not yet pixel-perfect)
 
-- Splash - session check → `frontend/src/app/splash.tsx`
+- Splash - session check → `frontend/src/app/splash.tsx` (converted)
 - Email verification (+ correct/wrong states) → `frontend/src/app/verify-email.tsx`
 - Forgot password → `frontend/src/app/forgot-password.tsx`
 - Reset password → `frontend/src/app/reset-password.tsx`
