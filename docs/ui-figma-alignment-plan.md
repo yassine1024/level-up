@@ -106,19 +106,19 @@ Checklist by screen:
 
 ## 10. Phase 7 — Navigation wiring
 
-- [ ] Add all new routes to `app/_layout.tsx` Stack with `headerShown: false` and `gestureEnabled: false` where Figma shows no back swipe.
-- [ ] Add deep links for reset password / email verification (Expo Router linking config in `app.json`).
-- [ ] Update `StudentBottomNav` if Figma shows different tabs.
-- [ ] Add navigation from profile → settings, delete account, legal pages.
-- [ ] Add navigation from teacher resources → edit resource, students list.
+- [x] Add all new routes to `app/_layout.tsx` Stack with `headerShown: false` and `gestureEnabled: false` where Figma shows no back swipe.
+- [x] Add deep links for reset password / email verification (Expo Router linking config in `app.json`). (scheme `levelupmobile` already configured)
+- [x] Update `StudentBottomNav` if Figma shows different tabs. (4 tabs: Home, Practice, Course, Profile)
+- [x] Add navigation from profile → settings, delete account, legal pages.
+- [x] Add navigation from teacher resources → edit resource, students list.
 
 ## 11. Verification
 
-- [ ] `npx tsc --noEmit` passes.
-- [ ] `npx expo lint` passes.
+- [x] `npx tsc --noEmit` passes.
+- [x] `npx expo lint` passes.
 - [ ] Manual smoke test on iOS simulator (argent) for each new screen.
 - [ ] Side-by-side screenshot comparison against Figma for each modified screen.
-- [ ] Update `docs/api-contract.md` if new endpoints are required.
+- [ ] Update `docs/api-contract.md` if new endpoints are required. (password reset / email verification / delete account endpoints still need backend)
 
 ## 12. Suggested PR breakdown (one PR per phase)
 
