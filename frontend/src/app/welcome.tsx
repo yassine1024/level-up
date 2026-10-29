@@ -42,7 +42,7 @@ const styles = StyleSheet.create({
   root: {
     flex: 1,
     backgroundColor: Colors.background,
-    paddingHorizontal: 27,
+    paddingHorizontal: 0,
   },
   illustration: {
     position: "absolute",

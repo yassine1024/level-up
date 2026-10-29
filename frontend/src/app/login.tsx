@@ -75,7 +75,7 @@ export default function LoginScreen() {
           </View>
         ) : null}
 
-        <View style={{ flex: 1, minHeight: 40 }} />
+        <View style={{ height: 88 }} />
         <Button
           title={loading ? "Signing in..." : "Log in"}
           disabled={loading}
@@ -128,7 +128,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 5,
-    marginBottom: 24,
+    marginBottom: 41,
   },
   mascot: {
     width: 56,
@@ -186,7 +186,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     gap: 4,
-    marginTop: 24,
+    marginTop: 221,
   },
   footerText: {
     fontFamily: Fonts.body,
