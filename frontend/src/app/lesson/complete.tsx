@@ -1,160 +1,101 @@
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { router } from "expo-router";
-import { useEffect } from "react";
 import { Ionicons } from "@expo/vector-icons";
 
 import { Colors, Fonts, Radii } from "@/constants/theme";
-import { Chip } from "@/components/Chip";
-import { StudentBottomNav } from "@/components/StudentBottomNav";
-import { useCourse } from "@/src/hooks/useCourse";
-import { useCompleteLesson } from "@/src/hooks/useProgress";
 
-export default function UnitCompleteScreen() {
+export default function LessonCompleteScreen() {
   const insets = useSafeAreaInsets();
-  const courseQuery = useCourse();
-  const completeLesson = useCompleteLesson();
-  const lessonId = courseQuery.data?.currentUnit?.currentLesson?.id;
-
-  useEffect(() => {
-    if (lessonId) {
-      completeLesson.mutate(lessonId);
-    }
-  }, [lessonId, completeLesson]);
 
   return (
-    <View style={[styles.root, { paddingTop: insets.top }]}>
-      <View style={styles.body}>
-        <View style={{ height: 16 }} />
-        <View style={styles.trophyCircle}>
-          <Ionicons name="trophy" size={72} color={Colors.amberDark} />
-        </View>
-        <Chip label="Unit 1 · Meeting people" variant="amber" />
-        <Text style={styles.title}>Unit complete!</Text>
-        <Text style={styles.subtitle}>
-          You finished all 3 lessons. Unit 2 is now open.
-        </Text>
-        <View style={styles.statsRow}>
-          <View style={styles.statCard}>
-            <Text style={styles.statValue}>3 / 3</Text>
-            <Text style={styles.statLabel}>Lessons</Text>
-          </View>
-          <View style={styles.statCard}>
-            <Text style={styles.statValue}>Unit 2</Text>
-            <Text style={styles.statLabel}>Unlocked</Text>
-          </View>
-        </View>
-        <View style={{ flex: 1 }} />
-        <Pressable
-          style={styles.primaryButton}
-          onPress={() => router.replace("/course")}>
-          <Text style={styles.primaryButtonText}>Go to Unit 2</Text>
-        </Pressable>
-        <Pressable
-          style={styles.ghostButton}
-          onPress={() => router.back()}>
-          <Text style={styles.ghostButtonText}>Practice this unit</Text>
-        </Pressable>
-        <View style={{ height: 16 }} />
+    <ScrollView
+      contentContainerStyle={[styles.root, { paddingTop: insets.top + 72, paddingBottom: insets.bottom + 34 }]}
+      showsVerticalScrollIndicator={false}>
+      <View style={styles.mascot} />
+      <View style={styles.unitChip}>
+        <Text style={styles.unitChipText}>Unit 2 · Food & Drinks</Text>
       </View>
-      <StudentBottomNav
-        active="course"
-        onCoursePress={() => router.replace("/course")}
-        onPracticePress={() => {}}
-      />
-    </View>
+      <View style={styles.textBlock}>
+        <Text style={styles.title}>Unit completed!</Text>
+        <Text style={styles.body}>Great job, Asma! You learned new words and practiced the rules.</Text>
+      </View>
+      <View style={styles.statsRow}>
+        <View style={styles.statCard}>
+          <View style={styles.statIcon}>
+            <Ionicons name="star" size={20} color={Colors.text} />
+          </View>
+          <Text style={styles.statValue}>+50 XP</Text>
+          <Text style={styles.statLabel}>Earned</Text>
+        </View>
+        <View style={styles.statCardBlue}>
+          <View style={styles.statIcon}>
+            <Ionicons name="book-outline" size={20} color={Colors.text} />
+          </View>
+          <Text style={styles.statValue}>8</Text>
+          <Text style={styles.statLabel}>New words</Text>
+        </View>
+        <View style={styles.statCardCream}>
+          <View style={styles.statIcon}>
+            <Ionicons name="trophy-outline" size={20} color={Colors.text} />
+          </View>
+          <Text style={styles.statValue}>92%</Text>
+          <Text style={styles.statLabel}>Accuracy</Text>
+        </View>
+      </View>
+      <View style={styles.nextCard}>
+        <View style={styles.nextBadge}>
+          <Text style={styles.nextBadgeText}>3</Text>
+        </View>
+        <View style={{ flex: 1, gap: 0 }}>
+          <Text style={styles.nextLabel}>Next up</Text>
+          <Text style={styles.nextTitle}>Unit 3 · Travel & Places</Text>
+        </View>
+        <Ionicons name="chevron-forward" size={18} color={Colors.text} />
+      </View>
+      <View style={{ flex: 1, minHeight: 24 }} />
+      <View style={styles.actions}>
+        <Pressable style={styles.continueButton} onPress={() => router.replace("/home")}>
+          <Text style={styles.continueButtonText}>Continue</Text>
+        </Pressable>
+        <Text style={styles.reviewText}>Review the unit</Text>
+      </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  root: {
-    flex: 1,
-    backgroundColor: Colors.background,
-  },
-  body: {
-    flex: 1,
-    alignItems: "center",
-    textAlign: "center",
-    paddingHorizontal: 24,
-    gap: 14,
-    backgroundColor: Colors.background,
-  },
-  trophyCircle: {
-    width: 140,
-    height: 140,
-    borderRadius: 70,
-    backgroundColor: Colors.chipAmberBg,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  title: {
-    fontFamily: Fonts.heading,
-    fontSize: 32,
-    color: Colors.text,
-  },
-  subtitle: {
-    fontFamily: Fonts.body,
-    fontSize: 15,
-    lineHeight: 22,
-    color: Colors.muted,
-    textAlign: "center",
-  },
-  statsRow: {
-    width: "100%",
+  root: { flexGrow: 1, backgroundColor: Colors.background, paddingHorizontal: 24, gap: 14, alignItems: "center" },
+  mascot: { width: 120, height: 120, borderRadius: 60, backgroundColor: Colors.primaryLight },
+  unitChip: { backgroundColor: Colors.purpleLight, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 14 },
+  unitChipText: { fontFamily: Fonts.semiBold, fontSize: 12, color: Colors.text },
+  textBlock: { alignItems: "center", gap: 6, width: "100%" },
+  title: { fontFamily: Fonts.bodyHeavy, fontSize: 30, color: Colors.text, textAlign: "center", lineHeight: 36 },
+  body: { fontFamily: Fonts.bodyBold, fontSize: 15, color: Colors.muted, textAlign: "center", lineHeight: 22 },
+  statsRow: { flexDirection: "row", gap: 10, width: "100%" },
+  statCard: { flex: 1, backgroundColor: Colors.purpleLight, borderRadius: 16, padding: 12, alignItems: "center", gap: 4 },
+  statCardBlue: { flex: 1, backgroundColor: Colors.primaryLight, borderRadius: 16, padding: 12, alignItems: "center", gap: 4 },
+  statCardCream: { flex: 1, backgroundColor: "#FCE3C4", borderRadius: 16, padding: 12, alignItems: "center", gap: 4 },
+  statIcon: { width: 32, height: 32, borderRadius: 16, backgroundColor: Colors.white, alignItems: "center", justifyContent: "center" },
+  statValue: { fontFamily: Fonts.bodyHeavy, fontSize: 18, color: Colors.text },
+  statLabel: { fontFamily: Fonts.bodyBold, fontSize: 11, color: "#374151" },
+  nextCard: {
     flexDirection: "row",
+    alignItems: "center",
     gap: 12,
-  },
-  statCard: {
-    flex: 1,
+    width: "100%",
     backgroundColor: Colors.white,
-    borderWidth: 2,
-    borderColor: Colors.cardBorder,
-    borderRadius: Radii.card,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    borderRadius: 16,
     padding: 12,
-    alignItems: "center",
   },
-  statValue: {
-    fontFamily: Fonts.heading,
-    fontSize: 20,
-    color: Colors.text,
-  },
-  statLabel: {
-    fontFamily: Fonts.body,
-    fontSize: 13,
-    color: Colors.muted,
-    marginTop: 2,
-  },
-  primaryButton: {
-    width: "100%",
-    height: 54,
-    borderRadius: Radii.button,
-    backgroundColor: Colors.primary,
-    alignItems: "center",
-    justifyContent: "center",
-    shadowColor: Colors.primaryDark,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 1,
-    shadowRadius: 0,
-    elevation: 4,
-  },
-  primaryButtonText: {
-    fontFamily: Fonts.bodyHeavy,
-    fontSize: 16,
-    color: Colors.white,
-  },
-  ghostButton: {
-    width: "100%",
-    height: 54,
-    borderRadius: Radii.button,
-    borderWidth: 2,
-    borderColor: Colors.primary,
-    backgroundColor: "transparent",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  ghostButtonText: {
-    fontFamily: Fonts.bodyHeavy,
-    fontSize: 16,
-    color: Colors.primaryDark,
-  },
+  nextBadge: { width: 40, height: 40, borderRadius: 20, backgroundColor: Colors.primaryLight, alignItems: "center", justifyContent: "center" },
+  nextBadgeText: { fontFamily: Fonts.bodyHeavy, fontSize: 16, color: Colors.text },
+  nextLabel: { fontFamily: Fonts.semiBold, fontSize: 11, color: Colors.muted },
+  nextTitle: { fontFamily: Fonts.bodyHeavy, fontSize: 14, color: Colors.text },
+  actions: { width: "100%", gap: 12, alignItems: "center" },
+  continueButton: { width: "100%", paddingVertical: 16, borderRadius: 16, backgroundColor: Colors.primary, alignItems: "center", justifyContent: "center" },
+  continueButtonText: { fontFamily: Fonts.semiBold, fontSize: 16, color: Colors.white },
+  reviewText: { fontFamily: Fonts.semiBold, fontSize: 14, color: Colors.muted },
 });
