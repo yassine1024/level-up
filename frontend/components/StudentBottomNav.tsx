@@ -64,7 +64,7 @@ export function StudentBottomNav({
 
 const styles = StyleSheet.create({
   nav: {
-    height: 78,
+    height: 76,
     backgroundColor: Colors.white,
     borderTopWidth: 2,
     borderTopColor: Colors.cardBorder,

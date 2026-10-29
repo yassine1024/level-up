@@ -94,15 +94,15 @@ For each existing screen, compare layout to Figma and fix:
 - animation (button press, transitions)
 
 Checklist by screen:
-- [ ] `welcome`, `signup`, `login`, `role`
-- [ ] `home`, `course`
-- [ ] `lesson/loading`, `lesson/slides`, `lesson/grammar`, `lesson/complete`
-- [ ] `practice/index`, `practice/games`, `practice/quiz`, `practice/fill-blank`, `practice/result`
-- [ ] `practice/writing`, `practice/listening`, `practice/mistakes`
-- [ ] `practice/character`, `practice/roleplay`
-- [ ] `placement`
-- [ ] `teacher/index`, `teacher/resources`, `teacher/saved`
-- [ ] `(tabs)/profile`, `(tabs)/index`
+- [x] `welcome`, `signup`, `login`, `role`
+- [x] `home`, `course`
+- [x] `lesson/loading`, `lesson/slides`, `lesson/grammar`, `lesson/complete`
+- [x] `practice/index`, `practice/games`, `practice/quiz`, `practice/fill-blank`, `practice/result`
+- [x] `practice/writing`, `practice/listening`, `practice/mistakes`
+- [x] `practice/character`, `practice/roleplay`
+- [x] `placement`
+- [x] `teacher/index`, `teacher/resources`, `teacher/saved`
+- [x] `(tabs)/profile`, `(tabs)/index`
 
 ## 10. Phase 7 — Navigation wiring
 
