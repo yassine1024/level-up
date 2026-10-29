@@ -7,7 +7,6 @@ import { useKeyboardVisible } from "@/src/hooks/useKeyboardVisible";
 import { authApi } from "@/src/api/endpoints";
 import { useAuthStore } from "@/src/store/auth";
 
-import { BackButton } from "@/components/BackButton";
 import { Button } from "@/components/Button";
 import { Input } from "@/components/Input";
 import { Colors, Fonts } from "@/constants/theme";
@@ -30,30 +29,44 @@ export default function LoginScreen() {
         scrollEnabled={keyboardVisible}
         bounces={false}
         showsVerticalScrollIndicator={false}>
-        <View style={styles.row}>
-          <BackButton onPress={() => router.back()} />
+        {/* Wordmark */}
+        <View style={styles.wordmarkRow}>
+          <View style={styles.mascot} />
+          <Text style={styles.wordmark}>
+            <Text style={styles.wordmarkLevel}>Level</Text>
+            <Text style={styles.wordmarkUp}>Up</Text>
+          </Text>
         </View>
-        <Text style={styles.title}>Welcome back</Text>
-        <Text style={styles.subtitle}>Log in to pick up where you stopped.</Text>
-        <View style={{ marginTop: 8 }}>
+
+        <View style={styles.titleBlock}>
+          <Text style={styles.title}>Welcome back</Text>
+          <Text style={styles.subtitle}>Log in to keep learning.</Text>
+        </View>
+
+        <View style={styles.form}>
           <Input
-            label="Username"
-            placeholder="your username"
+            label="Email"
+            placeholder="you@example.com"
             value={username}
             onChangeText={(t) => { setUsername(t); setError(false); }}
+            keyboardType="email-address"
             autoComplete="username"
             textContentType="username"
           />
+          <Input
+            label="Password"
+            placeholder="Your password"
+            value={password}
+            onChangeText={(t) => { setPassword(t); setError(false); }}
+            secureTextEntry
+            autoComplete="current-password"
+            textContentType="password"
+          />
+          <Text style={styles.forgot} onPress={() => router.push("/forgot-password")}>
+            Forgot password?
+          </Text>
         </View>
-        <Input
-          label="Password"
-          placeholder="Your password"
-          value={password}
-          onChangeText={(t) => { setPassword(t); setError(false); }}
-          secureTextEntry
-          autoComplete="current-password"
-          textContentType="password"
-        />
+
         {error ? (
           <View style={styles.errorCard}>
             <Text style={styles.errorText}>
@@ -61,6 +74,7 @@ export default function LoginScreen() {
             </Text>
           </View>
         ) : null}
+
         <View style={{ flex: 1, minHeight: 40 }} />
         <Button
           title={loading ? "Signing in..." : "Log in"}
@@ -75,17 +89,13 @@ export default function LoginScreen() {
             try {
               const res = await authApi.login({ username, password });
               useAuthStore.getState().setToken(res.token);
-              // Route based on the role embedded in the JWT so the role
-              // selection screen only appears during account creation.
               let role = "STUDENT";
               try {
                 const payload = JSON.parse(
                   atob(res.token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/"))
                 );
                 if (payload?.role) role = String(payload.role);
-              } catch {
-                // Fall back to student home if the token cannot be decoded.
-              }
+              } catch {}
               if (role === "TEACHER") router.replace("/teacher");
               else router.replace("/home");
             } catch {
@@ -95,12 +105,12 @@ export default function LoginScreen() {
             }
           }}
         />
-        <Text style={styles.footer}>
-          New here?{" "}
-          <Text style={styles.link} onPress={() => router.push("/signup")}>
+        <View style={styles.footer}>
+          <Text style={styles.footerText}>New to LevelUp?</Text>
+          <Text style={styles.footerLink} onPress={() => router.push("/signup")}>
             Create an account
           </Text>
-        </Text>
+        </View>
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -109,30 +119,62 @@ export default function LoginScreen() {
 const styles = StyleSheet.create({
   body: {
     flexGrow: 1,
-    padding: 24,
-    gap: 16,
+    paddingHorizontal: 24,
+    paddingBottom: 24,
     backgroundColor: Colors.background,
+    gap: 0,
   },
-  row: { height: 44 },
+  wordmarkRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
+    marginBottom: 24,
+  },
+  mascot: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: Colors.primaryLight,
+  },
+  wordmark: {
+    fontFamily: Fonts.semiBold,
+    fontSize: 36,
+    letterSpacing: -0.224,
+  },
+  wordmarkLevel: { color: Colors.text },
+  wordmarkUp: { color: Colors.primary },
+  titleBlock: {
+    gap: 8,
+    marginBottom: 24,
+  },
   title: {
-    fontFamily: Fonts.heading,
+    fontFamily: Fonts.bodyHeavy,
     fontSize: 28,
     color: Colors.text,
-    marginTop: 8,
   },
   subtitle: {
     fontFamily: Fonts.body,
     fontSize: 15,
-    lineHeight: 22,
     color: Colors.muted,
+  },
+  form: {
+    gap: 18,
+  },
+  forgot: {
+    fontFamily: Fonts.bodyBold,
+    fontSize: 14,
+    color: Colors.text,
+    textAlign: "right",
+    textDecorationLine: "underline",
   },
   errorCard: {
     backgroundColor: Colors.errorBg,
     borderColor: Colors.errorBorder,
-    borderWidth: 2,
-    borderRadius: 14,
+    borderWidth: 1.5,
+    borderRadius: 12,
     padding: 12,
     paddingHorizontal: 16,
+    marginTop: 18,
   },
   errorText: {
     fontFamily: Fonts.bodyBold,
@@ -140,14 +182,21 @@ const styles = StyleSheet.create({
     color: Colors.errorText,
   },
   footer: {
-    fontFamily: Fonts.bodyBold,
-    fontSize: 13,
-    color: Colors.muted,
-    textAlign: "center",
-    paddingBottom: 28,
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    gap: 4,
+    marginTop: 24,
   },
-  link: {
-    color: Colors.primaryDark,
+  footerText: {
+    fontFamily: Fonts.body,
+    fontSize: 15,
+    color: Colors.muted,
+  },
+  footerLink: {
     fontFamily: Fonts.bodyHeavy,
+    fontSize: 15,
+    color: Colors.text,
+    textDecorationLine: "underline",
   },
 });
