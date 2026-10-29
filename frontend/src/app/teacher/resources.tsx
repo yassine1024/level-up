@@ -179,8 +179,13 @@ export default function CourseResourcesScreen() {
         showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
           <Chip label="Teacher" variant="amber" />
-          <View style={styles.avatar}>
-            <Text style={styles.avatarText}>{initials}</Text>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+            <Pressable onPress={() => router.push("/teacher/students")}>
+              <Text style={styles.studentsLink}>Students</Text>
+            </Pressable>
+            <View style={styles.avatar}>
+              <Text style={styles.avatarText}>{initials}</Text>
+            </View>
           </View>
         </View>
         <Text style={styles.title}>Course resources</Text>
@@ -218,8 +223,13 @@ export default function CourseResourcesScreen() {
         showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
           <Chip label="Teacher" variant="amber" />
-          <View style={styles.avatar}>
-            <Text style={styles.avatarText}>{initials}</Text>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+            <Pressable onPress={() => router.push("/teacher/students")}>
+              <Text style={styles.studentsLink}>Students</Text>
+            </Pressable>
+            <View style={styles.avatar}>
+              <Text style={styles.avatarText}>{initials}</Text>
+            </View>
           </View>
         </View>
 
@@ -377,6 +387,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
   },
+  studentsLink: { fontFamily: Fonts.bodyHeavy, fontSize: 14, color: Colors.primaryDark, marginRight: 4 },
   avatar: {
     width: 44,
     height: 44,

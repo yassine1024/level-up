@@ -72,7 +72,8 @@ function RootLayoutNav() {
             <Stack.Screen name="lesson/slides" options={{ gestureEnabled: false }} />
             <Stack.Screen name="lesson/grammar" options={{ gestureEnabled: false }} />
             <Stack.Screen name="lesson/complete" options={{ gestureEnabled: false }} />
-            {/* Phase 0: auth / account / legal flows (no swipe-back) */}
+            <Stack.Screen name="practice/character" options={{ gestureEnabled: false }} />
+            {/* Phase 7: register all new routes */}
             <Stack.Screen name="splash" options={{ gestureEnabled: false }} />
             <Stack.Screen name="verify-email" options={{ gestureEnabled: false }} />
             <Stack.Screen name="forgot-password" options={{ gestureEnabled: false }} />
@@ -81,10 +82,10 @@ function RootLayoutNav() {
             <Stack.Screen name="legal/terms" options={{ gestureEnabled: true }} />
             <Stack.Screen name="legal/privacy" options={{ gestureEnabled: true }} />
             <Stack.Screen name="profile/delete-account" options={{ gestureEnabled: false }} />
-            {/* Phase 0: teacher management */}
             <Stack.Screen name="teacher/profile" options={{ gestureEnabled: true }} />
             <Stack.Screen name="teacher/students" options={{ gestureEnabled: true }} />
             <Stack.Screen name="teacher/edit-resource" options={{ gestureEnabled: false }} />
+            <Stack.Screen name="practice/character-settings" options={{ gestureEnabled: true }} />
           </Stack>
         </ThemeProvider>
       </QueryClientProvider>

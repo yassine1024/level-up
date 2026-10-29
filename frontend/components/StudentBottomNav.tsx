@@ -1,63 +1,55 @@
 import { Pressable, StyleSheet, Text, View } from "react-native";
+import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 
 import { Colors, Fonts } from "@/constants/theme";
 
-type Tab = "course" | "practice";
+type Tab = "home" | "practice" | "course" | "profile";
 
 interface StudentBottomNavProps {
   active?: Tab | "none";
-  onCoursePress?: () => void;
+  onHomePress?: () => void;
   onPracticePress?: () => void;
+  onCoursePress?: () => void;
+  onProfilePress?: () => void;
 }
 
 export function StudentBottomNav({
   active = "none",
-  onCoursePress,
+  onHomePress,
   onPracticePress,
+  onCoursePress,
+  onProfilePress,
 }: StudentBottomNavProps) {
+  const tabs: { key: Tab; label: string; icon: keyof typeof Ionicons.glyphMap; onPress?: () => void }[] = [
+    { key: "home", label: "Home", icon: "home-outline", onPress: onHomePress ?? (() => router.push("/home")) },
+    { key: "practice", label: "Practice", icon: "locate-outline", onPress: onPracticePress ?? (() => router.push("/practice")) },
+    { key: "course", label: "Course", icon: "book-outline", onPress: onCoursePress ?? (() => router.push("/course")) },
+    { key: "profile", label: "Profile", icon: "person-outline", onPress: onProfilePress ?? (() => router.push("/(tabs)/profile")) },
+  ];
+
   return (
     <View style={styles.nav}>
-      <Pressable
-        onPress={onCoursePress}
-        style={styles.tab}
-        accessibilityRole="tab"
-        accessibilityState={{ selected: active === "course" }}>
-        <View style={[styles.ic, active === "course" && styles.icOn]}>
-          <Ionicons
-            name="book-outline"
-            size={20}
-            color={active === "course" ? Colors.primaryDark : Colors.muted}
-          />
-        </View>
-        <Text
-          style={[
-            styles.label,
-            active === "course" && styles.labelOn,
-          ]}>
-          Course
-        </Text>
-      </Pressable>
-      <Pressable
-        onPress={onPracticePress}
-        style={styles.tab}
-        accessibilityRole="tab"
-        accessibilityState={{ selected: active === "practice" }}>
-        <View style={[styles.ic, active === "practice" && styles.icOn]}>
-          <Ionicons
-            name="locate-outline"
-            size={20}
-            color={active === "practice" ? Colors.primaryDark : Colors.muted}
-          />
-        </View>
-        <Text
-          style={[
-            styles.label,
-            active === "practice" && styles.labelOn,
-          ]}>
-          Practice
-        </Text>
-      </Pressable>
+      {tabs.map((tab) => {
+        const selected = active === tab.key;
+        return (
+          <Pressable
+            key={tab.key}
+            onPress={tab.onPress}
+            style={styles.tab}
+            accessibilityRole="tab"
+            accessibilityState={{ selected }}>
+            <View style={[styles.ic, selected && styles.icOn]}>
+              <Ionicons
+                name={tab.icon}
+                size={20}
+                color={selected ? Colors.primaryDark : Colors.muted}
+              />
+            </View>
+            <Text style={[styles.label, selected && styles.labelOn]}>{tab.label}</Text>
+          </Pressable>
+        );
+      })}
     </View>
   );
 }
