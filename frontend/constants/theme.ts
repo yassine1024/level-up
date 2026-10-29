@@ -43,7 +43,7 @@ export const Fonts = {
 };
 
 export const Radii = {
-  button: 16,
+  button: 26,
   card: 20,
   input: 14,
   chip: 14,
