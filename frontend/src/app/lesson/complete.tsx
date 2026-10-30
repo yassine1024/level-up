@@ -60,7 +60,7 @@ export default function UnitCompleteScreen() {
       <StudentBottomNav
         active="course"
         onCoursePress={() => router.replace("/course")}
-        onPracticePress={() => {}}
+        onPracticePress={() => router.navigate("/practice")}
       />
     </View>
   );
