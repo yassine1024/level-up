@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { Ionicons } from "@expo/vector-icons";
 import { router, useLocalSearchParams } from "expo-router";
 
 import { Button } from "@/components/Button";
@@ -48,98 +49,120 @@ export default function RoleScreen() {
   };
 
   return (
-    <View style={[styles.root, { paddingTop: insets.top + 24 }]}>
-      <ScrollView contentContainerStyle={styles.body} showsVerticalScrollIndicator={false}>
-        {/* Wordmark */}
-        <View style={styles.wordmarkRow}>
-          <View style={styles.mascot} />
-          <Text style={styles.wordmark}>
-            <Text style={styles.wordmarkLevel}>Level</Text>
-            <Text style={styles.wordmarkUp}>Up</Text>
-          </Text>
+    <View style={[styles.body, { paddingTop: insets.top + 24 }]}>
+      <Text style={styles.title}>I am a…</Text>
+      <Text style={styles.subtitle}>You can not change this later in the MVP.</Text>
+
+      <Pressable
+        onPress={() => setRole("student")}
+        style={[styles.card, role === "student" && styles.cardSelected]}>
+        <View style={[styles.iconBox, { backgroundColor: Colors.primary }]}>
+          <Ionicons name="school-outline" size={34} color={Colors.white} />
         </View>
-
-        <View style={styles.titleBlock}>
-          <Text style={styles.title}>How will you use LevelUp?</Text>
-          <Text style={styles.subtitle}>Choose your role. You can change it later.</Text>
+        <View style={{ flex: 1 }}>
+          <Text style={styles.cardTitle}>Student</Text>
+          <Text style={styles.cardDesc}>I want to learn English. Start with a short level test.</Text>
         </View>
+        <View style={[styles.dot, role === "student" && styles.dotSelected]}>
+          {role === "student" ? (
+            <Ionicons name="checkmark" size={14} color={Colors.white} />
+          ) : null}
+        </View>
+      </Pressable>
 
-        <Pressable
-          onPress={() => setRole("student")}
-          style={[styles.card, role === "student" && styles.cardSelected]}>
-          <View style={[styles.iconCircle, { backgroundColor: Colors.primaryLight }]}>
-            <Text style={styles.iconText}>S</Text>
-          </View>
-          <View style={{ flex: 1 }}>
-            <Text style={styles.cardTitle}>Student</Text>
-            <Text style={styles.cardDesc}>I want to learn and practice English</Text>
-          </View>
-        </Pressable>
+      <Pressable
+        onPress={() => setRole("teacher")}
+        style={[styles.card, role === "teacher" && styles.cardSelected]}>
+        <View style={[styles.iconBox, { backgroundColor: Colors.amber }]}>
+          <Ionicons name="desktop-outline" size={34} color={Colors.text} />
+        </View>
+        <View style={{ flex: 1 }}>
+          <Text style={styles.cardTitle}>Teacher</Text>
+          <Text style={styles.cardDesc}>I want to upload lessons for my students.</Text>
+        </View>
+        <View style={[styles.dot, role === "teacher" && styles.dotSelected]}>
+          {role === "teacher" ? (
+            <Ionicons name="checkmark" size={14} color={Colors.white} />
+          ) : null}
+        </View>
+      </Pressable>
 
-        <Pressable
-          onPress={() => setRole("teacher")}
-          style={[styles.card, role === "teacher" && styles.cardSelectedTeacher]}>
-          <View style={[styles.iconCircle, { backgroundColor: Colors.purpleLight }]}>
-            <Text style={styles.iconText}>T</Text>
-          </View>
-          <View style={{ flex: 1 }}>
-            <Text style={styles.cardTitle}>Teacher</Text>
-            <Text style={styles.cardDesc}>I upload the course resources</Text>
-          </View>
-        </Pressable>
-
-        {error ? <Text style={styles.error}>{error}</Text> : null}
-      </ScrollView>
-
-      <View style={[styles.action, { paddingBottom: insets.bottom + 24 }]}>
-        <Button
-          title={loading ? "Creating account..." : "Continue"}
-          disabled={loading}
-          onPress={handleContinue}
-        />
-      </View>
+      <View style={{ flex: 1 }} />
+      <Button
+        title={loading ? "Creating account..." : "Continue"}
+        disabled={loading}
+        onPress={handleContinue}
+      />
+      {error ? (
+        <Text style={{ color: "red", textAlign: "center" }}>{error}</Text>
+      ) : null}
+      <View style={{ height: 28 }} />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: Colors.background },
-  body: { paddingHorizontal: 24, gap: 16, paddingBottom: 24 },
-  wordmarkRow: { flexDirection: "row", alignItems: "center", gap: 5, marginBottom: 8 },
-  mascot: { width: 56, height: 56, borderRadius: 28, backgroundColor: Colors.primaryLight },
-  wordmark: { fontFamily: Fonts.semiBold, fontSize: 36, letterSpacing: -0.224 },
-  wordmarkLevel: { color: Colors.text },
-  wordmarkUp: { color: Colors.primary },
-  titleBlock: { gap: 8, marginBottom: 8 },
-  title: { fontFamily: Fonts.bodyHeavy, fontSize: 28, color: Colors.text },
-  subtitle: { fontFamily: Fonts.body, fontSize: 15, color: Colors.muted },
+  body: {
+    flex: 1,
+    padding: 24,
+    gap: 16,
+    backgroundColor: Colors.background,
+  },
+  title: {
+    fontFamily: Fonts.heading,
+    fontSize: 28,
+    color: Colors.text,
+  },
+  subtitle: {
+    fontFamily: Fonts.body,
+    fontSize: 15,
+    color: Colors.muted,
+  },
   card: {
     flexDirection: "row",
     gap: 16,
     alignItems: "center",
     padding: 16,
-    borderRadius: 16,
-    borderWidth: 1.5,
-    borderColor: Colors.border,
+    borderRadius: Radii.card,
+    borderWidth: 2,
+    borderColor: Colors.cardBorder,
     backgroundColor: Colors.white,
   },
   cardSelected: {
     borderColor: Colors.primary,
-    borderWidth: 2,
+    backgroundColor: Colors.primaryLight,
   },
-  cardSelectedTeacher: {
-    borderColor: Colors.border,
-  },
-  iconCircle: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
+  iconBox: {
+    width: 64,
+    height: 64,
+    borderRadius: 20,
     alignItems: "center",
     justifyContent: "center",
+    flexShrink: 0,
   },
-  iconText: { fontFamily: Fonts.bodyHeavy, fontSize: 20, color: Colors.text },
-  cardTitle: { fontFamily: Fonts.bodyHeavy, fontSize: 18, color: Colors.text },
-  cardDesc: { fontFamily: Fonts.body, fontSize: 14, color: Colors.muted, marginTop: 4 },
-  error: { color: Colors.errorText, textAlign: "center" },
-  action: { paddingHorizontal: 24 },
+  cardTitle: {
+    fontFamily: Fonts.heading,
+    fontSize: 20,
+    color: Colors.text,
+  },
+  cardDesc: {
+    fontFamily: Fonts.bodyBold,
+    fontSize: 13,
+    color: Colors.muted,
+    marginTop: 4,
+  },
+  dot: {
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    borderWidth: 2,
+    borderColor: Colors.border,
+    alignItems: "center",
+    justifyContent: "center",
+    flexShrink: 0,
+  },
+  dotSelected: {
+    backgroundColor: Colors.primary,
+    borderColor: Colors.primary,
+  },
 });

@@ -1,7 +1,7 @@
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { useState } from "react";
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Switch, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { router } from "expo-router";
-import { Ionicons } from "@expo/vector-icons";
 
 import { useMe } from "@/src/hooks/useMe";
 import { useAuthStore } from "@/src/store/auth";
@@ -9,140 +9,147 @@ import { Colors, Fonts, Radii } from "@/constants/theme";
 
 export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
-  const { data: user } = useMe();
+  const { data: user, isLoading, isError } = useMe();
+  const [notifications, setNotifications] = useState(true);
+  const [sound, setSound] = useState(true);
+
+  if (isLoading) {
+    return (
+      <View style={styles.center}>
+        <ActivityIndicator size="large" />
+      </View>
+    );
+  }
+
+  if (isError || !user) {
+    return (
+      <View style={styles.center}>
+        <Text>Could not load profile.</Text>
+      </View>
+    );
+  }
 
   return (
     <ScrollView
-      contentContainerStyle={[styles.root, { paddingTop: insets.top + 56, paddingBottom: insets.bottom + 32 }]}
+      contentContainerStyle={[styles.body, { paddingTop: insets.top + 16 }]}
       showsVerticalScrollIndicator={false}>
-      <View style={styles.header}>
-        <View style={styles.backButton}>
-          <Ionicons name="chevron-back" size={20} color={Colors.text} />
-        </View>
-        <Text style={styles.headerTitle}>Profile & settings</Text>
+      <Text style={styles.title}>{user.username}</Text>
+      <Text style={styles.subtitle}>{user.role ?? "Student"}</Text>
+
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Settings</Text>
+        <SettingRow
+          label="Notifications"
+          value={notifications}
+          onValueChange={setNotifications}
+        />
+        <SettingRow
+          label="Sound effects"
+          value={sound}
+          onValueChange={setSound}
+        />
+        <SettingLink label="Speech speed" value="Normal" />
       </View>
 
-      <View style={styles.profileCard}>
-        <View style={styles.avatar}>
-          <Ionicons name="person-outline" size={28} color={Colors.text} />
-        </View>
-        <View style={{ flex: 1, gap: 4 }}>
-          <Text style={styles.profileName}>{user?.username ?? "Asma Benali"}</Text>
-          <Text style={styles.profileEmail}>{user?.username ? `${user.username}@example.com` : "asma@example.com"}</Text>
-          <View style={styles.chipRow}>
-            <View style={styles.chip}>
-              <Text style={styles.chipText}>Student</Text>
-            </View>
-            <View style={styles.chip}>
-              <Text style={styles.chipText}>Level B1</Text>
-            </View>
-          </View>
-        </View>
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Account</Text>
+        <SettingNav label="Terms of Service" onPress={() => router.push("/legal/terms")} />
+        <SettingNav label="Privacy Policy" onPress={() => router.push("/legal/privacy")} />
+        <SettingNav
+          label="Delete account"
+          danger
+          onPress={() => router.push("/profile/delete-account")}
+        />
       </View>
 
-      <View style={styles.card}>
-        <View style={styles.row}>
-          <View style={styles.rowIcon}>
-            <Ionicons name="person-outline" size={18} color={Colors.text} />
-          </View>
-          <View style={{ flex: 1, gap: 2 }}>
-            <Text style={styles.rowLabel}>Name</Text>
-            <Text style={styles.rowValue}>Asma Benali</Text>
-          </View>
-          <Ionicons name="pencil-outline" size={18} color={Colors.text} />
-        </View>
-        <View style={styles.divider} />
-        <View style={styles.row}>
-          <View style={styles.rowIcon}>
-            <Ionicons name="mail-outline" size={18} color={Colors.text} />
-          </View>
-          <View style={{ flex: 1, gap: 2 }}>
-            <Text style={styles.rowLabel}>Email</Text>
-            <Text style={styles.rowValue}>asma@example.com</Text>
-          </View>
-        </View>
-        <View style={styles.divider} />
-        <Pressable style={styles.row} onPress={() => router.push("/reset-password")}>
-          <View style={styles.rowIcon}>
-            <Ionicons name="lock-closed-outline" size={18} color={Colors.text} />
-          </View>
-          <View style={{ flex: 1 }}>
-            <Text style={styles.rowValueBold}>Change password</Text>
-          </View>
-          <Ionicons name="chevron-forward" size={18} color={Colors.text} />
+      <View style={{ marginTop: 16 }}>
+        <Pressable
+          style={styles.logout}
+          onPress={() => {
+            useAuthStore.getState().logout();
+            router.replace("/welcome");
+          }}>
+          <Text style={styles.logoutText}>Log out</Text>
         </Pressable>
       </View>
-
-      <View style={styles.card}>
-        <View style={styles.row}>
-          <View style={styles.rowIcon}>
-            <Ionicons name="globe-outline" size={18} color={Colors.text} />
-          </View>
-          <Text style={styles.rowValueBold}>Interface language</Text>
-        </View>
-        <View style={styles.langSelector}>
-          <View style={[styles.langPill, styles.langPillActive]}>
-            <Text style={styles.langPillTextActive}>English</Text>
-          </View>
-          <View style={styles.langPill}>
-            <Text style={styles.langPillText}>Français</Text>
-          </View>
-          <View style={styles.langPill}>
-            <Text style={styles.langPillText}>العربية</Text>
-          </View>
-        </View>
-      </View>
-
-      <View style={{ flex: 1, minHeight: 12 }} />
-
-      <Pressable style={styles.logoutButton} onPress={() => { useAuthStore.getState().logout(); router.replace("/welcome"); }}>
-        <Ionicons name="log-out-outline" size={20} color={Colors.text} />
-        <Text style={styles.logoutText}>Log out</Text>
-      </Pressable>
-
-      <Pressable style={styles.deleteRow} onPress={() => router.push("/profile/delete-account")}>
-        <Ionicons name="trash-outline" size={18} color="#E5484D" />
-        <Text style={styles.deleteText}>Delete account</Text>
-      </Pressable>
-
-      <View style={styles.legalRow}>
-        <Text style={styles.legalLink} onPress={() => router.push("/legal/terms")}>Terms of Service</Text>
-        <Text style={styles.legalDot}>·</Text>
-        <Text style={styles.legalLink} onPress={() => router.push("/legal/privacy")}>Privacy Policy</Text>
-      </View>
+      <View style={{ height: 24 }} />
     </ScrollView>
   );
 }
 
+function SettingRow({
+  label,
+  value,
+  onValueChange,
+}: {
+  label: string;
+  value: boolean;
+  onValueChange: (v: boolean) => void;
+}) {
+  return (
+    <View style={styles.row}>
+      <Text style={styles.rowLabel}>{label}</Text>
+      <Switch value={value} onValueChange={onValueChange} />
+    </View>
+  );
+}
+
+function SettingLink({ label, value }: { label: string; value: string }) {
+  return (
+    <View style={styles.row}>
+      <Text style={styles.rowLabel}>{label}</Text>
+      <Text style={styles.rowValue}>{value}</Text>
+    </View>
+  );
+}
+
+function SettingNav({
+  label,
+  onPress,
+  danger,
+}: {
+  label: string;
+  onPress: () => void;
+  danger?: boolean;
+}) {
+  return (
+    <Pressable style={styles.row} onPress={onPress}>
+      <Text style={[styles.rowLabel, danger && styles.danger]}>{label}</Text>
+      <Text style={styles.chevron}>›</Text>
+    </Pressable>
+  );
+}
+
 const styles = StyleSheet.create({
-  root: { flexGrow: 1, backgroundColor: Colors.background, paddingHorizontal: 24, gap: 14 },
-  header: { flexDirection: "row", alignItems: "center", gap: 12 },
-  backButton: { width: 40, height: 40, borderRadius: 20, backgroundColor: "#F5F6F8", alignItems: "center", justifyContent: "center" },
-  headerTitle: { fontFamily: Fonts.bodyHeavy, fontSize: 24, color: Colors.text },
-  profileCard: { flexDirection: "row", gap: 14, backgroundColor: Colors.primaryLight, borderRadius: 20, padding: 16, alignItems: "center" },
-  avatar: { width: 56, height: 56, borderRadius: 28, backgroundColor: Colors.white, alignItems: "center", justifyContent: "center" },
-  profileName: { fontFamily: Fonts.bodyHeavy, fontSize: 18, color: Colors.text },
-  profileEmail: { fontFamily: Fonts.bodyBold, fontSize: 13, color: "#374151" },
-  chipRow: { flexDirection: "row", gap: 6, marginTop: 4 },
-  chip: { backgroundColor: Colors.white, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12 },
-  chipText: { fontFamily: Fonts.semiBold, fontSize: 12, color: Colors.text },
-  card: { backgroundColor: Colors.white, borderWidth: 1.5, borderColor: Colors.border, borderRadius: 20, overflow: "hidden" },
-  row: { flexDirection: "row", alignItems: "center", gap: 12, paddingHorizontal: 16, paddingVertical: 12 },
-  rowIcon: { width: 36, height: 36, borderRadius: 18, backgroundColor: "#F5F6F8", alignItems: "center", justifyContent: "center" },
-  rowLabel: { fontFamily: Fonts.bodyBold, fontSize: 12, color: Colors.muted },
-  rowValue: { fontFamily: Fonts.semiBold, fontSize: 15, color: Colors.text },
-  rowValueBold: { fontFamily: Fonts.semiBold, fontSize: 15, color: Colors.text },
-  divider: { height: 1, backgroundColor: Colors.border },
-  langSelector: { flexDirection: "row", gap: 4, paddingHorizontal: 16, paddingBottom: 16 },
-  langPill: { flex: 1, height: 40, borderRadius: 12, alignItems: "center", justifyContent: "center" },
-  langPillActive: { backgroundColor: Colors.primaryLight },
-  langPillText: { fontFamily: Fonts.bodyBold, fontSize: 14, color: Colors.muted },
-  langPillTextActive: { fontFamily: Fonts.bodyHeavy, fontSize: 14, color: Colors.text },
-  logoutButton: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, height: 52, borderRadius: 16, borderWidth: 1.5, borderColor: Colors.border, backgroundColor: Colors.white },
-  logoutText: { fontFamily: Fonts.bodyHeavy, fontSize: 16, color: Colors.text },
-  deleteRow: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, paddingVertical: 8 },
-  deleteText: { fontFamily: Fonts.semiBold, fontSize: 14, color: "#E5484D" },
-  legalRow: { flexDirection: "row", justifyContent: "center", alignItems: "center", gap: 8 },
-  legalLink: { fontFamily: Fonts.bodyBold, fontSize: 12, color: Colors.muted, textDecorationLine: "underline" },
-  legalDot: { fontFamily: Fonts.bodyBold, fontSize: 12, color: Colors.muted },
+  body: { padding: 24, gap: 16, backgroundColor: Colors.background, flexGrow: 1 },
+  center: { flex: 1, alignItems: "center", justifyContent: "center" },
+  title: { fontFamily: Fonts.heading, fontSize: 24, color: Colors.text },
+  subtitle: { fontFamily: Fonts.body, fontSize: 14, color: Colors.muted },
+  section: { gap: 8, marginTop: 8 },
+  sectionTitle: { fontFamily: Fonts.bodyHeavy, fontSize: 14, color: Colors.muted, marginBottom: 4 },
+  row: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    backgroundColor: Colors.white,
+    borderRadius: Radii.card,
+    borderWidth: 1,
+    borderColor: Colors.cardBorder,
+  },
+  rowLabel: { fontFamily: Fonts.bodyBold, fontSize: 15, color: Colors.text },
+  rowValue: { fontFamily: Fonts.body, fontSize: 14, color: Colors.muted },
+  chevron: { fontFamily: Fonts.bodyHeavy, fontSize: 20, color: Colors.muted },
+  danger: { color: Colors.errorText },
+  logout: {
+    height: 50,
+    borderRadius: Radii.button,
+    borderWidth: 2,
+    borderColor: Colors.errorBorder,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: Colors.errorBg,
+  },
+  logoutText: { fontFamily: Fonts.bodyHeavy, fontSize: 15, color: Colors.errorText },
 });

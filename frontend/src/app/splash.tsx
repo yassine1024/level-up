@@ -1,14 +1,12 @@
-import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { router } from "expo-router";
 import { useEffect } from "react";
+import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
+import { router } from "expo-router";
 
 import { useMe } from "@/src/hooks/useMe";
 import { useAuthStore } from "@/src/store/auth";
 import { Colors, Fonts } from "@/constants/theme";
 
 export default function SplashScreen() {
-  const insets = useSafeAreaInsets();
   const token = useAuthStore((s) => s.token);
   const me = useMe({ enabled: !!token });
 
@@ -29,13 +27,9 @@ export default function SplashScreen() {
   }, [token, me.isSuccess, me.isError, me.data]);
 
   return (
-    <View style={[styles.root, { paddingTop: insets.top }]}>
-      <Text style={styles.wordmark}>
-        <Text style={styles.wordmarkLevel}>Level</Text>
-        <Text style={styles.wordmarkUp}>Up</Text>
-      </Text>
+    <View style={styles.root}>
+      <Text style={styles.logo}>Level-Up</Text>
       <ActivityIndicator size="large" color={Colors.primary} style={{ marginTop: 24 }} />
-      <Text style={styles.checking}>Checking your session…</Text>
     </View>
   );
 }
@@ -43,17 +37,13 @@ export default function SplashScreen() {
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: Colors.background,
+    backgroundColor: Colors.primary,
     alignItems: "center",
     justifyContent: "center",
-    gap: 8,
   },
-  wordmark: {
-    fontFamily: Fonts.semiBold,
-    fontSize: 48,
-    letterSpacing: -0.224,
+  logo: {
+    fontFamily: Fonts.heading,
+    fontSize: 40,
+    color: Colors.white,
   },
-  wordmarkLevel: { color: Colors.text },
-  wordmarkUp: { color: Colors.primary },
-  checking: { fontFamily: Fonts.body, fontSize: 14, color: Colors.muted, marginTop: 8 },
 });

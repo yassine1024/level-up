@@ -1,10 +1,12 @@
 import { useFonts } from "expo-font";
 import {
-  PlusJakartaSans_400Regular,
-  PlusJakartaSans_500Medium,
-  PlusJakartaSans_600SemiBold,
-  PlusJakartaSans_700Bold,
-} from "@expo-google-fonts/plus-jakarta-sans";
+  Fredoka_600SemiBold,
+} from "@expo-google-fonts/fredoka";
+import {
+  Nunito_500Medium,
+  Nunito_600SemiBold,
+  Nunito_800ExtraBold,
+} from "@expo-google-fonts/nunito";
 import { DarkTheme, DefaultTheme, Stack, ThemeProvider } from "expo-router";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import * as SplashScreen from "expo-splash-screen";
@@ -31,10 +33,10 @@ SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
   const [loaded, error] = useFonts({
-    PlusJakartaSans_400Regular,
-    PlusJakartaSans_500Medium,
-    PlusJakartaSans_600SemiBold,
-    PlusJakartaSans_700Bold,
+    Fredoka_600SemiBold,
+    Nunito_500Medium,
+    Nunito_600SemiBold,
+    Nunito_800ExtraBold,
   });
 
   // Expo Router uses Error Boundaries to catch errors in the navigation tree.

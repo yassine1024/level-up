@@ -4,55 +4,21 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { router } from "expo-router";
 
 import { useKeyboardVisible } from "@/src/hooks/useKeyboardVisible";
-import { authApi } from "@/src/api/endpoints";
 
+import { BackButton } from "@/components/BackButton";
 import { Button } from "@/components/Button";
 import { Input } from "@/components/Input";
 import { Colors, Fonts } from "@/constants/theme";
 
-const MIN_PASSWORD_LENGTH = 8;
+const MIN_PASSWORD_LENGTH = 6;
 
 export default function SignupScreen() {
   const insets = useSafeAreaInsets();
   const keyboardVisible = useKeyboardVisible();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [confirm, setConfirm] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const [checkingUsername, setCheckingUsername] = useState(false);
-
-  const handleSignUp = async () => {
-    const normalizedUsername = username.trim();
-    if (!normalizedUsername) {
-      setError("Choose an email to continue.");
-      return;
-    }
-    if (password.length < MIN_PASSWORD_LENGTH) {
-      setError(`Your password needs at least ${MIN_PASSWORD_LENGTH} characters.`);
-      return;
-    }
-
-    setError(null);
-    setCheckingUsername(true);
-    try {
-      const { available } = await authApi.checkUsernameAvailability(
-        normalizedUsername
-      );
-      if (!available) {
-        setError("That email is already taken. Choose another one.");
-        return;
-      }
-      router.push({
-        pathname: "/role",
-        params: { username: normalizedUsername, password },
-      });
-    } catch {
-      setError(
-        "We couldn't check that email. Check your connection and try again."
-      );
-    } finally {
-      setCheckingUsername(false);
-    }
-  };
 
   return (
     <KeyboardAvoidingView
@@ -64,59 +30,81 @@ export default function SignupScreen() {
         scrollEnabled={keyboardVisible}
         bounces={false}
         showsVerticalScrollIndicator={false}>
-        {/* Wordmark */}
-        <View style={styles.wordmarkRow}>
-          <View style={styles.mascot} />
-          <Text style={styles.wordmark}>
-            <Text style={styles.wordmarkLevel}>Level</Text>
-            <Text style={styles.wordmarkUp}>Up</Text>
-          </Text>
+        <View style={styles.row}>
+          <BackButton onPress={() => router.back()} />
         </View>
-
-        <View style={styles.titleBlock}>
-          <Text style={styles.title}>Create your account</Text>
-          <Text style={styles.subtitle}>Start your English journey today.</Text>
-        </View>
-
-        <View style={styles.form}>
+        <Text style={styles.title}>Create your account</Text>
+        <Text style={styles.subtitle}>
+          Choose a username. You will pick student or teacher next.
+        </Text>
+        <View style={{ marginTop: 8 }}>
           <Input
-            label="Email"
-            placeholder="you@example.com"
+            label="Username"
+            placeholder="choose a username"
             value={username}
             onChangeText={(t) => { setUsername(t); setError(null); }}
-            keyboardType="email-address"
             autoComplete="username"
             textContentType="username"
           />
-          <Input
-            label="Password"
-            placeholder={`At least ${MIN_PASSWORD_LENGTH} characters`}
-            value={password}
-            onChangeText={(t) => { setPassword(t); setError(null); }}
-            secureTextEntry
-            autoComplete="new-password"
-            textContentType="password"
-          />
         </View>
-
+        <Input
+          label="Password"
+          placeholder={`At least ${MIN_PASSWORD_LENGTH} characters`}
+          value={password}
+          onChangeText={(t) => { setPassword(t); setError(null); }}
+          secureTextEntry
+          // Android keeps its "suggest strong password" chip, while iOS is
+          // told this is a plain password field. Declaring `newPassword` on
+          // iOS makes the system offer its own strong password, and React
+          // Native then locks the field (yellow background, no more
+          // keystrokes) - see facebook/react-native#53050. Do not switch the
+          // iOS value to `newPassword` without patching React Native first.
+          autoComplete="new-password"
+          textContentType="password"
+        />
+        <Input
+          label="Confirm password"
+          placeholder="Repeat your password"
+          value={confirm}
+          onChangeText={(t) => { setConfirm(t); setError(null); }}
+          secureTextEntry
+          autoComplete="new-password"
+          textContentType="password"
+        />
         {error ? (
           <View style={styles.errorCard}>
             <Text style={styles.errorText}>{error}</Text>
           </View>
         ) : null}
-
-        <View style={{ height: 88 }} />
+        <View style={{ flex: 1, minHeight: 40 }} />
         <Button
-          title={checkingUsername ? "Checking..." : "Create account"}
-          disabled={checkingUsername}
-          onPress={handleSignUp}
+          title="Sign up"
+          onPress={() => {
+            if (!username.trim()) {
+              setError("Choose a username to continue.");
+              return;
+            }
+            if (password.length < MIN_PASSWORD_LENGTH) {
+              setError(`Your password needs at least ${MIN_PASSWORD_LENGTH} characters.`);
+              return;
+            }
+            if (password !== confirm) {
+              setError("Both passwords do not match.");
+              return;
+            }
+            setError(null);
+            router.push({
+              pathname: "/role",
+              params: { username, password },
+            });
+          }}
         />
-        <View style={styles.footer}>
-          <Text style={styles.footerText}>Already have an account?</Text>
-          <Text style={styles.footerLink} onPress={() => router.push("/login")}>
+        <Text style={styles.footer}>
+          Already have an account?{" "}
+          <Text style={styles.link} onPress={() => router.push("/login")}>
             Log in
           </Text>
-        </View>
+        </Text>
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -125,55 +113,30 @@ export default function SignupScreen() {
 const styles = StyleSheet.create({
   body: {
     flexGrow: 1,
-    paddingHorizontal: 24,
-    paddingBottom: 24,
+    padding: 24,
+    gap: 16,
     backgroundColor: Colors.background,
-    gap: 0,
   },
-  wordmarkRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 5,
-    marginBottom: 41,
-  },
-  mascot: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: Colors.primaryLight,
-  },
-  wordmark: {
-    fontFamily: Fonts.semiBold,
-    fontSize: 36,
-    letterSpacing: -0.224,
-  },
-  wordmarkLevel: { color: Colors.text },
-  wordmarkUp: { color: Colors.primary },
-  titleBlock: {
-    gap: 8,
-    marginBottom: 24,
-  },
+  row: { height: 44 },
   title: {
-    fontFamily: Fonts.bodyHeavy,
+    fontFamily: Fonts.heading,
     fontSize: 28,
     color: Colors.text,
+    marginTop: 8,
   },
   subtitle: {
     fontFamily: Fonts.body,
     fontSize: 15,
+    lineHeight: 22,
     color: Colors.muted,
-  },
-  form: {
-    gap: 18,
   },
   errorCard: {
     backgroundColor: Colors.errorBg,
     borderColor: Colors.errorBorder,
-    borderWidth: 1.5,
-    borderRadius: 12,
+    borderWidth: 2,
+    borderRadius: 14,
     padding: 12,
     paddingHorizontal: 16,
-    marginTop: 18,
   },
   errorText: {
     fontFamily: Fonts.bodyBold,
@@ -181,21 +144,14 @@ const styles = StyleSheet.create({
     color: Colors.errorText,
   },
   footer: {
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-    gap: 4,
-    marginTop: 221,
-  },
-  footerText: {
-    fontFamily: Fonts.body,
-    fontSize: 15,
+    fontFamily: Fonts.bodyBold,
+    fontSize: 13,
     color: Colors.muted,
+    textAlign: "center",
+    paddingBottom: 28,
   },
-  footerLink: {
+  link: {
+    color: Colors.primaryDark,
     fontFamily: Fonts.bodyHeavy,
-    fontSize: 15,
-    color: Colors.text,
-    textDecorationLine: "underline",
   },
 });

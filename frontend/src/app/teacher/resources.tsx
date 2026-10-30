@@ -217,7 +217,7 @@ export default function CourseResourcesScreen() {
       <ScrollView
         contentContainerStyle={[
           styles.body,
-          { paddingTop: insets.top + 64, paddingBottom: insets.bottom + 32 },
+          { paddingTop: insets.top + 28, paddingBottom: insets.bottom + 28 },
         ]}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}>

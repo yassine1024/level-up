@@ -1,283 +1,498 @@
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+/* eslint-disable react-hooks/refs */
+import {
+  Dimensions,
+  PanResponder,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { router } from "expo-router";
-import { Ionicons } from "@expo/vector-icons";
+import { useEffect, useRef, useState } from "react";
+import Animated, {
+  runOnJS,
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
+  withTiming,
+} from "react-native-reanimated";
 
+import { useCourse } from "@/src/hooks/useCourse";
 import { Colors, Fonts, Radii } from "@/constants/theme";
+import { Ionicons } from "@expo/vector-icons";
+import { Chip } from "@/components/Chip";
+import { StudentBottomNav } from "@/components/StudentBottomNav";
+
+const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
 export default function CourseScreen() {
   const insets = useSafeAreaInsets();
+  const courseQuery = useCourse();
+  const course = courseQuery.data;
+
+  const [showOptions, setShowOptions] = useState(false);
+
+  const SCREEN_HEIGHT = Dimensions.get("window").height;
+
+  const playScale = useSharedValue(1);
+  const playAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: playScale.value }],
+  }));
+
+  const sheetY = useSharedValue(SCREEN_HEIGHT);
+  const sheetAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: sheetY.value }],
+  }));
+  const backdropAnimatedStyle = useAnimatedStyle(() => {
+    const progress = 1 - sheetY.value / SCREEN_HEIGHT;
+    const clamped = Math.max(0, Math.min(1, progress));
+    return { opacity: 0.35 * clamped };
+  });
+
+  const panResponder = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onMoveShouldSetPanResponder: (_, gestureState) =>
+        Math.abs(gestureState.dy) > 2,
+      onPanResponderMove: (_, gestureState) => {
+      // eslint-disable-next-line react-hooks/immutability
+        sheetY.value = Math.max(0, gestureState.dy);
+      },
+      onPanResponderRelease: (_, gestureState) => {
+        if (gestureState.dy > 60 || gestureState.vy > 0.25) {
+      // eslint-disable-next-line react-hooks/immutability
+          sheetY.value = withTiming(SCREEN_HEIGHT, { duration: 220 }, (finished) => {
+            if (finished) {
+              runOnJS(setShowOptions)(false);
+            }
+          });
+        } else {
+          sheetY.value = withSpring(0, { damping: 20, stiffness: 220 });
+        }
+      },
+    })
+  ).current;
+
+  useEffect(() => {
+    if (showOptions) {
+      // eslint-disable-next-line react-hooks/immutability
+      sheetY.value = SCREEN_HEIGHT;
+      sheetY.value = withTiming(0, { duration: 300 });
+    }
+  }, [showOptions, sheetY, SCREEN_HEIGHT]);
+
+  const closeSheet = () => {
+      // eslint-disable-next-line react-hooks/immutability
+    sheetY.value = withTiming(SCREEN_HEIGHT, { duration: 220 }, (finished) => {
+      if (finished) {
+        runOnJS(setShowOptions)(false);
+      }
+    });
+  };
+
+  const levelLabel = course
+    ? `Level ${course.levelId}`
+    : "Level A1";
+  const currentUnit = course?.currentUnit;
+  const unitTitle = currentUnit?.title ?? "Meeting people";
+  const unitNumber = currentUnit?.number ?? 1;
+  const completed = currentUnit?.completedLessons ?? 1;
+  const total = currentUnit?.totalLessons ?? 3;
+  const progress = currentUnit?.progress ?? 1 / 3;
+  const currentLesson = currentUnit?.currentLesson;
+  const lessonLabel = currentLesson
+    ? `Lesson ${currentLesson.number} · ${currentLesson.title}`
+    : "Lesson 2 · Introducing yourself";
+  const previousUnits = course?.previousUnits ?? [];
+  const nextUnits = course?.nextUnits ?? [
+    { number: 2, title: "Daily routines" },
+    { number: 3, title: "Food and drinks" },
+  ];
+
+  const handlePlay = () => setShowOptions(true);
 
   return (
     <View style={styles.root}>
       <ScrollView
-        contentContainerStyle={[styles.content, { paddingTop: insets.top + 44 }]}
+        contentContainerStyle={[
+          styles.body,
+          { paddingTop: insets.top + 24, paddingBottom: insets.bottom + 16 },
+        ]}
         showsVerticalScrollIndicator={false}>
-        {/* Header */}
         <View style={styles.header}>
-          <View style={styles.titles}>
-            <Text style={styles.title}>Courses</Text>
-            <View style={styles.langSelector}>
-              <View style={styles.flag} />
-              <Text style={styles.langText}>English</Text>
-              <Ionicons name="chevron-down" size={14} color={Colors.text} />
+          <Text style={styles.title}>Course</Text>
+          <Chip label={levelLabel} variant="amber" />
+        </View>
+
+        {/* Previous units */}
+        <View>
+          <Text style={styles.sectionTitle}>Previous units</Text>
+          {previousUnits.length === 0 ? (
+            <View style={styles.dashedCard}>
+              <Text style={styles.small}>Finished units will appear here.</Text>
             </View>
-          </View>
-          <View style={styles.headerActions}>
-            <View style={styles.iconButton}>
-              <Ionicons name="search-outline" size={20} color={Colors.text} />
+          ) : (
+            previousUnits.map((u) => (
+              <View key={u.number} style={styles.unitCard}>
+                <Text style={styles.unitTitle}>{u.title}</Text>
+              </View>
+            ))
+          )}
+        </View>
+
+        {/* Current unit */}
+        <View>
+          <Text style={styles.sectionTitle}>Current unit</Text>
+          <View style={styles.currentUnit}>
+            <View style={styles.rowBetween}>
+              <View>
+                <Text style={styles.unitEyebrow}>UNIT {unitNumber}</Text>
+                <Text style={styles.unitHeading}>{unitTitle}</Text>
+              </View>
+              <Chip label={`${completed} of ${total} lessons`} variant="amber" />
             </View>
-            <View style={styles.iconButton}>
-              <Ionicons name="options-outline" size={20} color={Colors.text} />
+            <View style={styles.progressBar}>
+              <View
+                style={[
+                  styles.progressFill,
+                  { width: `${Math.round(progress * 100)}%` },
+                ]}
+              />
+            </View>
+            <View style={styles.lessonCard}>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.lessonEyebrow}>Current lesson</Text>
+                <Text style={styles.lessonTitle}>{lessonLabel}</Text>
+              </View>
+              <AnimatedPressable
+                onPress={handlePlay}
+                onPressIn={() => {
+      // eslint-disable-next-line react-hooks/immutability
+                  playScale.value = withSpring(0.9, { damping: 15, stiffness: 300 });
+                }}
+                onPressOut={() => {
+      // eslint-disable-next-line react-hooks/immutability
+                  playScale.value = withSpring(1, { damping: 15, stiffness: 300 });
+                }}
+                style={[styles.playButton, playAnimatedStyle]}
+                accessibilityRole="button"
+                accessibilityLabel="Open lesson">
+                <Ionicons name="play" size={18} color={Colors.text} style={{ marginLeft: 2 }} />
+              </AnimatedPressable>
             </View>
           </View>
         </View>
 
-        {/* Current unit hero */}
-        <View style={styles.heroCard}>
-          <View style={styles.heroText}>
-            <View style={styles.tagRow}>
-              <View style={styles.tagPurple}>
-                <Text style={styles.tagPurpleText}>UNIT 03</Text>
+        {/* Next units */}
+        <View>
+          <Text style={styles.sectionTitle}>Next units</Text>
+          <View style={{ gap: 10 }}>
+            {nextUnits.map((u) => (
+              <View key={u.number} style={styles.lockedCard}>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.lockedEyebrow}>UNIT {u.number}</Text>
+                  <Text style={styles.lockedTitle}>{u.title}</Text>
+                </View>
+                <Ionicons name="lock-closed" size={18} color={Colors.muted} />
               </View>
-              <View style={styles.tagWhite}>
-                <Text style={styles.tagGreyText}>A2 LEVEL</Text>
-              </View>
-            </View>
-            <Text style={styles.heroTitle}>Everyday Conversations</Text>
-            <Text style={styles.heroBody}>Learn how to have real-life conversations in everyday situations.</Text>
-            <View style={styles.progressRow}>
-              <View style={styles.progressTrack}>
-                <View style={[styles.progressFill, { width: "65%" }]} />
-              </View>
-              <Text style={styles.progressPercent}>65%</Text>
-            </View>
-            <Text style={styles.progressMeta}>4 / 6 lessons completed</Text>
-            <Pressable style={styles.continueButton}>
-              <Text style={styles.continueButtonText}>Continue learning</Text>
-              <Ionicons name="chevron-forward" size={14} color={Colors.white} />
-            </Pressable>
-          </View>
-          <View style={styles.heroIllustration} />
-        </View>
-
-        {/* Section header */}
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Your learning path</Text>
-          <View style={styles.linkRow}>
-            <Text style={styles.linkText}>View all units</Text>
-            <Ionicons name="arrow-forward" size={14} color={Colors.purple} />
-          </View>
-        </View>
-
-        {/* Path rows */}
-        <View style={styles.pathList}>
-          <View style={styles.pathRow}>
-            <View style={styles.markerGreen}>
-              <Ionicons name="checkmark" size={12} color={Colors.white} />
-            </View>
-            <View style={styles.pathCardGreen}>
-              <View style={styles.unitIcon}>
-                <Ionicons name="book-outline" size={18} color={Colors.text} />
-              </View>
-              <View style={{ flex: 1, gap: 0 }}>
-                <Text style={styles.unitTagGreen}>Unit 02</Text>
-                <Text style={styles.pathTitle}>Everyday Vocabulary</Text>
-                <Text style={styles.pathMeta}>Completed · 6 / 6 lessons</Text>
-              </View>
-              <View style={styles.reviewPill}>
-                <Text style={styles.reviewPillText}>Review</Text>
-                <Ionicons name="chevron-forward" size={12} color={Colors.text} />
-              </View>
-            </View>
-          </View>
-
-          <View style={styles.pathRow}>
-            <View style={styles.markerPurple} />
-            <View style={styles.pathCardPurple}>
-              <View style={styles.unitIcon}>
-                <Ionicons name="chatbubble-outline" size={18} color={Colors.text} />
-              </View>
-              <View style={{ flex: 1, gap: 0 }}>
-                <Text style={styles.unitTagPurple}>Unit 03</Text>
-                <Text style={styles.pathTitle}>Everyday Conversations</Text>
-                <Text style={styles.pathMeta}>In progress · 4 / 6 lessons</Text>
-              </View>
-              <Ionicons name="chevron-forward" size={20} color={Colors.text} />
-            </View>
-          </View>
-
-          <View style={styles.pathRow}>
-            <View style={styles.markerGrey} />
-            <View style={styles.pathCardGrey}>
-              <View style={styles.unitIcon}>
-                <Ionicons name="cafe-outline" size={18} color={Colors.text} />
-              </View>
-              <View style={{ flex: 1, gap: 0 }}>
-                <Text style={styles.unitTagGrey}>Unit 04</Text>
-                <Text style={styles.pathTitleGrey}>At the Restaurant</Text>
-                <Text style={styles.pathMetaGrey}>Locked · Complete current unit to unlock</Text>
-              </View>
-              <Ionicons name="chevron-forward" size={20} color={Colors.text} />
-            </View>
-          </View>
-        </View>
-
-        {/* Course progress */}
-        <View style={styles.progressCard}>
-          <View style={styles.progressHeader}>
-            <Text style={styles.progressTitle}>Your course progress</Text>
-            <View style={styles.linkRow}>
-              <Text style={styles.linkText}>View details</Text>
-              <Ionicons name="arrow-forward" size={14} color={Colors.purple} />
-            </View>
-          </View>
-          <View style={styles.statsRow}>
-            <View style={styles.statCol}>
-              <Ionicons name="flag-outline" size={16} color={Colors.text} />
-              <Text style={styles.statNumber}>4 / 12</Text>
-              <Text style={styles.statLabel}>Units completed</Text>
-            </View>
-            <View style={styles.statDivider} />
-            <View style={styles.statCol}>
-              <Ionicons name="book-outline" size={16} color={Colors.text} />
-              <Text style={styles.statNumber}>24 / 60</Text>
-              <Text style={styles.statLabel}>Lessons completed</Text>
-            </View>
-            <View style={styles.statDivider} />
-            <View style={styles.statColRing}>
-              <View style={styles.ring}>
-                <Text style={styles.ringText}>35%</Text>
-              </View>
-              <Text style={styles.statLabel}>Overall progress</Text>
-            </View>
-          </View>
-          <View style={styles.progressTrack}>
-            <View style={[styles.progressFill, { width: "35%" }]} />
-          </View>
-        </View>
-
-        {/* Quick access */}
-        <Text style={styles.quickTitle}>Quick access</Text>
-        <View style={styles.quickRow}>
-          <View style={styles.quickCardPurple}>
-            <View style={styles.quickHeader}>
-              <View style={styles.quickIcon}>
-                <Ionicons name="layers-outline" size={18} color={Colors.text} />
-              </View>
-              <View style={{ flex: 1, height: 4 }} />
-              <Ionicons name="chevron-forward" size={14} color={Colors.text} />
-            </View>
-            <Text style={styles.quickCardTitle}>All Units</Text>
-            <Text style={styles.quickCardBody}>Explore your complete learning journey.</Text>
-          </View>
-          <View style={styles.quickCardGreen}>
-            <View style={styles.quickHeader}>
-              <View style={styles.quickIcon}>
-                <Ionicons name="book-outline" size={18} color={Colors.text} />
-              </View>
-              <View style={{ flex: 1, height: 4 }} />
-              <Ionicons name="chevron-forward" size={14} color={Colors.text} />
-            </View>
-            <Text style={styles.quickCardTitle}>My Vocabulary</Text>
-            <Text style={styles.quickCardBody}>Review saved words and flashcards.</Text>
+            ))}
           </View>
         </View>
       </ScrollView>
+
+      <StudentBottomNav
+        active="course"
+        onCoursePress={() => {}}
+        onPracticePress={() => {}}
+      />
+
+      {showOptions ? (
+        <View style={styles.sheetOverlay}>
+          <AnimatedPressable
+            style={[styles.sheetBackdrop, backdropAnimatedStyle]}
+            onPress={closeSheet}
+          />
+          <Animated.View style={[styles.sheet, sheetAnimatedStyle]}>
+            <View
+              style={styles.sheetHandle}
+              hitSlop={{ top: 16, bottom: 16, left: 60, right: 60 }}
+              {...panResponder.panHandlers}
+            />
+            <Text style={styles.sheetEyebrow}>
+              UNIT {unitNumber} · LESSON {currentLesson?.number ?? 2}
+            </Text>
+            <Text style={styles.sheetTitle}>
+              {currentLesson?.title ?? "Introducing yourself"}
+            </Text>
+            <Text style={styles.sheetBody}>
+              Slides built from your teacher&apos;s vocabulary and grammar. You
+              stopped at slide 4 of 9.
+            </Text>
+            <Pressable
+              style={styles.primaryButton}
+              onPress={() => {
+      // eslint-disable-next-line react-hooks/immutability
+                sheetY.value = withTiming(SCREEN_HEIGHT, { duration: 220 }, (finished) => {
+                  if (finished) {
+                    runOnJS(setShowOptions)(false);
+                    runOnJS(router.push)("/lesson/slides");
+                  }
+                });
+              }}>
+              <Text style={styles.primaryButtonText}>Continue</Text>
+            </Pressable>
+            <Pressable
+              style={styles.ghostButton}
+              onPress={() => {
+      // eslint-disable-next-line react-hooks/immutability
+                sheetY.value = withTiming(SCREEN_HEIGHT, { duration: 220 }, (finished) => {
+                  if (finished) {
+                    runOnJS(setShowOptions)(false);
+                    runOnJS(router.push)("/lesson/slides?start=0");
+                  }
+                });
+              }}>
+              <Text style={styles.ghostButtonText}>
+                Start course from the beginning
+              </Text>
+            </Pressable>
+          </Animated.View>
+        </View>
+      ) : null}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: Colors.background },
-  content: { paddingHorizontal: 24, gap: 12, paddingBottom: 100 },
-  header: { flexDirection: "row", alignItems: "flex-start", justifyContent: "space-between" },
-  titles: { gap: 2 },
-  title: { fontFamily: Fonts.bodyHeavy, fontSize: 32, color: Colors.text },
-  langSelector: { flexDirection: "row", alignItems: "center", gap: 6 },
-  flag: { width: 22, height: 22, borderRadius: 11, backgroundColor: Colors.primary },
-  langText: { fontFamily: Fonts.semiBold, fontSize: 13, color: Colors.text },
-  headerActions: { flexDirection: "row", gap: 10 },
-  iconButton: { width: 40, height: 40, borderRadius: 20, backgroundColor: "#F5F6F8", alignItems: "center", justifyContent: "center" },
-  heroCard: {
-    flexDirection: "row",
-    gap: 6,
-    padding: 14,
-    borderRadius: 20,
-    backgroundColor: Colors.purpleLight,
+  body: {
+    paddingHorizontal: 24,
+    gap: 16,
+    backgroundColor: Colors.background,
   },
-  heroText: { flex: 1, gap: 4 },
-  tagRow: { flexDirection: "row", gap: 6 },
-  tagPurple: { backgroundColor: Colors.purple, paddingHorizontal: 9, paddingVertical: 3, borderRadius: 12 },
-  tagPurpleText: { fontFamily: Fonts.bodyHeavy, fontSize: 10, color: Colors.white },
-  tagWhite: { backgroundColor: Colors.white, paddingHorizontal: 9, paddingVertical: 3, borderRadius: 12 },
-  tagGreyText: { fontFamily: Fonts.semiBold, fontSize: 10, color: Colors.muted },
-  heroTitle: { fontFamily: Fonts.bodyHeavy, fontSize: 16, color: Colors.text, lineHeight: 20 },
-  heroBody: { fontFamily: Fonts.bodyBold, fontSize: 11, color: "#374151", lineHeight: 15 },
-  progressRow: { flexDirection: "row", alignItems: "center", gap: 6, marginTop: 4 },
-  progressTrack: { flex: 1, height: 6, borderRadius: 3, backgroundColor: Colors.white, overflow: "hidden" },
-  progressFill: { height: 6, borderRadius: 3, backgroundColor: Colors.purple },
-  progressPercent: { fontFamily: Fonts.bodyHeavy, fontSize: 11, color: Colors.text },
-  progressMeta: { fontFamily: Fonts.bodyBold, fontSize: 11, color: Colors.muted },
-  continueButton: {
+  header: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 6,
-    backgroundColor: Colors.purple,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 18,
-    alignSelf: "flex-start",
-    marginTop: 4,
+    justifyContent: "space-between",
   },
-  continueButtonText: { fontFamily: Fonts.semiBold, fontSize: 13, color: Colors.white },
-  heroIllustration: { width: 92, height: 120, borderRadius: 12, backgroundColor: Colors.primaryLight },
-  sectionHeader: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
-  sectionTitle: { fontFamily: Fonts.semiBold, fontSize: 16, color: Colors.text },
-  linkRow: { flexDirection: "row", alignItems: "center", gap: 4 },
-  linkText: { fontFamily: Fonts.semiBold, fontSize: 12, color: Colors.purple },
-  pathList: { gap: 8 },
-  pathRow: { flexDirection: "row", alignItems: "center", gap: 10 },
-  markerGreen: { width: 22, height: 22, borderRadius: 11, backgroundColor: "#80C9A2", alignItems: "center", justifyContent: "center" },
-  markerPurple: { width: 22, height: 22, borderRadius: 11, backgroundColor: Colors.purple, alignItems: "center", justifyContent: "center" },
-  markerGrey: { width: 22, height: 22, borderRadius: 11, backgroundColor: Colors.border, alignItems: "center", justifyContent: "center" },
-  pathCardGreen: { flex: 1, flexDirection: "row", alignItems: "center", gap: 10, backgroundColor: "#BDE0C8", paddingHorizontal: 12, paddingVertical: 8, borderRadius: 20 },
-  pathCardPurple: { flex: 1, flexDirection: "row", alignItems: "center", gap: 10, backgroundColor: Colors.purpleLight, paddingHorizontal: 12, paddingVertical: 8, borderRadius: 20 },
-  pathCardGrey: { flex: 1, flexDirection: "row", alignItems: "center", gap: 10, backgroundColor: "#F5F6F8", paddingHorizontal: 12, paddingVertical: 8, borderRadius: 20 },
-  unitIcon: { width: 36, height: 36, borderRadius: 18, backgroundColor: Colors.white, alignItems: "center", justifyContent: "center" },
-  unitTagGreen: { fontFamily: Fonts.semiBold, fontSize: 10, color: "#4FB460" },
-  unitTagPurple: { fontFamily: Fonts.semiBold, fontSize: 10, color: Colors.purple },
-  unitTagGrey: { fontFamily: Fonts.semiBold, fontSize: 10, color: Colors.muted },
-  pathTitle: { fontFamily: Fonts.bodyHeavy, fontSize: 14, color: Colors.text },
-  pathTitleGrey: { fontFamily: Fonts.bodyHeavy, fontSize: 14, color: "#374151" },
-  pathMeta: { fontFamily: Fonts.bodyBold, fontSize: 11, color: "#374151" },
-  pathMetaGrey: { fontFamily: Fonts.bodyBold, fontSize: 11, color: Colors.muted },
-  reviewPill: { flexDirection: "row", alignItems: "center", gap: 4, backgroundColor: Colors.white, paddingHorizontal: 9, paddingVertical: 4, borderRadius: 12 },
-  reviewPillText: { fontFamily: Fonts.semiBold, fontSize: 11, color: Colors.text },
-  progressCard: {
-    borderWidth: 1,
-    borderColor: Colors.border,
-    borderRadius: 20,
+  title: {
+    fontFamily: Fonts.heading,
+    fontSize: 28,
+    color: Colors.text,
+  },
+  sectionTitle: {
+    fontFamily: Fonts.bodyHeavy,
+    fontSize: 13,
+    color: Colors.text,
+    marginBottom: 8,
+  },
+  dashedCard: {
+    borderWidth: 2,
+    borderStyle: "dashed",
+    borderColor: Colors.cardBorder,
+    borderRadius: Radii.card,
     padding: 12,
-    gap: 8,
+    paddingHorizontal: 16,
     backgroundColor: Colors.white,
   },
-  progressHeader: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
-  progressTitle: { fontFamily: Fonts.bodyHeavy, fontSize: 14, color: Colors.text },
-  statsRow: { flexDirection: "row", alignItems: "center" },
-  statCol: { flex: 1, gap: 0, paddingRight: 10 },
-  statDivider: { width: 1, height: 40, backgroundColor: Colors.border, marginHorizontal: 4 },
-  statColRing: { flexDirection: "row", alignItems: "center", gap: 6, paddingLeft: 10, flex: 1.2 },
-  statNumber: { fontFamily: Fonts.bodyHeavy, fontSize: 18, color: Colors.text },
-  statLabel: { fontFamily: Fonts.bodyBold, fontSize: 10, color: Colors.muted },
-  ring: { width: 46, height: 46, borderRadius: 23, borderWidth: 4, borderColor: Colors.purple, alignItems: "center", justifyContent: "center" },
-  ringText: { fontFamily: Fonts.bodyHeavy, fontSize: 12, color: Colors.text },
-  quickTitle: { fontFamily: Fonts.semiBold, fontSize: 16, color: Colors.text },
-  quickRow: { flexDirection: "row", gap: 12 },
-  quickCardPurple: { flex: 1, backgroundColor: Colors.purpleLight, borderRadius: 20, padding: 12, gap: 6 },
-  quickCardGreen: { flex: 1, backgroundColor: "#BDE0C8", borderRadius: 20, padding: 12, gap: 6 },
-  quickHeader: { flexDirection: "row", alignItems: "center", gap: 6 },
-  quickIcon: { width: 36, height: 36, borderRadius: 18, backgroundColor: Colors.white, alignItems: "center", justifyContent: "center" },
-  quickCardTitle: { fontFamily: Fonts.bodyHeavy, fontSize: 14, color: Colors.text },
-  quickCardBody: { fontFamily: Fonts.bodyBold, fontSize: 11, color: "#374151", lineHeight: 14 },
+  small: {
+    fontFamily: Fonts.body,
+    fontSize: 13,
+    color: Colors.muted,
+  },
+  unitCard: {
+    backgroundColor: Colors.white,
+    borderWidth: 2,
+    borderColor: Colors.cardBorder,
+    borderRadius: Radii.card,
+    padding: 16,
+  },
+  unitTitle: {
+    fontFamily: Fonts.heading,
+    fontSize: 18,
+    color: Colors.text,
+  },
+  currentUnit: {
+    backgroundColor: Colors.primary,
+    borderRadius: 24,
+    padding: 18,
+    gap: 12,
+    shadowColor: Colors.primaryDark,
+    shadowOffset: { width: 0, height: 5 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 5,
+  },
+  rowBetween: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 12,
+  },
+  unitEyebrow: {
+    fontFamily: Fonts.bodyHeavy,
+    fontSize: 12,
+    letterSpacing: 0.6,
+    color: Colors.primaryLight,
+  },
+  unitHeading: {
+    fontFamily: Fonts.heading,
+    fontSize: 22,
+    color: Colors.white,
+    marginTop: 2,
+  },
+  progressBar: {
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: Colors.primaryDark,
+    overflow: "hidden",
+  },
+  progressFill: {
+    height: "100%",
+    backgroundColor: Colors.amber,
+    borderRadius: 6,
+  },
+  lessonCard: {
+    backgroundColor: Colors.white,
+    borderRadius: Radii.card,
+    padding: 14,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+  },
+  lessonEyebrow: {
+    fontFamily: Fonts.bodyHeavy,
+    fontSize: 12,
+    color: Colors.primaryDark,
+  },
+  lessonTitle: {
+    fontFamily: Fonts.heading,
+    fontSize: 18,
+    color: Colors.text,
+    marginTop: 2,
+  },
+  playButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: Colors.amber,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  playIcon: {
+    color: Colors.text,
+    fontSize: 14,
+    marginLeft: 2,
+  },
+  lockedCard: {
+    backgroundColor: Colors.board,
+    borderWidth: 2,
+    borderStyle: "dashed",
+    borderColor: Colors.cardBorder,
+    borderRadius: Radii.card,
+    padding: 14,
+    paddingHorizontal: 16,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+  },
+  lockedEyebrow: {
+    fontFamily: Fonts.bodyHeavy,
+    fontSize: 12,
+    color: Colors.muted,
+  },
+  lockedTitle: {
+    fontFamily: Fonts.heading,
+    fontSize: 17,
+    color: Colors.muted,
+    marginTop: 2,
+  },
+  lockIcon: {
+    fontSize: 16,
+    color: Colors.muted,
+  },
+  sheetOverlay: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    top: 0,
+    bottom: 0,
+    justifyContent: "flex-end",
+  },
+  sheetBackdrop: {
+    ...StyleSheet.absoluteFill,
+    backgroundColor: "rgba(16,36,28,0.35)",
+  },
+  sheet: {
+    backgroundColor: Colors.white,
+    borderTopLeftRadius: 32,
+    borderTopRightRadius: 32,
+    padding: 20,
+    paddingHorizontal: 24,
+    paddingBottom: 28,
+    gap: 12,
+    shadowColor: "rgba(16,36,28,0.25)",
+    shadowOffset: { width: 0, height: -8 },
+    shadowOpacity: 1,
+    shadowRadius: 30,
+    elevation: 10,
+  },
+  sheetHandle: {
+    width: 64,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: Colors.border,
+    alignSelf: "center",
+    marginBottom: 4,
+  },
+  sheetEyebrow: {
+    fontFamily: Fonts.bodyHeavy,
+    fontSize: 12,
+    color: Colors.primaryDark,
+    letterSpacing: 0.6,
+  },
+  sheetTitle: {
+    fontFamily: Fonts.heading,
+    fontSize: 24,
+    color: Colors.text,
+  },
+  sheetBody: {
+    fontFamily: Fonts.body,
+    fontSize: 15,
+    lineHeight: 22,
+    color: Colors.muted,
+  },
+  primaryButton: {
+    height: 54,
+    borderRadius: Radii.button,
+    backgroundColor: Colors.primary,
+    alignItems: "center",
+    justifyContent: "center",
+    shadowColor: Colors.primaryDark,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 4,
+  },
+  primaryButtonText: {
+    fontFamily: Fonts.bodyHeavy,
+    fontSize: 16,
+    color: Colors.white,
+  },
+  ghostButton: {
+    height: 54,
+    borderRadius: Radii.button,
+    backgroundColor: "transparent",
+    borderWidth: 2,
+    borderColor: Colors.primary,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  ghostButtonText: {
+    fontFamily: Fonts.bodyHeavy,
+    fontSize: 16,
+    color: Colors.primaryDark,
+  },
 });
