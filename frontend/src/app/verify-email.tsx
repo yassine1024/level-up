@@ -82,11 +82,13 @@ export default function VerifyEmailScreen() {
           </Text>
         </View>
       ) : null}
-      <Button
-        title="Verify"
-        disabled={code.length !== 6}
-        onPress={handleVerify}
-      />
+      <View style={{ marginTop: 16 }}>
+        <Button
+          title="Verify"
+          disabled={code.length !== 6}
+          onPress={handleVerify}
+        />
+      </View>
       <Text style={styles.resend}>
         No code?{" "}
         <Text style={styles.link} onPress={continueNext}>
