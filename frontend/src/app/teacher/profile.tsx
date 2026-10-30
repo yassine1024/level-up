@@ -1,5 +1,4 @@
-import { useState } from "react";
-import { Pressable, ScrollView, StyleSheet, Switch, Text, View } from "react-native";
+import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { router } from "expo-router";
 
@@ -10,7 +9,6 @@ import { Colors, Fonts, Radii } from "@/constants/theme";
 export default function TeacherProfileScreen() {
   const insets = useSafeAreaInsets();
   const { data: user } = useMe();
-  const [notifications, setNotifications] = useState(true);
 
   return (
     <ScrollView
@@ -20,10 +18,26 @@ export default function TeacherProfileScreen() {
       <Text style={styles.subtitle}>Teacher</Text>
 
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Settings</Text>
+        <Text style={styles.sectionTitle}>Profile</Text>
         <View style={styles.row}>
-          <Text style={styles.rowLabel}>Notifications</Text>
-          <Switch value={notifications} onValueChange={setNotifications} />
+          <Text style={styles.rowLabel}>Name</Text>
+          <Text style={styles.rowValue}>{user?.username ?? "—"}</Text>
+        </View>
+        <View style={styles.row}>
+          <Text style={styles.rowLabel}>Email</Text>
+          <Text style={styles.rowValue}>{(user as any)?.email ?? "—"}</Text>
+        </View>
+      </View>
+
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Settings</Text>
+        <Pressable style={styles.row} onPress={() => {}}>
+          <Text style={styles.rowLabel}>Change password</Text>
+          <Text style={styles.chevron}>›</Text>
+        </Pressable>
+        <View style={styles.row}>
+          <Text style={styles.rowLabel}>App language</Text>
+          <Text style={styles.rowValue}>English · Français · العربية</Text>
         </View>
       </View>
 
@@ -78,6 +92,7 @@ const styles = StyleSheet.create({
     borderColor: Colors.cardBorder,
   },
   rowLabel: { fontFamily: Fonts.bodyBold, fontSize: 15, color: Colors.text },
+  rowValue: { fontFamily: Fonts.body, fontSize: 14, color: Colors.muted },
   chevron: { fontFamily: Fonts.bodyHeavy, fontSize: 20, color: Colors.muted },
   danger: { color: Colors.errorText },
   logout: {

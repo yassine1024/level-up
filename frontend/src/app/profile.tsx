@@ -1,5 +1,4 @@
-import { useState } from "react";
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Switch, Text, View } from "react-native";
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { router } from "expo-router";
 
@@ -11,9 +10,6 @@ import { StudentBottomNav } from "@/components/StudentBottomNav";
 export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
   const { data: user, isLoading, isError } = useMe();
-  const [notifications, setNotifications] = useState(true);
-  const [sound, setSound] = useState(true);
-
   if (isLoading) {
     return (
       <View style={styles.center}>
@@ -39,18 +35,21 @@ export default function ProfileScreen() {
         <Text style={styles.subtitle}>{user.role ?? "Student"}</Text>
 
         <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Profile</Text>
+          <View style={styles.row}>
+            <Text style={styles.rowLabel}>Name</Text>
+            <Text style={styles.rowValue}>{user.username}</Text>
+          </View>
+          <View style={styles.row}>
+            <Text style={styles.rowLabel}>Email</Text>
+            <Text style={styles.rowValue}>{(user as any).email ?? "—"}</Text>
+          </View>
+        </View>
+
+        <View style={styles.section}>
           <Text style={styles.sectionTitle}>Settings</Text>
-          <SettingRow
-            label="Notifications"
-            value={notifications}
-            onValueChange={setNotifications}
-          />
-          <SettingRow
-            label="Sound effects"
-            value={sound}
-            onValueChange={setSound}
-          />
-          <SettingLink label="Speech speed" value="Normal" />
+          <SettingNav label="Change password" onPress={() => {}} />
+          <SettingLink label="App language" value="English · Français · العربية" />
         </View>
 
         <View style={styles.section}>
@@ -77,23 +76,6 @@ export default function ProfileScreen() {
         <View style={{ height: 24 }} />
       </ScrollView>
       <StudentBottomNav active="profile" />
-    </View>
-  );
-}
-
-function SettingRow({
-  label,
-  value,
-  onValueChange,
-}: {
-  label: string;
-  value: boolean;
-  onValueChange: (v: boolean) => void;
-}) {
-  return (
-    <View style={styles.row}>
-      <Text style={styles.rowLabel}>{label}</Text>
-      <Switch value={value} onValueChange={onValueChange} />
     </View>
   );
 }
