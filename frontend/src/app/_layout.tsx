@@ -76,7 +76,7 @@ function RootLayoutNav() {
             {/* Phase 7: register all new routes */}
             <Stack.Screen name="splash" options={{ gestureEnabled: false }} />
             <Stack.Screen name="verify-email" options={{ gestureEnabled: false }} />
-            <Stack.Screen name="forgot-password" options={{ gestureEnabled: false }} />
+            <Stack.Screen name="forgot-password" options={{ gestureEnabled: true }} />
             <Stack.Screen name="reset-password" options={{ gestureEnabled: false }} />
             <Stack.Screen name="session-expired" options={{ gestureEnabled: false }} />
             <Stack.Screen name="legal/terms" options={{ gestureEnabled: true }} />

@@ -39,7 +39,8 @@ export default function ForgotPasswordScreen() {
   return (
     <AuthLayout
       title="Forgot password"
-      subtitle="Enter your email and we'll send a reset link.">
+      subtitle="Enter your email and we'll send a reset link."
+      onBack={() => router.replace("/login")}>
       <Input
         label="Email"
         placeholder="you@example.com"
