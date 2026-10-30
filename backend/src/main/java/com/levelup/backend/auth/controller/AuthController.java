@@ -3,14 +3,17 @@ package com.levelup.backend.auth.controller;
 import com.levelup.backend.auth.dto.LoginRequest;
 import com.levelup.backend.auth.dto.LoginResponse;
 import com.levelup.backend.auth.dto.RegisterRequest;
+import com.levelup.backend.auth.dto.UsernameAvailabilityResponse;
 import com.levelup.backend.auth.entity.User;
 import com.levelup.backend.auth.repository.UserRepository;
 import com.levelup.backend.auth.service.JwtService;
 import com.levelup.backend.auth.exception.InvalidCredentialsException;
 import jakarta.validation.Valid;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -26,6 +29,16 @@ public class AuthController {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtService = jwtService;
+    }
+
+    @GetMapping("/username-available")
+    public UsernameAvailabilityResponse checkUsernameAvailability(
+            @RequestParam(required = false) String username
+    ) {
+        boolean available = username != null
+                && !username.isBlank()
+                && userRepository.findByUsername(username).isEmpty();
+        return new UsernameAvailabilityResponse(available);
     }
 
     @PostMapping("/login")

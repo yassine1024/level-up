@@ -36,6 +36,16 @@ export const userApi = {
 };
 
 export const authApi = {
+  checkUsernameAvailability: async (
+    username: string
+  ): Promise<{ available: boolean }> => {
+    if (API_MODE === "mock") return { available: true };
+    const res = await apiClient.get<{ available: boolean }>(
+      "/api/auth/username-available",
+      { params: { username } }
+    );
+    return res.data;
+  },
   login: async (payload: LoginRequest): Promise<{ token: string }> => {
     if (API_MODE === "mock") return mockApi.login(payload.username, payload.password);
     const res = await apiClient.post<{ token: string }>("/api/auth/login", payload);
@@ -174,20 +184,8 @@ export const teacherApi = {
 
 export const studentApi = {
   async getCourse(): Promise<StudentCourse> {
-    if (API_MODE === "mock") {
-      return mockApi.getCourse();
-    }
-    try {
-      const res = await apiClient.get("/api/student/course");
-      return res.data as StudentCourse;
-    } catch (error) {
-      const status = (error as { response?: { status?: number } })?.response
-        ?.status;
-      if (status && NOT_IMPLEMENTED.includes(status)) {
-        return mockApi.getCourse();
-      }
-      throw error;
-    }
+    const res = await apiClient.get("/api/student/course");
+    return res.data as StudentCourse;
   },
 
   async getPlacementQuestions(): Promise<PlacementQuestion[]> {

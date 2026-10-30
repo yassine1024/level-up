@@ -189,8 +189,10 @@ public class LessonStudyService {
 
     private String buildSlidesJson(Lesson lesson, ExplanationLanguage language) {
         List<LessonResource> resources = resourceRepository.findAllByLesson_Id(lesson.getId());
+        System.out.println("DEBUG buildSlides lesson=" + lesson.getId() + " resources=" + resources.size() + " contentVersion=" + lesson.getContentVersion());
         String vocab = textOf(resources, LessonResourceType.VOCABULARY);
         String grammar = textOf(resources, LessonResourceType.GRAMMAR);
+        System.out.println("DEBUG vocabLen=" + vocab.length() + " grammarLen=" + grammar.length());
         String pronunciation = "";
         String agentJson = generateAgentSlides(lesson, language, vocab, grammar, pronunciation);
         if (agentJson != null) {
@@ -241,8 +243,7 @@ public class LessonStudyService {
         payload.put("language", language.name().toLowerCase());
         payload.put("maxSlides", 10);
 
-        JsonNode request = objectMapper.valueToTree(payload);
-        return agentsClient.generateSlides(request)
+        return agentsClient.generateSlides(payload)
                 .filter(response -> isValidAgentDeck(response, vocabulary, grammar, pronunciation))
                 .map(JsonNode::toString)
                 .orElse(null);

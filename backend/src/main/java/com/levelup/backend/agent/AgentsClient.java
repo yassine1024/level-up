@@ -35,7 +35,7 @@ public class AgentsClient {
         return post("/api/agents/placement/evaluate", request);
     }
 
-    public Optional<JsonNode> generateSlides(JsonNode request) {
+    public Optional<JsonNode> generateSlides(Object request) {
         return post("/api/agents/slides/generate", request);
     }
 
@@ -78,15 +78,19 @@ public class AgentsClient {
         }
     }
 
-    private Optional<JsonNode> post(String path, JsonNode request) {
+    private Optional<JsonNode> post(String path, Object request) {
         try {
-            return Optional.ofNullable(webClient.post()
+            logger.warn("AGENTS REQUEST {} {}", path, request);
+            JsonNode response = webClient.post()
                     .uri(path)
                     .bodyValue(request)
                     .retrieve()
                     .bodyToMono(JsonNode.class)
-                    .block());
+                    .block();
+            logger.warn("AGENTS RESPONSE {} {}", path, response);
+            return Optional.ofNullable(response);
         } catch (WebClientResponseException exception) {
+            logger.warn("AGENTS ERROR {} {} body={}", path, exception.getStatusCode(), exception.getResponseBodyAsString());
             return fallback(path, exception);
         } catch (WebClientRequestException exception) {
             logger.warn("Agents service unavailable for {}", path, exception);
