@@ -1,4 +1,5 @@
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { useState } from "react";
+import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { router } from "expo-router";
 
@@ -9,7 +10,7 @@ import { Colors, Fonts, Radii } from "@/constants/theme";
 export default function TeacherProfileScreen() {
   const insets = useSafeAreaInsets();
   const { data: user } = useMe();
-
+  const [language, setLanguage] = useState("English");
   return (
     <ScrollView
       contentContainerStyle={[styles.body, { paddingTop: insets.top + 16 }]}
@@ -34,14 +35,23 @@ export default function TeacherProfileScreen() {
 
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Settings</Text>
-        <Pressable style={styles.row} onPress={() => {}}>
+        <Pressable style={styles.row} onPress={() => router.push("/change-password")}>
           <Text style={styles.rowLabel}>Change password</Text>
           <Text style={styles.chevron}>›</Text>
         </Pressable>
-        <View style={styles.row}>
+        <Pressable
+          style={styles.row}
+          onPress={() =>
+            Alert.alert("App language", "Choose a language", [
+              { text: "English", onPress: () => setLanguage("English") },
+              { text: "Français", onPress: () => setLanguage("Français") },
+              { text: "العربية", onPress: () => setLanguage("العربية") },
+              { text: "Cancel", style: "cancel" },
+            ])
+          }>
           <Text style={styles.rowLabel}>App language</Text>
-          <Text style={styles.rowValue}>English · Français · العربية</Text>
-        </View>
+          <Text style={styles.rowValue}>{language}</Text>
+        </Pressable>
       </View>
 
       <View style={styles.section}>

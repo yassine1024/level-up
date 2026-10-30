@@ -1,4 +1,5 @@
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { useState } from "react";
+import { ActivityIndicator, Alert, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { router } from "expo-router";
 
@@ -12,7 +13,8 @@ export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
   const { data: user, isLoading, isError } = useMe();
   const courseQuery = useCourse();
-  const levelLabel = courseQuery.data ? `Level ${courseQuery.data.levelId}` : "Level A1";  if (isLoading) {
+  const levelLabel = courseQuery.data ? `Level ${courseQuery.data.levelId}` : "Level A1";
+  const [language, setLanguage] = useState("English");  if (isLoading) {
     return (
       <View style={styles.center}>
         <ActivityIndicator size="large" />
@@ -53,8 +55,20 @@ export default function ProfileScreen() {
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Settings</Text>
-          <SettingNav label="Change password" onPress={() => {}} />
-          <SettingLink label="App language" value="English · Français · العربية" />
+          <SettingNav label="Change password" onPress={() => router.push("/change-password")} />
+          <Pressable
+            style={styles.row}
+            onPress={() =>
+              Alert.alert("App language", "Choose a language", [
+                { text: "English", onPress: () => setLanguage("English") },
+                { text: "Français", onPress: () => setLanguage("Français") },
+                { text: "العربية", onPress: () => setLanguage("العربية") },
+                { text: "Cancel", style: "cancel" },
+              ])
+            }>
+            <Text style={styles.rowLabel}>App language</Text>
+            <Text style={styles.rowValue}>{language}</Text>
+          </Pressable>
         </View>
 
         <View style={styles.section}>
