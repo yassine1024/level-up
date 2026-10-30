@@ -35,8 +35,8 @@ export default function HomeScreen() {
       </View>
       <StudentBottomNav
         active="none"
-        onCoursePress={() => router.push("/course")}
-        onPracticePress={() => router.push("/practice")}
+        onCoursePress={() => router.navigate("/course")}
+        onPracticePress={() => router.navigate("/practice")}
       />
     </View>
   );

@@ -62,7 +62,7 @@ else if (g.key === "listening") router.push("/practice/listening");
       </ScrollView>
       <StudentBottomNav
         active="practice"
-        onCoursePress={() => router.push("/course")}
+        onCoursePress={() => router.navigate("/course")}
         onPracticePress={() => {}}
       />
     </View>
