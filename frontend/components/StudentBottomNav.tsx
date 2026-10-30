@@ -25,7 +25,7 @@ export function StudentBottomNav({
     { key: "home", label: "Home", icon: "home-outline", onPress: onHomePress ?? (() => router.navigate("/home")) },
     { key: "practice", label: "Practice", icon: "locate-outline", onPress: onPracticePress ?? (() => router.navigate("/practice")) },
     { key: "course", label: "Course", icon: "book-outline", onPress: onCoursePress ?? (() => router.navigate("/course")) },
-    { key: "profile", label: "Profile", icon: "person-outline", onPress: onProfilePress ?? (() => router.navigate("/(tabs)/profile")) },
+    { key: "profile", label: "Profile", icon: "person-outline", onPress: onProfilePress ?? (() => router.navigate("/profile")) },
   ];
 
   return (

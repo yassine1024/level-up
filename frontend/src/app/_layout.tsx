@@ -86,6 +86,7 @@ function RootLayoutNav() {
             <Stack.Screen name="teacher/students" options={{ gestureEnabled: true }} />
             <Stack.Screen name="teacher/edit-resource" options={{ gestureEnabled: false }} />
             <Stack.Screen name="practice/character-settings" options={{ gestureEnabled: true }} />
+            <Stack.Screen name="profile" options={{ gestureEnabled: true }} />
             {/* Missing pages (old UI) */}
             <Stack.Screen name="check-inbox" options={{ gestureEnabled: true }} />
             <Stack.Screen name="settings" options={{ gestureEnabled: true }} />
