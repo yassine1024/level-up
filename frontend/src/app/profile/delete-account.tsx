@@ -23,8 +23,8 @@ export default function DeleteAccountScreen() {
   };
 
   return (
-    <View style={styles.backdrop}>
-      <View style={styles.sheet}>
+    <Pressable style={styles.backdrop} onPress={() => router.back()}>
+      <View style={styles.sheet} onStartShouldSetResponder={() => true}>
         <View style={styles.handle} />
         <Text style={styles.title}>Delete your account?</Text>
         <Text style={styles.message}>
@@ -51,14 +51,14 @@ export default function DeleteAccountScreen() {
           <Text style={styles.cancelText}>Cancel</Text>
         </Pressable>
       </View>
-    </View>
+    </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
   backdrop: {
     flex: 1,
-    backgroundColor: "rgba(0,0,0,0.4)",
+    backgroundColor: "transparent",
     justifyContent: "flex-end",
   },
   sheet: {
