@@ -13,7 +13,7 @@ type Role = "student" | "teacher";
 
 export default function RoleScreen() {
   const insets = useSafeAreaInsets();
-  const params = useLocalSearchParams<{ username?: string; password?: string }>();
+  const params = useLocalSearchParams<{ username?: string; password?: string; verified?: string }>();
   const [role, setRole] = useState<Role>("student");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -37,8 +37,9 @@ export default function RoleScreen() {
       useAuthStore.getState().setToken(res.token);
       const next = role === "student" ? "/placement" : "/teacher";
       const isEmail = username.includes("@");
-      if (isEmail) {
-        router.replace({ pathname: "/verify-email", params: { next } });
+      const alreadyVerified = params.verified === "1";
+      if (isEmail && !alreadyVerified) {
+        router.replace({ pathname: "/verify-email", params: { next, username, password, verified: "1" } });
       } else {
         router.replace(next);
       }

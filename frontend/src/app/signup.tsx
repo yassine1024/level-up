@@ -93,10 +93,18 @@ export default function SignupScreen() {
               return;
             }
             setError(null);
-            router.push({
-              pathname: "/role",
-              params: { username, password },
-            });
+            const isEmail = username.includes("@");
+            if (isEmail) {
+              router.push({
+                pathname: "/verify-email",
+                params: { username, password, next: "/role", verified: "1" },
+              });
+            } else {
+              router.push({
+                pathname: "/role",
+                params: { username, password },
+              });
+            }
           }}
         />
         <Text style={styles.footer}>

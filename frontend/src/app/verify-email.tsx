@@ -11,8 +11,19 @@ const CORRECT_CODE = "123456";
 type Status = "idle" | "success" | "error";
 
 export default function VerifyEmailScreen() {
-  const params = useLocalSearchParams<{ next?: string }>();
+  const params = useLocalSearchParams<{ next?: string; username?: string; password?: string }>();
   const next = (params.next as string) || "/home";
+
+  const continueNext = () => {
+    if (params.username) {
+      router.replace({
+        pathname: next as any,
+        params: { username: params.username, password: params.password ?? "", verified: "1" },
+      });
+    } else {
+      router.replace(next as any);
+    }
+  };
   const [code, setCode] = useState("");
   const [status, setStatus] = useState<Status>("idle");
   const [resending, setResending] = useState(false);
@@ -39,7 +50,7 @@ export default function VerifyEmailScreen() {
             Your email has been verified. You can now continue.
           </Text>
           <View style={{ width: "100%", marginTop: 16 }}>
-            <Button title="Continue" onPress={() => router.replace(next as any)} />
+            <Button title="Continue" onPress={continueNext} />
           </View>
         </View>
       </AuthLayout>
@@ -78,7 +89,7 @@ export default function VerifyEmailScreen() {
       />
       <Text style={styles.resend}>
         No code?{" "}
-        <Text style={styles.link} onPress={() => router.replace(next as any)}>
+        <Text style={styles.link} onPress={continueNext}>
           Continue without code
         </Text>
       </Text>
