@@ -33,11 +33,13 @@ export default function HomeScreen() {
           <Text style={styles.emptyText}>Home content comes in a later version.</Text>
         </View>
       </View>
-      <StudentBottomNav
-        active="home"
-        onCoursePress={() => router.navigate("/course")}
-        onPracticePress={() => router.navigate("/practice")}
-      />
+      <View style={{ paddingBottom: 12 }}>
+        <StudentBottomNav
+          active="home"
+          onCoursePress={() => router.navigate("/course")}
+          onPracticePress={() => router.navigate("/practice")}
+        />
+      </View>
     </View>
   );
 }
