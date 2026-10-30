@@ -61,6 +61,11 @@ export default function LoginScreen() {
             </Text>
           </View>
         ) : null}
+        <Text style={styles.forgot}>
+          <Text style={styles.link} onPress={() => router.push("/forgot-password")}>
+            Forgot password?
+          </Text>
+        </Text>
         <View style={{ flex: 1, minHeight: 40 }} />
         <Button
           title={loading ? "Signing in..." : "Log in"}
@@ -149,5 +154,11 @@ const styles = StyleSheet.create({
   link: {
     color: Colors.primaryDark,
     fontFamily: Fonts.bodyHeavy,
+  },
+  forgot: {
+    fontFamily: Fonts.bodyBold,
+    fontSize: 13,
+    color: Colors.muted,
+    textAlign: "right",
   },
 });
