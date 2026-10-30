@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { router } from "expo-router";
 
 import { useMe } from "@/src/hooks/useMe";
+import { Input } from "@/components/Input";
 import { useAuthStore } from "@/src/store/auth";
 import { Colors, Fonts, Radii } from "@/constants/theme";
 
@@ -11,6 +12,17 @@ export default function TeacherProfileScreen() {
   const insets = useSafeAreaInsets();
   const { data: user } = useMe();
   const [language, setLanguage] = useState("English");
+  const [name, setName] = useState("");
+  const [usernameEdit, setUsernameEdit] = useState("");
+  const [email, setEmail] = useState("");
+
+  useEffect(() => {
+    if (user) {
+      setName(user.username ?? "");
+      setUsernameEdit(user.username ?? "");
+      setEmail((user as any).email ?? "");
+    }
+  }, [user]);
   return (
     <ScrollView
       contentContainerStyle={[styles.body, { paddingTop: insets.top + 16 }]}
@@ -23,13 +35,19 @@ export default function TeacherProfileScreen() {
 
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Profile</Text>
-        <View style={styles.row}>
-          <Text style={styles.rowLabel}>Name</Text>
-          <Text style={styles.rowValue}>{user?.username ?? "—"}</Text>
+        <Input label="Name" value={name} onChangeText={setName} placeholder="Your name" />
+        <View style={{ marginTop: 12 }}>
+          <Input label="Username" value={usernameEdit} onChangeText={setUsernameEdit} placeholder="Your username" />
         </View>
-        <View style={styles.row}>
-          <Text style={styles.rowLabel}>Email</Text>
-          <Text style={styles.rowValue}>{(user as any)?.email ?? "—"}</Text>
+        <View style={{ marginTop: 12 }}>
+          <Input label="Email" value={email} onChangeText={setEmail} placeholder="you@example.com" keyboardType="email-address" />
+        </View>
+        <View style={{ marginTop: 16 }}>
+          <Pressable
+            style={styles.saveBtn}
+            onPress={() => Alert.alert("Saved", "Profile updated (local).")}>
+            <Text style={styles.saveText}>Save profile</Text>
+          </Pressable>
         </View>
       </View>
 
@@ -91,6 +109,8 @@ const styles = StyleSheet.create({
   body: { padding: 24, gap: 16, backgroundColor: Colors.background, flexGrow: 1 },
   bubble: { alignSelf: "flex-start", paddingHorizontal: 12, paddingVertical: 6, borderRadius: 999, backgroundColor: Colors.amber },
   bubbleText: { fontFamily: Fonts.bodyHeavy, fontSize: 13, color: Colors.text },
+  saveBtn: { height: 46, borderRadius: Radii.button, backgroundColor: Colors.primary, alignItems: "center", justifyContent: "center" },
+  saveText: { fontFamily: Fonts.bodyHeavy, fontSize: 15, color: Colors.white },
   title: { fontFamily: Fonts.heading, fontSize: 24, color: Colors.text },
   subtitle: { fontFamily: Fonts.body, fontSize: 14, color: Colors.muted },
   section: { gap: 8, marginTop: 8 },
