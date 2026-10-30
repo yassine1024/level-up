@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { StyleSheet, Text, TextInput, View } from "react-native";
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 
 import { AuthLayout } from "@/components/AuthLayout";
 import { Button } from "@/components/Button";
@@ -11,6 +11,8 @@ const CORRECT_CODE = "123456";
 type Status = "idle" | "success" | "error";
 
 export default function VerifyEmailScreen() {
+  const params = useLocalSearchParams<{ next?: string }>();
+  const next = (params.next as string) || "/home";
   const [code, setCode] = useState("");
   const [status, setStatus] = useState<Status>("idle");
   const [resending, setResending] = useState(false);
@@ -37,7 +39,7 @@ export default function VerifyEmailScreen() {
             Your email has been verified. You can now continue.
           </Text>
           <View style={{ width: "100%", marginTop: 16 }}>
-            <Button title="Continue" onPress={() => router.replace("/home")} />
+            <Button title="Continue" onPress={() => router.replace(next as any)} />
           </View>
         </View>
       </AuthLayout>
@@ -74,6 +76,12 @@ export default function VerifyEmailScreen() {
         disabled={code.length !== 6}
         onPress={handleVerify}
       />
+      <Text style={styles.resend}>
+        No code?{" "}
+        <Text style={styles.link} onPress={() => router.replace(next as any)}>
+          Continue without code
+        </Text>
+      </Text>
       <Text style={styles.resend}>
         Didn&apos;t get it?{" "}
         <Text style={styles.link} onPress={handleResend}>

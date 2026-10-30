@@ -35,8 +35,13 @@ export default function RoleScreen() {
         role: role === "student" ? "STUDENT" : "TEACHER",
       });
       useAuthStore.getState().setToken(res.token);
-      if (role === "student") router.replace("/placement");
-      else router.replace("/teacher");
+      const next = role === "student" ? "/placement" : "/teacher";
+      const isEmail = username.includes("@");
+      if (isEmail) {
+        router.replace({ pathname: "/verify-email", params: { next } });
+      } else {
+        router.replace(next);
+      }
     } catch (e: any) {
       const message =
         e?.response?.data?.message ||
