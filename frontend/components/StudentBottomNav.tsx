@@ -22,10 +22,10 @@ export function StudentBottomNav({
   onProfilePress,
 }: StudentBottomNavProps) {
   const tabs: { key: Tab; label: string; icon: keyof typeof Ionicons.glyphMap; onPress?: () => void }[] = [
-    { key: "home", label: "Home", icon: "home-outline", onPress: onHomePress ?? (() => router.push("/home")) },
-    { key: "practice", label: "Practice", icon: "locate-outline", onPress: onPracticePress ?? (() => router.push("/practice")) },
-    { key: "course", label: "Course", icon: "book-outline", onPress: onCoursePress ?? (() => router.push("/course")) },
-    { key: "profile", label: "Profile", icon: "person-outline", onPress: onProfilePress ?? (() => router.push("/(tabs)/profile")) },
+    { key: "home", label: "Home", icon: "home-outline", onPress: onHomePress ?? (() => router.navigate("/home")) },
+    { key: "practice", label: "Practice", icon: "locate-outline", onPress: onPracticePress ?? (() => router.navigate("/practice")) },
+    { key: "course", label: "Course", icon: "book-outline", onPress: onCoursePress ?? (() => router.navigate("/course")) },
+    { key: "profile", label: "Profile", icon: "person-outline", onPress: onProfilePress ?? (() => router.navigate("/(tabs)/profile")) },
   ];
 
   return (
