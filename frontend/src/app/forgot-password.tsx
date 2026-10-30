@@ -47,11 +47,13 @@ export default function ForgotPasswordScreen() {
         onChangeText={setEmail}
         keyboardType="email-address"
       />
-      <Button
-        title={loading ? "Sending..." : "Send reset link"}
-        disabled={loading || !email.trim()}
-        onPress={handleSubmit}
-      />
+      <View style={{ marginTop: 16 }}>
+        <Button
+          title={loading ? "Sending..." : "Send reset link"}
+          disabled={loading || !email.trim()}
+          onPress={handleSubmit}
+        />
+      </View>
     </AuthLayout>
   );
 }
