@@ -1,9 +1,7 @@
 import { useState } from "react";
-import { StyleSheet, TextInput, View } from "react-native";
+import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import { router } from "expo-router";
 
-import { AuthLayout } from "@/components/AuthLayout";
-import { Button } from "@/components/Button";
 import { useAuthStore } from "@/src/store/auth";
 import { Colors, Fonts, Radii } from "@/constants/theme";
 
@@ -25,34 +23,78 @@ export default function DeleteAccountScreen() {
   };
 
   return (
-    <AuthLayout
-      title="Delete account"
-      subtitle={`This is permanent. Type "${CONFIRM_WORD}" to confirm.`}>
-      <TextInput
-        style={styles.input}
-        value={value}
-        onChangeText={setValue}
-        autoCapitalize="characters"
-        placeholder={CONFIRM_WORD}
-        placeholderTextColor={Colors.placeholder}
-      />
-      <Button
-        title={loading ? "Deleting..." : "Delete my account"}
-        variant="primary"
-        disabled={!confirmed || loading}
-        onPress={handleDelete}
-      />
-      <View style={{ marginTop: 8 }}>
-        <Button title="Cancel" variant="ghost" onPress={() => router.back()} />
+    <View style={styles.backdrop}>
+      <View style={styles.sheet}>
+        <View style={styles.handle} />
+        <Text style={styles.title}>Delete your account?</Text>
+        <Text style={styles.message}>
+          This permanently removes your profile, progress and XP. This can't be undone.
+        </Text>
+        <Text style={styles.label}>Type delete to confirm</Text>
+        <TextInput
+          style={styles.input}
+          value={value}
+          onChangeText={setValue}
+          autoCapitalize="none"
+          placeholder="delete"
+          placeholderTextColor={Colors.placeholder}
+        />
+        <Pressable
+          style={[styles.deleteBtn, (!confirmed || loading) && styles.disabled]}
+          disabled={!confirmed || loading}
+          onPress={handleDelete}>
+          <Text style={styles.deleteText}>
+            {loading ? "Deleting..." : "Delete my account"}
+          </Text>
+        </Pressable>
+        <Pressable style={styles.cancelBtn} onPress={() => router.back()}>
+          <Text style={styles.cancelText}>Cancel</Text>
+        </Pressable>
       </View>
-    </AuthLayout>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  backdrop: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.4)",
+    justifyContent: "flex-end",
+  },
+  sheet: {
+    backgroundColor: Colors.white,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    padding: 24,
+    gap: 12,
+  },
+  handle: {
+    width: 40,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: Colors.cardBorder,
+    alignSelf: "center",
+    marginBottom: 8,
+  },
+  title: {
+    fontFamily: Fonts.heading,
+    fontSize: 20,
+    color: Colors.text,
+  },
+  message: {
+    fontFamily: Fonts.body,
+    fontSize: 14,
+    lineHeight: 20,
+    color: Colors.muted,
+  },
+  label: {
+    fontFamily: Fonts.bodyBold,
+    fontSize: 13,
+    color: Colors.muted,
+    marginTop: 4,
+  },
   input: {
-    height: 52,
-    width: "100%",
+    height: 48,
     borderRadius: Radii.input,
     borderWidth: 2,
     borderColor: Colors.errorBorder,
@@ -61,7 +103,30 @@ const styles = StyleSheet.create({
     fontFamily: Fonts.bodyBold,
     fontSize: 16,
     color: Colors.text,
-    textAlign: "center",
-    letterSpacing: 4,
+  },
+  deleteBtn: {
+    height: 50,
+    borderRadius: Radii.button,
+    backgroundColor: Colors.errorText,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  disabled: {
+    opacity: 0.5,
+  },
+  deleteText: {
+    fontFamily: Fonts.bodyHeavy,
+    fontSize: 15,
+    color: Colors.white,
+  },
+  cancelBtn: {
+    height: 44,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  cancelText: {
+    fontFamily: Fonts.bodyBold,
+    fontSize: 15,
+    color: Colors.primaryDark,
   },
 });

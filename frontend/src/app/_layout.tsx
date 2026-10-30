@@ -81,7 +81,7 @@ function RootLayoutNav() {
             <Stack.Screen name="session-expired" options={{ gestureEnabled: false }} />
             <Stack.Screen name="legal/terms" options={{ gestureEnabled: true }} />
             <Stack.Screen name="legal/privacy" options={{ gestureEnabled: true }} />
-            <Stack.Screen name="profile/delete-account" options={{ gestureEnabled: false }} />
+            <Stack.Screen name="profile/delete-account" options={{ presentation: "modal", animation: "slide_from_bottom", gestureEnabled: true }} />
             <Stack.Screen name="teacher/profile" options={{ gestureEnabled: true }} />
             <Stack.Screen name="teacher/students" options={{ gestureEnabled: true }} />
             <Stack.Screen name="teacher/edit-resource" options={{ gestureEnabled: false }} />
