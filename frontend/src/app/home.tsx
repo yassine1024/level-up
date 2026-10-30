@@ -92,11 +92,11 @@ export default function HomeScreen() {
           </View>
         </View>
 
-        {/* Today's challenge */}
+        {/* Today&apos;s challenge */}
         <View style={styles.pinkCard}>
           <View style={styles.cardHeader}>
             <Ionicons name="game-controller-outline" size={20} color={Colors.text} />
-            <Text style={styles.cardHeaderTitle}>Today's challenge</Text>
+            <Text style={styles.cardHeaderTitle}>Today&apos;s challenge</Text>
           </View>
           <Text style={styles.challengeTitle}>Play the word game</Text>
           <Text style={styles.challengeBody}>Match the words and earn 20 XP!</Text>
@@ -110,7 +110,7 @@ export default function HomeScreen() {
           <View style={styles.quickCardBlue}>
             <View style={styles.cardHeader}>
               <Ionicons name="chatbubble-outline" size={18} color={Colors.text} />
-              <Text style={styles.quickHeader}>Let's talk!</Text>
+              <Text style={styles.quickHeader}>Let&apos;s talk!</Text>
             </View>
             <Text style={styles.quickTitle}>Order a coffee</Text>
             <Text style={styles.quickBody}>Real-life conversation</Text>

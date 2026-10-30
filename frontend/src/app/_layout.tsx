@@ -84,6 +84,45 @@ function RootLayoutNav() {
             <Stack.Screen name="teacher/students" options={{ gestureEnabled: true }} />
             <Stack.Screen name="teacher/edit-resource" options={{ gestureEnabled: false }} />
             <Stack.Screen name="practice/character-settings" options={{ gestureEnabled: true }} />
+            {/* Missing pages (old UI) */}
+            <Stack.Screen name="check-inbox" options={{ gestureEnabled: true }} />
+            <Stack.Screen name="settings" options={{ gestureEnabled: true }} />
+            <Stack.Screen name="teacher/settings" options={{ gestureEnabled: true }} />
+            <Stack.Screen name="legal/index" options={{ gestureEnabled: true }} />
+            <Stack.Screen name="maintenance" options={{ gestureEnabled: false }} />
+            <Stack.Screen name="offline" options={{ gestureEnabled: true }} />
+            <Stack.Screen name="server-error" options={{ gestureEnabled: true }} />
+            <Stack.Screen name="teacher/home" options={{ gestureEnabled: true }} />
+            <Stack.Screen name="teacher/lesson-detail" options={{ gestureEnabled: true }} />
+            <Stack.Screen name="teacher/lesson-preview" options={{ gestureEnabled: true }} />
+            <Stack.Screen name="teacher/curriculum" options={{ gestureEnabled: true }} />
+            <Stack.Screen name="teacher/upload-error" options={{ gestureEnabled: true }} />
+            <Stack.Screen name="teacher/classes" options={{ gestureEnabled: true }} />
+            <Stack.Screen name="teacher/class-detail" options={{ gestureEnabled: true }} />
+            <Stack.Screen name="teacher/student-progress" options={{ gestureEnabled: true }} />
+            <Stack.Screen name="join" options={{ gestureEnabled: false }} />
+            <Stack.Screen name="class-joined" options={{ gestureEnabled: false }} />
+            <Stack.Screen name="course/unit-detail" options={{ gestureEnabled: true }} />
+            <Stack.Screen name="course/locked-unit" options={{ gestureEnabled: true }} />
+            <Stack.Screen name="course/finished-units" options={{ gestureEnabled: true }} />
+            <Stack.Screen name="lesson/review" options={{ gestureEnabled: true }} />
+            <Stack.Screen name="level-completed" options={{ gestureEnabled: false }} />
+            <Stack.Screen name="lesson/not-ready" options={{ gestureEnabled: true }} />
+            <Stack.Screen name="lesson/slides-failed" options={{ gestureEnabled: true }} />
+            <Stack.Screen name="practice/pick-lesson" options={{ gestureEnabled: true }} />
+            <Stack.Screen name="practice/word-match" options={{ gestureEnabled: true }} />
+            <Stack.Screen name="practice/speaking-soon" options={{ gestureEnabled: true }} />
+            <Stack.Screen name="practice/listening-result" options={{ gestureEnabled: true }} />
+            <Stack.Screen name="practice/listening-player" options={{ gestureEnabled: true }} />
+            <Stack.Screen name="practice/mistake-detail" options={{ gestureEnabled: true }} />
+            <Stack.Screen name="practice/episode-summary" options={{ gestureEnabled: true }} />
+            <Stack.Screen name="practice/episode-history" options={{ gestureEnabled: true }} />
+            <Stack.Screen name="practice/no-episode" options={{ gestureEnabled: true }} />
+            <Stack.Screen name="practice/leave-chat" options={{ gestureEnabled: true }} />
+            <Stack.Screen name="practice/chat-error" options={{ gestureEnabled: true }} />
+            <Stack.Screen name="placement-leave" options={{ gestureEnabled: true }} />
+            <Stack.Screen name="placement-resume" options={{ gestureEnabled: true }} />
+            <Stack.Screen name="placement-beginner" options={{ gestureEnabled: true }} />
           </Stack>
         </ThemeProvider>
       </QueryClientProvider>
