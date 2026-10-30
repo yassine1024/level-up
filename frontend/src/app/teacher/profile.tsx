@@ -16,6 +16,9 @@ export default function TeacherProfileScreen() {
       showsVerticalScrollIndicator={false}>
       <Text style={styles.title}>{user?.username ?? "Teacher"}</Text>
       <Text style={styles.subtitle}>Teacher</Text>
+      <View style={styles.bubble}>
+        <Text style={styles.bubbleText}>3 courses</Text>
+      </View>
 
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Profile</Text>
@@ -76,6 +79,8 @@ export default function TeacherProfileScreen() {
 
 const styles = StyleSheet.create({
   body: { padding: 24, gap: 16, backgroundColor: Colors.background, flexGrow: 1 },
+  bubble: { alignSelf: "flex-start", paddingHorizontal: 12, paddingVertical: 6, borderRadius: 999, backgroundColor: Colors.amber },
+  bubbleText: { fontFamily: Fonts.bodyHeavy, fontSize: 13, color: Colors.text },
   title: { fontFamily: Fonts.heading, fontSize: 24, color: Colors.text },
   subtitle: { fontFamily: Fonts.body, fontSize: 14, color: Colors.muted },
   section: { gap: 8, marginTop: 8 },

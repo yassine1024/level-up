@@ -3,6 +3,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { router } from "expo-router";
 
 import { useMe } from "@/src/hooks/useMe";
+import { useCourse } from "@/src/hooks/useCourse";
 import { useAuthStore } from "@/src/store/auth";
 import { Colors, Fonts, Radii } from "@/constants/theme";
 import { StudentBottomNav } from "@/components/StudentBottomNav";
@@ -10,7 +11,8 @@ import { StudentBottomNav } from "@/components/StudentBottomNav";
 export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
   const { data: user, isLoading, isError } = useMe();
-  if (isLoading) {
+  const courseQuery = useCourse();
+  const levelLabel = courseQuery.data ? `Level ${courseQuery.data.levelId}` : "Level A1";  if (isLoading) {
     return (
       <View style={styles.center}>
         <ActivityIndicator size="large" />
@@ -33,6 +35,9 @@ export default function ProfileScreen() {
         showsVerticalScrollIndicator={false}>
         <Text style={styles.title}>{user.username}</Text>
         <Text style={styles.subtitle}>{user.role ?? "Student"}</Text>
+        <View style={styles.bubble}>
+          <Text style={styles.bubbleText}>{levelLabel}</Text>
+        </View>
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Profile</Text>
@@ -109,6 +114,8 @@ function SettingNav({
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: Colors.background },
   body: { padding: 24, gap: 16, backgroundColor: Colors.background, flexGrow: 1 },
+  bubble: { alignSelf: "flex-start", paddingHorizontal: 12, paddingVertical: 6, borderRadius: 999, backgroundColor: Colors.primaryLight },
+  bubbleText: { fontFamily: Fonts.bodyHeavy, fontSize: 13, color: Colors.primaryDark },
   center: { flex: 1, alignItems: "center", justifyContent: "center" },
   title: { fontFamily: Fonts.heading, fontSize: 24, color: Colors.text },
   subtitle: { fontFamily: Fonts.body, fontSize: 14, color: Colors.muted },
