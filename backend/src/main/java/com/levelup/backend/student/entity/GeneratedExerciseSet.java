@@ -54,6 +54,9 @@ public class GeneratedExerciseSet {
     @Column(name = "generation_run_id")
     private Long generationRunId;
 
+    @Column(name = "hidden", nullable = false)
+    private boolean hidden = false;
+
     protected GeneratedExerciseSet() {
     }
 
@@ -107,5 +110,13 @@ public class GeneratedExerciseSet {
 
     public Long getGenerationRunId() {
         return generationRunId;
+    }
+
+    public boolean isHidden() {
+        return hidden;
+    }
+
+    public void setHidden(boolean hidden) {
+        this.hidden = hidden;
     }
 }

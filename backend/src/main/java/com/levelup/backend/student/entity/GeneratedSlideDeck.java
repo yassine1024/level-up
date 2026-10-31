@@ -54,6 +54,9 @@ public class GeneratedSlideDeck {
     @Column(name = "generation_run_id")
     private Long generationRunId;
 
+    @Column(name = "hidden", nullable = false)
+    private boolean hidden = false;
+
     protected GeneratedSlideDeck() {
     }
 
@@ -107,5 +110,13 @@ public class GeneratedSlideDeck {
 
     public Long getGenerationRunId() {
         return generationRunId;
+    }
+
+    public boolean isHidden() {
+        return hidden;
+    }
+
+    public void setHidden(boolean hidden) {
+        this.hidden = hidden;
     }
 }
