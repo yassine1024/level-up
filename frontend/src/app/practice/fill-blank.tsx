@@ -32,6 +32,7 @@ export default function PracticeFillBlankScreen() {
   const [showFeedback, setShowFeedback] = useState(false);
   const [feedback, setFeedback] = useState<string | null>(null);
   const [correctAnswer, setCorrectAnswer] = useState<string | null>(null);
+  const [startError, setStartError] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -44,7 +45,9 @@ export default function PracticeFillBlankScreen() {
           session.questions.map((q) => ({ prompt: q.prompt, options: q.options }))
         );
       })
-      .catch(() => {});
+      .catch((err) => {
+        setStartError(friendlyMessage(mapApiError(err)));
+      });
     return () => {
       cancelled = true;
     };
@@ -147,7 +150,9 @@ export default function PracticeFillBlankScreen() {
           </>
         ) : (
           <View style={{ padding: 24, alignItems: "center", gap: 4 }}>
-            <Text style={{ color: Colors.muted }}>Loading questions…</Text>
+            <Text style={{ color: Colors.muted }}>
+              {startError ?? "Loading questions…"}
+            </Text>
             <Text style={{ color: Colors.muted, fontSize: 13 }}>{TAKE_A_MOMENT_MESSAGE}</Text>
           </View>
         )}

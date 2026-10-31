@@ -184,6 +184,12 @@ export default function CourseResourcesScreen() {
           <Chip label="Demo data" variant="grey" style={{ alignSelf: "flex-start" }} />
         ) : null}
 
+        {levelsQuery.isError ? (
+          <Text style={styles.error}>
+            {friendlyMessage(mapApiError(levelsQuery.error))}
+          </Text>
+        ) : null}
+
         <SelectField
           label="Choose a level"
           value={
@@ -207,6 +213,12 @@ export default function CourseResourcesScreen() {
           loading={unitsQuery.isLoading}
         />
 
+        {unitsQuery.isError ? (
+          <Text style={styles.error}>
+            {friendlyMessage(mapApiError(unitsQuery.error))}
+          </Text>
+        ) : null}
+
         <SelectField
           label="Choose a lesson"
           value={
@@ -219,6 +231,12 @@ export default function CourseResourcesScreen() {
           disabled={!draft.unit}
           loading={lessonsQuery.isLoading}
         />
+
+        {lessonsQuery.isError ? (
+          <Text style={styles.error}>
+            {friendlyMessage(mapApiError(lessonsQuery.error))}
+          </Text>
+        ) : null}
 
         <View style={styles.divider} />
 

@@ -51,7 +51,9 @@ export default function PracticeWritingScreen() {
         <View style={styles.card}>
           <Text style={styles.label}>Your task</Text>
           <Text style={styles.task}>
-            {taskQuery.data?.instructions ?? "Loading task…"}
+            {taskQuery.isError
+              ? friendlyMessage(mapApiError(taskQuery.error))
+              : taskQuery.data?.instructions ?? "Loading task…"}
           </Text>
         </View>
         <TextArea

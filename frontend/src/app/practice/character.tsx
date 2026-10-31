@@ -118,7 +118,14 @@ export default function PracticeCharacterScreen() {
               <Text style={styles.tag}>Present simple</Text>
             </View>
           </View>
-          <Button title="Start chatting" onPress={startChat} />
+          <Button
+            title={sending ? "Starting…" : "Start chatting"}
+            onPress={startChat}
+            disabled={sending}
+          />
+          {sending ? (
+            <Text style={styles.loadingHint}>{TAKE_A_MOMENT_MESSAGE}</Text>
+          ) : null}
         </ScrollView>
         <StudentBottomNav
           active="practice"

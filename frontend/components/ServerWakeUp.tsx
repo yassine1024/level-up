@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
-import { apiClient } from "@/src/api/client";
+import { apiClient, HEALTH_TIMEOUT } from "@/src/api/client";
 import {
   WAKE_UP_MESSAGE,
   TRY_AGAIN_LABEL,
@@ -23,7 +23,7 @@ export function ServerWakeUp() {
     setLastError(null);
     const timer = setTimeout(() => setSlow(true), 3000);
     apiClient
-      .get("/api/health", { timeout: 90000 })
+      .get("/api/health", { timeout: HEALTH_TIMEOUT })
       .then(() => {
         clearTimeout(timer);
         setSlow(false);

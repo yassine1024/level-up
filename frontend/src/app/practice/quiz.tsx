@@ -31,6 +31,7 @@ export default function PracticeQuizScreen() {
   const [selected, setSelected] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<string | null>(null);
   const [correctAnswer, setCorrectAnswer] = useState<string | null>(null);
+  const [startError, setStartError] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -43,8 +44,8 @@ export default function PracticeQuizScreen() {
           session.questions.map((q) => ({ prompt: q.prompt, options: q.options }))
         );
       })
-      .catch(() => {
-        // Keep screen usable with empty state on failure.
+      .catch((err) => {
+        setStartError(friendlyMessage(mapApiError(err)));
       });
     return () => {
       cancelled = true;
@@ -132,7 +133,7 @@ export default function PracticeQuizScreen() {
             </Pressable>
           </>
         ) : (
-          <ActivityIndicatorPlaceholder />
+          <ActivityIndicatorPlaceholder error={startError} />
         )}
       </ScrollView>
       <StudentBottomNav
@@ -144,10 +145,12 @@ export default function PracticeQuizScreen() {
   );
 }
 
-function ActivityIndicatorPlaceholder() {
+function ActivityIndicatorPlaceholder({ error }: { error: string | null }) {
   return (
     <View style={{ padding: 24, alignItems: "center", gap: 4 }}>
-      <Text style={{ color: Colors.muted }}>Loading questions…</Text>
+      <Text style={{ color: Colors.muted }}>
+        {error ?? "Loading questions…"}
+      </Text>
       <Text style={{ color: Colors.muted, fontSize: 13 }}>{TAKE_A_MOMENT_MESSAGE}</Text>
     </View>
   );

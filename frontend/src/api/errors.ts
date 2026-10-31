@@ -35,6 +35,8 @@ export function friendlyMessage(category: FriendlyErrorCategory): string {
   }
 }
 
+export const LOGIN_REQUIRED_MESSAGE = "Enter your username and password.";
+export const LOGIN_ERROR_MESSAGE = "Username or password is not correct. Try again.";
 export const WAKE_UP_MESSAGE = "Waking up the server, please wait...";
 export const TRY_AGAIN_LABEL = "Try again";
 export const TAKE_A_MOMENT_MESSAGE = "This can take a moment.";

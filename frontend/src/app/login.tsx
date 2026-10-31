@@ -6,6 +6,12 @@ import { router } from "expo-router";
 import { useKeyboardVisible } from "@/src/hooks/useKeyboardVisible";
 import { authApi } from "@/src/api/endpoints";
 import { useAuthStore } from "@/src/store/auth";
+import {
+  friendlyMessage,
+  LOGIN_ERROR_MESSAGE,
+  LOGIN_REQUIRED_MESSAGE,
+  mapApiError,
+} from "@/src/api/errors";
 
 import { BackButton } from "@/components/BackButton";
 import { Button } from "@/components/Button";
@@ -17,7 +23,7 @@ export default function LoginScreen() {
   const keyboardVisible = useKeyboardVisible();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   return (
@@ -40,7 +46,7 @@ export default function LoginScreen() {
             label="Username"
             placeholder="your username"
             value={username}
-            onChangeText={(t) => { setUsername(t); setError(false); }}
+            onChangeText={(t) => { setUsername(t); setError(null); }}
             autoComplete="username"
             textContentType="username"
           />
@@ -49,16 +55,14 @@ export default function LoginScreen() {
           label="Password"
           placeholder="Your password"
           value={password}
-          onChangeText={(t) => { setPassword(t); setError(false); }}
+          onChangeText={(t) => { setPassword(t); setError(null); }}
           secureTextEntry
           autoComplete="current-password"
           textContentType="password"
         />
         {error ? (
           <View style={styles.errorCard}>
-            <Text style={styles.errorText}>
-              Error state: email or password is not correct. Try again.
-            </Text>
+            <Text style={styles.errorText}>{error}</Text>
           </View>
         ) : null}
         <View style={{ flex: 1, minHeight: 40 }} />
@@ -67,10 +71,10 @@ export default function LoginScreen() {
           disabled={loading}
           onPress={async () => {
             if (!username.trim() || !password.trim()) {
-              setError(true);
+              setError(LOGIN_REQUIRED_MESSAGE);
               return;
             }
-            setError(false);
+            setError(null);
             setLoading(true);
             try {
               const res = await authApi.login({ username, password });
@@ -88,8 +92,13 @@ export default function LoginScreen() {
               }
               if (role === "TEACHER") router.replace("/teacher");
               else router.replace("/home");
-            } catch {
-              setError(true);
+            } catch (err) {
+              const category = mapApiError(err);
+              setError(
+                category === "auth"
+                  ? LOGIN_ERROR_MESSAGE
+                  : friendlyMessage(category)
+              );
             } finally {
               setLoading(false);
             }
