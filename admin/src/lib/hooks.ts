@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "./api";
 import type {
   Overview,
@@ -13,6 +13,7 @@ import type {
   ActivityItem,
   AuditLogEntry,
   SystemHealth,
+  GeneratedContent,
 } from "./types";
 
 export function useOverview() {
@@ -100,5 +101,36 @@ export function useSystemHealth() {
   return useQuery<SystemHealth>({
     queryKey: ["systemHealth"],
     queryFn: async () => (await api.get("/api/admin/system/health")).data,
+  });
+}
+
+export function useGeneratedContent(type: string, id: number) {
+  return useQuery<GeneratedContent>({
+    queryKey: ["generated", type, id],
+    queryFn: async () => (await api.get(`/api/admin/generated/${type}/${id}`)).data,
+    enabled: !!type && !!id,
+  });
+}
+
+export function useHideContent() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ type, id, hidden }: { type: string; id: number; hidden: boolean }) =>
+      (await api.post(`/api/admin/generated/${type}/${id}/hide`, null, { params: { hidden } })).data,
+    onSuccess: (_d, vars) => {
+      qc.invalidateQueries({ queryKey: ["generated", vars.type, vars.id] });
+    },
+  });
+}
+
+export function useRegenerateLesson() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (lessonId: number) =>
+      (await api.post(`/api/admin/lessons/${lessonId}/regenerate`)).data,
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["lessons"] });
+      qc.invalidateQueries({ queryKey: ["pipeline"] });
+    },
   });
 }

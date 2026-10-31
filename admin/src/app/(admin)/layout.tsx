@@ -26,6 +26,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <a href="/rejections" className="block rounded-md px-3 py-2 hover:bg-muted">
               Rejections
             </a>
+            <a href="/content-review" className="block rounded-md px-3 py-2 hover:bg-muted">
+              Content review
+            </a>
             <a href="/activity" className="block rounded-md px-3 py-2 hover:bg-muted">
               Activity
             </a>

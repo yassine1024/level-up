@@ -1,24 +1,34 @@
 "use client";
 
 import { useParams } from "next/navigation";
-import { usePipeline, useLessonResources } from "@/lib/hooks";
+import { usePipeline, useLessonResources, useRegenerateLesson } from "@/lib/hooks";
 
 export default function PipelinePage() {
   const params = useParams();
   const id = Number(params.id);
   const { data, isLoading, isError } = usePipeline(id);
   const { data: resData } = useLessonResources(id);
+  const regenerate = useRegenerateLesson();
 
   if (isLoading) return <p className="text-sm text-muted-foreground">Loading pipeline...</p>;
   if (isError || !data) return <p className="text-sm text-destructive">Failed to load pipeline.</p>;
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold">{data.title}</h1>
-        <p className="text-sm text-muted-foreground">
-          Lesson {data.lessonId} · content version {data.contentVersion}
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-semibold">{data.title}</h1>
+          <p className="text-sm text-muted-foreground">
+            Lesson {data.lessonId} · content version {data.contentVersion}
+          </p>
+        </div>
+        <button
+          onClick={() => regenerate.mutate(id)}
+          disabled={regenerate.isPending}
+          className="rounded-md border px-3 py-1 text-sm disabled:opacity-50"
+        >
+          {regenerate.isPending ? "Regenerating..." : "Regenerate"}
+        </button>
       </div>
 
       <div className="rounded-lg border p-4">

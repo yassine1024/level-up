@@ -41,3 +41,9 @@ Non-admin tokens receive `403`; missing/invalid tokens receive `401`.
 
 ## Status
 Phase 2 delivers `/health`. Other endpoints are delivered in Phase 6.
+## Content review (Phase 8)
+
+- `hidden` boolean on generated exercise sets and slide decks controls visibility to students.
+- `POST /lessons/{id}/regenerate` increments `contentVersion`; cached generated content is keyed by version, so a new version triggers fresh generation while older versions remain addressable.
+- Students mid-lesson keep their current version; new content applies on next lesson load.
+- Every hide/unhide and regenerate action is written to `audit_log`.

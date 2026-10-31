@@ -136,3 +136,13 @@ export interface SystemHealth {
   agents: string;
   recentErrorCountLastHour: number;
 }
+
+export interface GeneratedContent {
+  id: number;
+  type: string;
+  hidden: boolean;
+  contentVersion: number;
+  questionsJson?: string;
+  slidesJson?: string;
+  generationRunId: number | null;
+}
