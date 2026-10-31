@@ -1,0 +1,62 @@
+services:
+
+  # Python agents service
+  - type: web
+    name: level-up-agents
+    runtime: docker
+    plan: free
+    region: frankfurt
+    branch: develop
+
+    dockerfilePath: ./agents/Dockerfile
+    dockerContext: ./agents
+
+    autoDeployTrigger: commit
+    healthCheckPath: /api/health
+
+    envVars:
+      - key: GOOGLE_API_KEY
+        sync: false
+
+      - key: GEMINI_MODEL
+        value: gemini-3.5-flash-lite
+
+
+  # Spring Boot backend
+  - type: web
+    name: level-up-backend
+    runtime: docker
+    plan: free
+    region: frankfurt
+    branch: develop
+
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+
+    autoDeployTrigger: commit
+    healthCheckPath: /api/health
+
+    envVars:
+      - key: AGENTS_BASE_URL
+        fromService:
+          type: web
+          name: level-up-agents
+          envVarKey: RENDER_EXTERNAL_URL
+
+      - key: JWT_SECRET
+        generateValue: true
+
+      - key: APP_STORAGE_LOCATION
+        value: ./uploads
+
+      - key: APP_SEED_DEFAULT_USERS
+        value: "true"
+
+      - key: SPRING_H2_CONSOLE_ENABLED
+        value: "false"
+
+      - key: SPRING_SERVLET_MULTIPART_MAX_FILE_SIZE
+        value: 25MB
+
+      - key: SPRING_SERVLET_MULTIPART_MAX_REQUEST_SIZE
+        value: 42MB
