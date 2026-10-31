@@ -1,31 +1,33 @@
-// Design tokens extracted from the "English Learning App – Screen Reference (MVP)"
-// onboarding screens. Keep in sync with the reference HTML.
+// Design tokens for the Level-Up mobile app.
 export const Colors = {
-  primary: "#0E7C57",
-  primaryDark: "#0A5A40",
-  primaryLight: "#E4F4EC",
-  background: "#F7FAF8",
-  board: "#E6EEEA",
-  text: "#10241C",
-  muted: "#4A5F56",
-  placeholder: "#5E7068",
-  border: "#C9D8D0",
-  cardBorder: "#D5E2DB",
+  primary: "#0EA5E9",
+  primaryDark: "#2563EB",
+  primaryLight: "#E0F2FE",
+  background: "#FFFFFF",
+  board: "#EFF6FF",
+  text: "#0F172A",
+  muted: "#64748B",
+  placeholder: "#94A3B8",
+  border: "#CBD5E1",
+  cardBorder: "#E2E8F0",
   amber: "#FFC23C",
   amberDark: "#C98F00",
   errorBg: "#FBDCD2",
   errorText: "#8A2A0F",
   errorBorder: "#C8401C",
-  disabled: "#D5E2DB",
-  disabledText: "#4A5F56",
+  disabled: "#E2E8F0",
+  disabledText: "#64748B",
   white: "#FFFFFF",
   // Chips
   chipAmberBg: "#FFE9B0",
   chipAmberText: "#6B4800",
-  chipGreyBg: "#E3E8E5",
-  chipGreyText: "#3E524A",
+  chipGreyBg: "#E2E8F0",
+  chipGreyText: "#475569",
   // Dashed outline used by the empty upload boxes
-  dashedBorder: "#9DB5A9",
+  dashedBorder: "#94A3B8",
+  sky: "#38BDF8",
+  fancy: "#1D4ED8",
+  skyLight: "#BAE6FD",
 };
 
 export const Fonts = {

@@ -13,6 +13,8 @@ spring:
       path: /h2-console
   datasource:
     url: jdbc:h2:mem:levelup
+  jpa:
+    defer-datasource-initialization: true
   servlet:
     multipart:
       max-file-size: 25MB

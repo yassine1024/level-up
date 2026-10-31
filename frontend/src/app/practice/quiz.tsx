@@ -7,6 +7,7 @@ import { Colors, Fonts, Radii } from "@/constants/theme";
 import { StudentBottomNav } from "@/components/StudentBottomNav";
 import { Ionicons } from "@expo/vector-icons";
 import { useCourse } from "@/src/hooks/useCourse";
+import { mapApiError, friendlyMessage, TAKE_A_MOMENT_MESSAGE } from "@/src/api/errors";
 import {
   useStartPracticeSession,
   useSubmitPracticeAnswer,
@@ -30,6 +31,7 @@ export default function PracticeQuizScreen() {
   const [selected, setSelected] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<string | null>(null);
   const [correctAnswer, setCorrectAnswer] = useState<string | null>(null);
+  const [startError, setStartError] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -42,8 +44,8 @@ export default function PracticeQuizScreen() {
           session.questions.map((q) => ({ prompt: q.prompt, options: q.options }))
         );
       })
-      .catch(() => {
-        // Keep screen usable with empty state on failure.
+      .catch((err) => {
+        setStartError(friendlyMessage(mapApiError(err)));
       });
     return () => {
       cancelled = true;
@@ -62,8 +64,8 @@ export default function PracticeQuizScreen() {
       });
       setFeedback(res.explanation);
       setCorrectAnswer(res.correction);
-    } catch {
-      setFeedback("Could not check answer.");
+    } catch (err) {
+      setFeedback(friendlyMessage(mapApiError(err)));
     }
   };
 
@@ -131,22 +133,25 @@ export default function PracticeQuizScreen() {
             </Pressable>
           </>
         ) : (
-          <ActivityIndicatorPlaceholder />
+          <ActivityIndicatorPlaceholder error={startError} />
         )}
       </ScrollView>
       <StudentBottomNav
         active="practice"
-        onCoursePress={() => router.push("/course")}
+        onCoursePress={() => router.navigate("/course")}
         onPracticePress={() => {}}
       />
     </View>
   );
 }
 
-function ActivityIndicatorPlaceholder() {
+function ActivityIndicatorPlaceholder({ error }: { error: string | null }) {
   return (
     <View style={{ padding: 24, alignItems: "center" }}>
-      <Text style={{ color: Colors.muted }}>Loading questions…</Text>
+      <Text style={{ color: Colors.muted }}>
+        {error ?? "Loading questions…"}
+      </Text>
+      <Text style={{ color: Colors.muted, fontSize: 13 }}>{TAKE_A_MOMENT_MESSAGE}</Text>
     </View>
   );
 }

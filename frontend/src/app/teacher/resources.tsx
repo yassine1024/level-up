@@ -1,4 +1,5 @@
 import {
+  Pressable,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -6,6 +7,7 @@ import {
   Text,
   View,
 } from "react-native";
+import { useState } from "react";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { router } from "expo-router";
 
@@ -23,7 +25,8 @@ import {
 import { useMe } from "@/src/hooks/useMe";
 import { useAuthStore } from "@/src/store/auth";
 import { useTeacherStore } from "@/src/store/teacher";
-import { Colors, Fonts } from "@/constants/theme";
+import { Colors, Fonts, Radii } from "@/constants/theme";
+import { mapApiError, friendlyMessage } from "@/src/api/errors";
 import type {
   ResourceFileField,
   SaveResourcesPayload,
@@ -52,11 +55,10 @@ const FILE_LABELS: Record<ResourceFileField, string> = {
 const DOC_TYPES = [
   "application/pdf",
   "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-  "application/msword",
   "text/plain",
 ];
 
-const DOC_EXTENSIONS = ["pdf", "docx", "doc", "txt"];
+const DOC_EXTENSIONS = ["pdf", "docx", "txt"];
 
 export default function CourseResourcesScreen() {
   const insets = useSafeAreaInsets();
@@ -85,11 +87,6 @@ export default function CourseResourcesScreen() {
       value: String(lesson.id),
     })
   );
-
-  const isDemo =
-    levelsQuery.data?.isDemo === true ||
-    unitsQuery.data?.isDemo === true ||
-    lessonsQuery.data?.isDemo === true;
 
   const handleLevel = (value: string) => {
     const level = levelsQuery.data?.items.find((l) => l.id === value) ?? null;
@@ -146,7 +143,6 @@ export default function CourseResourcesScreen() {
         unitLabel: draft.unit ? `Unit ${draft.unit.number}` : "",
         lessonLabel: draft.lesson ? `Lesson ${draft.lesson.number}` : "",
         lines: buildLines(),
-        isDemo,
       });
       router.push("/teacher/saved");
     } catch {
@@ -154,7 +150,58 @@ export default function CourseResourcesScreen() {
     }
   };
 
+  const saveErrorMessage = (() => {
+    const error = save.error as
+      | {
+          response?: { data?: { detail?: string; error?: string } };
+          message?: string;
+        }
+      | null;
+    return (
+      friendlyMessage(mapApiError(error))
+    );
+  })();
+
   const initials = (me.data?.username ?? "TA").slice(0, 2).toUpperCase();
+  const [view, setView] = useState<"upload" | "list">("upload");
+
+  if (view === "list") {
+    return (
+      <ScrollView
+        contentContainerStyle={[styles.body, { paddingTop: insets.top + 28, paddingBottom: insets.bottom + 28 }]}
+        showsVerticalScrollIndicator={false}>
+        <View style={styles.header}>
+          <Chip label="Teacher" variant="amber" />
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+            <Pressable onPress={() => router.push("/teacher/students")}>
+              <Text style={styles.studentsLink}>Students</Text>
+            </Pressable>
+            <View style={styles.avatar}>
+              <Text style={styles.avatarText}>{initials}</Text>
+            </View>
+          </View>
+        </View>
+        <Text style={styles.title}>Course resources</Text>
+        <View style={styles.toggleRow}>
+          <Pressable style={[styles.toggleBtn, styles.toggleBtnInactive]} onPress={() => setView("upload")}>
+            <Text style={styles.toggleText}>Upload</Text>
+          </Pressable>
+          <Pressable style={styles.toggleBtn} onPress={() => setView("list")}>
+            <Text style={styles.toggleText}>List</Text>
+          </Pressable>
+        </View>
+        {["Vocabulary", "Grammar", "Pronunciation", "Listening 1", "Listening 2", "Other"].map((label, i) => (
+          <View key={label} style={styles.listCard}>
+            <Text style={styles.listLabel}>{label}</Text>
+            <Pressable onPress={() => router.push({ pathname: "/teacher/edit-resource", params: { resourceId: String(i + 1) } })}>
+              <Text style={styles.editLink}>Edit</Text>
+            </Pressable>
+          </View>
+        ))}
+        <View style={{ height: 24 }} />
+      </ScrollView>
+    );
+  }
 
   return (
     <KeyboardAvoidingView
@@ -169,8 +216,13 @@ export default function CourseResourcesScreen() {
         showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
           <Chip label="Teacher" variant="amber" />
-          <View style={styles.avatar}>
-            <Text style={styles.avatarText}>{initials}</Text>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+            <Pressable onPress={() => router.push("/teacher/students")}>
+              <Text style={styles.studentsLink}>Students</Text>
+            </Pressable>
+            <View style={styles.avatar}>
+              <Text style={styles.avatarText}>{initials}</Text>
+            </View>
           </View>
         </View>
 
@@ -179,9 +231,14 @@ export default function CourseResourcesScreen() {
           Pick a lesson, then add the files your students will learn from.
         </Text>
 
-        {isDemo ? (
-          <Chip label="Demo data" variant="grey" style={{ alignSelf: "flex-start" }} />
-        ) : null}
+        <View style={styles.toggleRow}>
+          <Pressable style={styles.toggleBtn} onPress={() => setView("upload")}>
+            <Text style={styles.toggleText}>Upload</Text>
+          </Pressable>
+          <Pressable style={[styles.toggleBtn, styles.toggleBtnInactive]} onPress={() => setView("list")}>
+            <Text style={styles.toggleText}>List</Text>
+          </Pressable>
+        </View>
 
         <SelectField
           label="Choose a level"
@@ -292,7 +349,7 @@ export default function CourseResourcesScreen() {
 
         {save.isError ? (
           <Text style={styles.error}>
-            Could not save the lesson. Check your connection and try again.
+            {saveErrorMessage}
           </Text>
         ) : null}
 
@@ -319,6 +376,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
   },
+  studentsLink: { fontFamily: Fonts.bodyHeavy, fontSize: 14, color: Colors.primaryDark, marginRight: 4 },
   avatar: {
     width: 44,
     height: 44,
@@ -358,5 +416,47 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     paddingHorizontal: 16,
     paddingVertical: 12,
+  },
+  toggleRow: {
+    flexDirection: "row",
+    gap: 8,
+    marginBottom: 8,
+  },
+  toggleBtn: {
+    flex: 1,
+    height: 40,
+    borderRadius: Radii.button,
+    backgroundColor: Colors.primary,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  toggleBtnInactive: {
+    backgroundColor: Colors.disabled,
+  },
+  toggleText: {
+    fontFamily: Fonts.bodyHeavy,
+    fontSize: 14,
+    color: Colors.white,
+  },
+  listCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    padding: 14,
+    borderRadius: Radii.card,
+    borderWidth: 1,
+    borderColor: Colors.cardBorder,
+    backgroundColor: Colors.white,
+    marginBottom: 8,
+  },
+  listLabel: {
+    fontFamily: Fonts.bodyBold,
+    fontSize: 15,
+    color: Colors.text,
+  },
+  editLink: {
+    fontFamily: Fonts.bodyHeavy,
+    fontSize: 14,
+    color: Colors.primaryDark,
   },
 });

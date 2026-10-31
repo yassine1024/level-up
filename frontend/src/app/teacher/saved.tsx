@@ -44,8 +44,6 @@ export default function LessonSavedScreen() {
         Your students can now open it in their Course tab.
       </Text>
 
-      {saved.isDemo ? <Chip label="Demo data" variant="grey" /> : null}
-
       <View style={styles.card}>
         {saved.lines.length === 0 ? (
           <Text style={styles.line}>No resource attached yet.</Text>

@@ -10,6 +10,7 @@ import { Button } from "@/components/Button";
 import { studentApi } from "@/src/api/endpoints";
 import type { CharacterReply } from "@/src/types/api";
 import { useCourse } from "@/src/hooks/useCourse";
+import { mapApiError, friendlyMessage, TAKE_A_MOMENT_MESSAGE } from "@/src/api/errors";
 
 const API_MODE = process.env.EXPO_PUBLIC_API_MODE ?? "mock";
 
@@ -44,8 +45,8 @@ export default function PracticeCharacterScreen() {
       setEpisodeId(episode.episodeId);
       setPhase("chat");
       setMessages([{ role: "assistant", text: episode.openingLine }]);
-    } catch {
-      setMessages([{ role: "assistant", text: "Sorry, I could not start this episode." }]);
+    } catch (err) {
+      setMessages([{ role: "assistant", text: friendlyMessage(mapApiError(err)) }]);
     } finally {
       setSending(false);
     }
@@ -87,8 +88,8 @@ export default function PracticeCharacterScreen() {
         setMessages((m) => [...m, { role: "correction", text: "", correction: response.correction }]);
       }
       setMessages((m) => [...m, { role: "assistant", text: response.reply }]);
-    } catch {
-      setMessages((m) => [...m, { role: "assistant", text: "Sorry, I could not reply." }]);
+    } catch (err) {
+      setMessages((m) => [...m, { role: "assistant", text: friendlyMessage(mapApiError(err)) }]);
     } finally {
       setSending(false);
     }
@@ -117,7 +118,8 @@ export default function PracticeCharacterScreen() {
               <Text style={styles.tag}>Present simple</Text>
             </View>
           </View>
-          <Button title="Start chatting" onPress={startChat} />
+          <Button title={sending ? "Starting…" : "Start chatting"} onPress={startChat} disabled={sending} />
+          {sending ? <Text style={styles.loadingHint}>{TAKE_A_MOMENT_MESSAGE}</Text> : null}
         </ScrollView>
         <StudentBottomNav
           active="practice"
@@ -287,8 +289,8 @@ const styles = StyleSheet.create({
   correctionRight: {
     fontFamily: Fonts.bodyHeavy,
     fontSize: 15,
-    color: "#0A5A40",
-    backgroundColor: "#CDEFDD",
+    color: Colors.primaryDark,
+    backgroundColor: Colors.primaryLight,
     paddingHorizontal: 4,
     borderRadius: 4,
   },
@@ -307,4 +309,5 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.white,
   },
   suggestionText: { fontFamily: Fonts.body, fontSize: 13, color: Colors.text },
+  loadingHint: { fontFamily: Fonts.body, fontSize: 13, color: Colors.muted, textAlign: "center" },
 });

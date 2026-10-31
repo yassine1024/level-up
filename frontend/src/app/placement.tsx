@@ -1,6 +1,6 @@
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
 
 import { Colors, Fonts, Radii } from "@/constants/theme";
@@ -8,6 +8,7 @@ import { Button } from "@/components/Button";
 import { Ionicons } from "@expo/vector-icons";
 import { usePlacementQuestions, useSubmitPlacement } from "@/src/hooks/usePlacement";
 import type { PlacementQuestion } from "@/src/types/api";
+import { mapApiError, friendlyMessage } from "@/src/api/errors";
 
 type Phase = "intro" | "question" | "loading" | "result";
 
@@ -20,11 +21,13 @@ const LEVEL_DESCRIPTIONS: Record<string, string> = {
 };
 
 export default function PlacementScreen() {
+  const params = useLocalSearchParams<{ mode?: string }>();
+  const isRetake = params.mode === "retake";
   const insets = useSafeAreaInsets();
   const questionsQuery = usePlacementQuestions();
   const submitPlacement = useSubmitPlacement();
 
-  const [phase, setPhase] = useState<Phase>("intro");
+  const [phase, setPhase] = useState<Phase>(isRetake ? "question" : "intro");
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<number, string>>({});
   const [result, setResult] = useState<{
@@ -153,7 +156,9 @@ export default function PlacementScreen() {
             </View>
           ) : questionsQuery.isError ? (
             <View style={styles.loadingBox}>
-              <Text style={styles.loadingText}>Could not load questions.</Text>
+              <Text style={styles.loadingText}>
+                {friendlyMessage(mapApiError(questionsQuery.error))}
+              </Text>
               <Pressable onPress={() => questionsQuery.refetch()}>
                 <Text style={styles.retryText}>Retry</Text>
               </Pressable>
@@ -278,6 +283,11 @@ export default function PlacementScreen() {
           ))}
         </View>
 
+        {isRetake ? (
+          <View style={styles.resultCard}>
+            <Text style={styles.scoreText}>Previous level: A1 · New level: {result?.assignedLevelName ?? "Beginner"}</Text>
+          </View>
+        ) : null}
         <Button title="Go to my course" onPress={handleGoToCourse} />
       </ScrollView>
     </View>

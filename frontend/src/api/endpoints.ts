@@ -25,6 +25,7 @@ import type {
   CharacterEpisode,
   CharacterReply,
   StudentMistake,
+  TeacherStudent,
 } from "@/src/types/api";
 
 export const userApi = {
@@ -36,6 +37,16 @@ export const userApi = {
 };
 
 export const authApi = {
+  checkUsernameAvailability: async (
+    username: string
+  ): Promise<{ available: boolean }> => {
+    if (API_MODE === "mock") return { available: true };
+    const res = await apiClient.get<{ available: boolean }>(
+      "/api/auth/username-available",
+      { params: { username } }
+    );
+    return res.data;
+  },
   login: async (payload: LoginRequest): Promise<{ token: string }> => {
     if (API_MODE === "mock") return mockApi.login(payload.username, payload.password);
     const res = await apiClient.post<{ token: string }>("/api/auth/login", payload);
@@ -169,6 +180,12 @@ export const teacherApi = {
       }
       throw error;
     }
+  },
+
+  async getStudents(): Promise<TeacherStudent[]> {
+    if (API_MODE === "mock") return [];
+    const res = await apiClient.get<TeacherStudent[]>("/api/teacher/students");
+    return res.data;
   },
 };
 
