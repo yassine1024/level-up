@@ -21,6 +21,12 @@ public class User {
     @Column(nullable = false)
     private Role role = Role.STUDENT;
 
+    @Column(name = "created_at")
+    private java.time.Instant createdAt;
+
+    @Column(name = "last_login_at")
+    private java.time.Instant lastLoginAt;
+
     public enum Role {
         STUDENT, TEACHER, ADMIN
     }
@@ -33,4 +39,8 @@ public class User {
     public void setPasswordHash(String passwordHash) { this.passwordHash = passwordHash; }
     public Role getRole() { return role; }
     public void setRole(Role role) { this.role = role; }
+    public java.time.Instant getCreatedAt() { return createdAt; }
+    public void setCreatedAt(java.time.Instant createdAt) { this.createdAt = createdAt; }
+    public java.time.Instant getLastLoginAt() { return lastLoginAt; }
+    public void setLastLoginAt(java.time.Instant lastLoginAt) { this.lastLoginAt = lastLoginAt; }
 }
