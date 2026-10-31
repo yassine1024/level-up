@@ -17,6 +17,7 @@ const GAMES: Record<Tab, { key: string; title: string; sub: string; count: strin
   Listening: [{ key: "listening", title: "Listening", sub: "Dialogue at the café", count: "3 questions", route: "/practice/listening", locked: false }],
   Practising: [
     { key: "quiz", title: "Quiz", sub: "Choose the right answer", count: "3 questions", route: "/practice/quiz" },
+    { key: "grammar-crush", title: "Grammar Crush", sub: "Coming soon", count: "Soon", route: "/practice/grammar-crush", locked: true },
   ],
 };
 
@@ -50,6 +51,7 @@ export default function PracticeGamesScreen() {
               if (g.key === "quiz") router.push("/practice/quiz");
               else if (g.key === "fill") router.push("/practice/fill-blank");
 else if (g.key === "listening") router.push("/practice/listening");
+              else if (g.key === "grammar-crush") router.push("/practice/grammar-crush");
             }}
             disabled={g.locked}>
             <View style={{ flex: 1 }}>

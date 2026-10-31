@@ -88,6 +88,7 @@ function RootLayoutNav() {
             <Stack.Screen name="teacher/students" options={{ gestureEnabled: true }} />
             <Stack.Screen name="teacher/edit-resource" options={{ gestureEnabled: false }} />
             <Stack.Screen name="practice/character-settings" options={{ gestureEnabled: true }} />
+            <Stack.Screen name="practice/grammar-crush" options={{ gestureEnabled: true }} />
             <Stack.Screen name="profile" options={{ gestureEnabled: true, animation: "none" }} />
             <Stack.Screen name="change-password" options={{ gestureEnabled: true }} />
             <Stack.Screen name="home" options={{ animation: "none" }} />
