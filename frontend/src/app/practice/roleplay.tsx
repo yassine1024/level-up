@@ -38,7 +38,7 @@ export default function PracticeRoleplayScreen() {
           <Text style={styles.emptyText}>Meet the character</Text>
         </View>
       </ScrollView>
-      <StudentBottomNav active="practice" onCoursePress={() => router.push("/course")} onPracticePress={() => {}} />
+      <StudentBottomNav active="practice" onCoursePress={() => router.navigate("/course")} onPracticePress={() => {}} />
     </View>
   );
 }

@@ -1,6 +1,7 @@
 import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 
 import { useMe } from "@/src/hooks/useMe";
+import { mapApiError, friendlyMessage } from "@/src/api/errors";
 
 export default function HomeScreen() {
   const { data: user, isLoading, isError, error } = useMe();
@@ -17,7 +18,7 @@ export default function HomeScreen() {
     return (
       <View style={styles.center}>
         <Text style={styles.error}>
-          Failed to load: {(error as Error)?.message ?? "unknown error"}
+          {friendlyMessage(mapApiError(error))}
         </Text>
       </View>
     );

@@ -1,10 +1,11 @@
 import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { router } from "expo-router";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 import { Colors, Fonts, Radii } from "@/constants/theme";
 import { Chip } from "@/components/Chip";
+import { ErrorState } from "@/components/ErrorState";
 import { useCourse } from "@/src/hooks/useCourse";
 import { useGenerateSlides } from "@/src/hooks/useSlides";
 
@@ -14,14 +15,19 @@ export default function LoadingSlidesScreen() {
   const generateSlides = useGenerateSlides();
   const lessonId = courseQuery.data?.currentUnit?.currentLesson?.id;
 
+  const [status, setStatus] = useState<"loading" | "error">("loading");
+  const [retryKey, setRetryKey] = useState(0);
+
   useEffect(() => {
     let cancelled = false;
     const run = async () => {
+      setStatus("loading");
       if (lessonId) {
         try {
           await generateSlides.mutateAsync({ lessonId });
         } catch {
-          // Fall through to the viewer even if generation fails.
+          if (!cancelled) setStatus("error");
+          return;
         }
       }
       if (!cancelled) {
@@ -33,7 +39,19 @@ export default function LoadingSlidesScreen() {
       cancelled = true;
       clearTimeout(timer);
     };
-  }, [lessonId, generateSlides]);
+  }, [lessonId, generateSlides, retryKey]);
+
+  if (status === "error") {
+    return (
+      <View style={[styles.root, { paddingTop: insets.top + 24 }]}>
+        <ErrorState
+          title="Slide generation failed"
+          description="We couldn't build your lesson slides. Check your connection and try again."
+          onRetry={() => setRetryKey((k) => k + 1)}
+        />
+      </View>
+    );
+  }
 
   return (
     <View style={[styles.root, { paddingTop: insets.top + 24 }]}>

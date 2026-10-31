@@ -11,13 +11,19 @@ import { BackButton } from "@/components/BackButton";
 import { Button } from "@/components/Button";
 import { Input } from "@/components/Input";
 import { Colors, Fonts } from "@/constants/theme";
+import {
+  friendlyMessage,
+  LOGIN_ERROR_MESSAGE,
+  LOGIN_REQUIRED_MESSAGE,
+  mapApiError,
+} from "@/src/api/errors";
 
 export default function LoginScreen() {
   const insets = useSafeAreaInsets();
   const keyboardVisible = useKeyboardVisible();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   return (
@@ -40,7 +46,7 @@ export default function LoginScreen() {
             label="Username"
             placeholder="your username"
             value={username}
-            onChangeText={(t) => { setUsername(t); setError(false); }}
+            onChangeText={(t) => { setUsername(t); setError(null); }}
             autoComplete="username"
             textContentType="username"
           />
@@ -49,7 +55,7 @@ export default function LoginScreen() {
           label="Password"
           placeholder="Your password"
           value={password}
-          onChangeText={(t) => { setPassword(t); setError(false); }}
+          onChangeText={(t) => { setPassword(t); setError(null); }}
           secureTextEntry
           autoComplete="current-password"
           textContentType="password"
@@ -57,20 +63,25 @@ export default function LoginScreen() {
         {error ? (
           <View style={styles.errorCard}>
             <Text style={styles.errorText}>
-              Error state: email or password is not correct. Try again.
+              {error}
             </Text>
           </View>
         ) : null}
+        <Text style={styles.forgot}>
+          <Text style={styles.link} onPress={() => router.push("/forgot-password")}>
+            Forgot password?
+          </Text>
+        </Text>
         <View style={{ flex: 1, minHeight: 40 }} />
         <Button
           title={loading ? "Signing in..." : "Log in"}
           disabled={loading}
           onPress={async () => {
             if (!username.trim() || !password.trim()) {
-              setError(true);
+              setError(LOGIN_REQUIRED_MESSAGE);
               return;
             }
-            setError(false);
+            setError(null);
             setLoading(true);
             try {
               const res = await authApi.login({ username, password });
@@ -88,8 +99,13 @@ export default function LoginScreen() {
               }
               if (role === "TEACHER") router.replace("/teacher");
               else router.replace("/home");
-            } catch {
-              setError(true);
+            } catch (err) {
+              const category = mapApiError(err);
+              setError(
+                category === "auth"
+                  ? LOGIN_ERROR_MESSAGE
+                  : friendlyMessage(category)
+              );
             } finally {
               setLoading(false);
             }
@@ -149,5 +165,11 @@ const styles = StyleSheet.create({
   link: {
     color: Colors.primaryDark,
     fontFamily: Fonts.bodyHeavy,
+  },
+  forgot: {
+    fontFamily: Fonts.bodyBold,
+    fontSize: 13,
+    color: Colors.muted,
+    textAlign: "right",
   },
 });

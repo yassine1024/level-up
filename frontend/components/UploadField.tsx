@@ -23,6 +23,8 @@ interface UploadFieldProps {
   accept: string[];
   /** Allowed file extensions, validated after the pick. */
   extensions: string[];
+  /** Optional max file size in bytes. */
+  maxSizeBytes?: number;
   value?: PickedDocument | null;
   onChange: (doc: PickedDocument | null) => void;
   disabled?: boolean;
@@ -35,6 +37,7 @@ export function UploadField({
   hint,
   accept,
   extensions,
+  maxSizeBytes,
   value,
   onChange,
   disabled = false,
@@ -66,6 +69,10 @@ export function UploadField({
     const extension = asset.name.split(".").pop()?.toLowerCase() ?? "";
     if (!extensions.includes(extension)) {
       setError(`Only ${extensions.join(", ")} files are accepted.`);
+      return;
+    }
+    if (maxSizeBytes && asset.size && asset.size > maxSizeBytes) {
+      setError("This file is too large. Please choose a smaller one.");
       return;
     }
 

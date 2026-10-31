@@ -10,6 +10,7 @@ import { TextArea } from "@/components/TextArea";
 import { Ionicons } from "@expo/vector-icons";
 import { useCourse } from "@/src/hooks/useCourse";
 import { useWritingTask, useSubmitWriting } from "@/src/hooks/useWriting";
+import { mapApiError, friendlyMessage, TAKE_A_MOMENT_MESSAGE } from "@/src/api/errors";
 
 export default function PracticeWritingScreen() {
   const insets = useSafeAreaInsets();
@@ -33,8 +34,8 @@ export default function PracticeWritingScreen() {
       setFeedback(res.feedback);
       setCorrected(res.correctedText ?? res.text);
       setCorrections(res.corrections ?? []);
-    } catch {
-      setFeedback("Could not get feedback.");
+    } catch (err) {
+      setFeedback(friendlyMessage(mapApiError(err)));
     }
   };
 
@@ -50,7 +51,9 @@ export default function PracticeWritingScreen() {
         <View style={styles.card}>
           <Text style={styles.label}>Your task</Text>
           <Text style={styles.task}>
-            {taskQuery.data?.instructions ?? "Loading task…"}
+            {taskQuery.isError
+              ? friendlyMessage(mapApiError(taskQuery.error))
+              : taskQuery.data?.instructions ?? "Loading task…"}
           </Text>
         </View>
         <TextArea
@@ -66,6 +69,9 @@ export default function PracticeWritingScreen() {
           onPress={handleSubmit}
           disabled={submitWriting.isPending || !text.trim()}
         />
+        {submitWriting.isPending ? (
+          <Text style={styles.loadingHint}>{TAKE_A_MOMENT_MESSAGE}</Text>
+        ) : null}
         {feedback ? (
           <View style={styles.feedbackCard}>
             <Text style={styles.feedbackHeadline}>Good work</Text>
@@ -170,8 +176,8 @@ const styles = StyleSheet.create({
     fontFamily: Fonts.body,
   },
   rightInline: {
-    color: "#2563EB",
-    backgroundColor: "#E0F2FE",
+    color: "#0A5A40",
+    backgroundColor: "#CDEFDD",
     fontFamily: Fonts.bodyHeavy,
     borderRadius: 4,
     paddingHorizontal: 2,
@@ -197,7 +203,7 @@ const styles = StyleSheet.create({
   mistakeDiff: { flexDirection: "row", alignItems: "center", gap: 6 },
   wrongWord: { fontFamily: Fonts.body, fontSize: 14, color: "#C8401C", textDecorationLine: "line-through" },
   diffArrow: { fontFamily: Fonts.body, fontSize: 14, color: Colors.muted },
-  rightWord: { fontFamily: Fonts.bodyHeavy, fontSize: 14, color: "#2563EB" },
+  rightWord: { fontFamily: Fonts.bodyHeavy, fontSize: 14, color: "#0A5A40" },
   mistakeExplanation: { fontFamily: Fonts.body, fontSize: 13, color: Colors.muted, lineHeight: 18 },
   ghostButton: {
     height: 44,
@@ -209,4 +215,5 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   ghostButtonText: { fontFamily: Fonts.bodyHeavy, fontSize: 14, color: Colors.text },
+  loadingHint: { fontFamily: Fonts.body, fontSize: 13, color: Colors.muted, textAlign: "center" },
 });

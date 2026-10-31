@@ -256,7 +256,7 @@ const styles = StyleSheet.create({
   exampleCard: {
     backgroundColor: Colors.primaryLight,
     borderWidth: 2,
-    borderColor: "#BAE6FD",
+    borderColor: "#BFE3D1",
     borderRadius: Radii.card,
     padding: 16,
   },

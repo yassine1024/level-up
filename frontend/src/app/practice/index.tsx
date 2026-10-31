@@ -62,7 +62,7 @@ export default function PracticeHomeScreen() {
           <Text style={styles.meet}>Open</Text>
         </Pressable>
       </ScrollView>
-      <StudentBottomNav active="practice" onCoursePress={() => router.push("/course")} onPracticePress={() => {}} />
+      <StudentBottomNav active="practice" onCoursePress={() => router.navigate("/course")} onPracticePress={() => {}} />
     </View>
   );
 }

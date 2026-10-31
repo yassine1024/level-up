@@ -262,7 +262,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: "rgba(15,23,42,0.35)",
+    backgroundColor: "rgba(16,36,28,0.35)",
   },
   sheet: {
     backgroundColor: Colors.background,

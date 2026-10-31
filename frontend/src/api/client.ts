@@ -7,6 +7,7 @@ export const API_MODE = (process.env.EXPO_PUBLIC_API_MODE ??
 export const DEFAULT_TIMEOUT = 60000;
 export const GENERATION_TIMEOUT = 90000;
 export const UPLOAD_TIMEOUT = 120000;
+export const HEALTH_TIMEOUT = 90000;
 
 const isDev = typeof __DEV__ !== "undefined" ? __DEV__ : true;
 

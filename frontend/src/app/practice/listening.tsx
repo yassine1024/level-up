@@ -179,7 +179,7 @@ const styles = StyleSheet.create({
     padding: 14,
   },
   optionCardSelected: { borderColor: Colors.primary, backgroundColor: Colors.primaryLight },
-  optionCardCorrect: { borderColor: "#2563EB", backgroundColor: "#E0F2FE" },
+  optionCardCorrect: { borderColor: "#0A5A40", backgroundColor: "#CDEFDD" },
   optionCardWrong: { borderColor: "#C8401C", backgroundColor: "#FBE4E0" },
   optionBadge: {
     width: 32,

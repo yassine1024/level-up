@@ -1,35 +1,31 @@
-// Design tokens for the Level-Up mobile app.
-// Theme: white background + sky blue / fancy blue accents.
+// Design tokens extracted from the "English Learning App – Screen Reference (MVP)"
+// onboarding screens. Keep in sync with the reference HTML.
 export const Colors = {
-  primary: "#0EA5E9",        // sky blue
-  primaryDark: "#2563EB",    // fancy blue
-  primaryLight: "#E0F2FE",   // light sky
-  background: "#FFFFFF",     // white
-  board: "#EFF6FF",         // very light blue
-  text: "#0F172A",          // dark slate
-  muted: "#64748B",         // slate-500
-  placeholder: "#94A3B8",   // slate-400
-  border: "#CBD5E1",        // slate-300
-  cardBorder: "#E2E8F0",    // slate-200
+  primary: "#0E7C57",
+  primaryDark: "#0A5A40",
+  primaryLight: "#E4F4EC",
+  background: "#F7FAF8",
+  board: "#E6EEEA",
+  text: "#10241C",
+  muted: "#4A5F56",
+  placeholder: "#5E7068",
+  border: "#C9D8D0",
+  cardBorder: "#D5E2DB",
   amber: "#FFC23C",
   amberDark: "#C98F00",
-  errorBg: "#FEE2E2",
-  errorText: "#B91C1C",
-  errorBorder: "#EF4444",
-  disabled: "#E2E8F0",
-  disabledText: "#64748B",
+  errorBg: "#FBDCD2",
+  errorText: "#8A2A0F",
+  errorBorder: "#C8401C",
+  disabled: "#D5E2DB",
+  disabledText: "#4A5F56",
   white: "#FFFFFF",
   // Chips
   chipAmberBg: "#FFE9B0",
   chipAmberText: "#6B4800",
-  chipGreyBg: "#E2E8F0",
-  chipGreyText: "#475569",
+  chipGreyBg: "#E3E8E5",
+  chipGreyText: "#3E524A",
   // Dashed outline used by the empty upload boxes
-  dashedBorder: "#94A3B8",
-  // Extra blue shades
-  sky: "#38BDF8",
-  fancy: "#1D4ED8",
-  skyLight: "#BAE6FD",
+  dashedBorder: "#9DB5A9",
 };
 
 export const Fonts = {
