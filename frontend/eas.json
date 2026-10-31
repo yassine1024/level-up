@@ -9,7 +9,7 @@
       "distribution": "internal",
       "android": { "buildType": "apk" },
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://YOUR-BACKEND.onrender.com",
+        "EXPO_PUBLIC_API_URL": "https://level-up-backend-elhs.onrender.com",
         "EXPO_PUBLIC_API_MODE": "live"
       }
     },
@@ -17,7 +17,7 @@
       "android": { "buildType": "app-bundle" },
       "autoIncrement": true,
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://YOUR-BACKEND.onrender.com",
+        "EXPO_PUBLIC_API_URL": "https://level-up-backend-elhs.onrender.com",
         "EXPO_PUBLIC_API_MODE": "live"
       }
     }

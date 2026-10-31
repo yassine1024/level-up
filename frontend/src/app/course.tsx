@@ -205,7 +205,7 @@ export default function CourseScreen() {
       <StudentBottomNav
         active="course"
         onCoursePress={() => {}}
-        onPracticePress={() => {}}
+        onPracticePress={() => router.navigate("/practice")}
       />
 
       {showOptions ? (

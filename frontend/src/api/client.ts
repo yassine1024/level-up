@@ -8,6 +8,7 @@ export const DEFAULT_TIMEOUT = 60000;
 export const GENERATION_TIMEOUT = 90000;
 export const UPLOAD_TIMEOUT = 120000;
 export const HEALTH_TIMEOUT = 90000;
+export const DEFAULT_API_URL = "https://level-up-backend-elhs.onrender.com";
 
 const isDev = typeof __DEV__ !== "undefined" ? __DEV__ : true;
 
@@ -18,7 +19,7 @@ function normalizeBaseUrl(raw: string | undefined): string {
       console.error(msg);
       throw new Error(msg);
     }
-    return "http://localhost:8080";
+    return DEFAULT_API_URL;
   }
   let url = raw.trim();
   if (url.endsWith("/")) url = url.slice(0, -1);
