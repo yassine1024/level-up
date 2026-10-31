@@ -22,3 +22,5 @@ app:
     location: ${APP_STORAGE_LOCATION:./uploads}
   documents:
     max-extracted-characters: 200000
+  seed:
+    default-users: ${APP_SEED_DEFAULT_USERS:true}
