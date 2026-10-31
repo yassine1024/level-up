@@ -1,5 +1,5 @@
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import { router } from "expo-router";
+import { router, usePathname } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 
 import { Colors, Fonts } from "@/constants/theme";
@@ -21,12 +21,15 @@ export function StudentBottomNav({
   onCoursePress,
   onProfilePress,
 }: StudentBottomNavProps) {
+  const pathname = usePathname();
   const tabs: { key: Tab; label: string; icon: keyof typeof Ionicons.glyphMap; onPress?: () => void }[] = [
     { key: "home", label: "Home", icon: "home-outline", onPress: onHomePress ?? (() => router.navigate("/home")) },
     { key: "practice", label: "Practice", icon: "locate-outline", onPress: onPracticePress ?? (() => router.navigate("/practice")) },
     { key: "course", label: "Course", icon: "book-outline", onPress: onCoursePress ?? (() => router.navigate("/course")) },
     { key: "profile", label: "Profile", icon: "person-outline", onPress: onProfilePress ?? (() => router.navigate("/profile")) },
   ];
+
+  if (pathname === "/profile/delete-account") return null;
 
   return (
     <View style={styles.nav}>

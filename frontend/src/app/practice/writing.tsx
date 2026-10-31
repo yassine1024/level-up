@@ -176,8 +176,8 @@ const styles = StyleSheet.create({
     fontFamily: Fonts.body,
   },
   rightInline: {
-    color: "#0A5A40",
-    backgroundColor: "#CDEFDD",
+    color: Colors.primaryDark,
+    backgroundColor: Colors.primaryLight,
     fontFamily: Fonts.bodyHeavy,
     borderRadius: 4,
     paddingHorizontal: 2,
@@ -203,7 +203,7 @@ const styles = StyleSheet.create({
   mistakeDiff: { flexDirection: "row", alignItems: "center", gap: 6 },
   wrongWord: { fontFamily: Fonts.body, fontSize: 14, color: "#C8401C", textDecorationLine: "line-through" },
   diffArrow: { fontFamily: Fonts.body, fontSize: 14, color: Colors.muted },
-  rightWord: { fontFamily: Fonts.bodyHeavy, fontSize: 14, color: "#0A5A40" },
+  rightWord: { fontFamily: Fonts.bodyHeavy, fontSize: 14, color: Colors.primaryDark },
   mistakeExplanation: { fontFamily: Fonts.body, fontSize: 13, color: Colors.muted, lineHeight: 18 },
   ghostButton: {
     height: 44,
