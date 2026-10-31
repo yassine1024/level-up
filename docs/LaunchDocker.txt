@@ -1,0 +1,7 @@
+cd /home/aymen/Projects/level-up
+docker compose -f infra/compose.yaml up --build -d
+docker compose -f infra/compose.yaml ps
+docker compose -f infra/compose.yaml logs -f backend agents
+
+curl http://localhost:8080/api/health
+docker compose -f infra/compose.yaml down
