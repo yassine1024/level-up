@@ -6,7 +6,7 @@ from langchain_core.messages import BaseMessage, HumanMessage, SystemMessage
 from pydantic import Field, model_validator
 
 from app.llm import Model, data_block, generate
-from app.schemas import CamelModel, LessonInfo, Level, Localized
+from app.schemas import CamelModel, GenerationMeta, LessonInfo, Level, Localized
 from app.text import DiffSegment, contains_words, normalize_answer, same_words, word_diff
 
 router = APIRouter(prefix="/api/agents/character", tags=["Agent 4: character chat"])
@@ -60,6 +60,7 @@ class Episode(CamelModel):
     goals: list[str] = Field(description="2 to 4 short lesson points practised, e.g. Food words, Past simple")
     target_words: list[str] = Field(description="5 to 10 lesson words the character uses and tries to get the student to use")
     opening_line: str = Field(description="The character's first message: a greeting and one question")
+    meta: GenerationMeta | None = None
 
 
 EPISODE_PROMPT = """You set up a role-play episode for an English learning app. The student chats with a character to practise the current lesson.
@@ -92,7 +93,9 @@ def check_episode(episode: Episode) -> list[str]:
 
 @router.post("/episode", response_model=Episode)
 async def create_episode(request: EpisodeRequest, model: Model) -> Episode:
-    return await generate(model, episode_messages(request), Episode, check=check_episode)
+    episode, meta = await generate(model, episode_messages(request), Episode, check=check_episode)
+    episode.meta = meta
+    return episode
 
 
 class ChatMessage(CamelModel):
@@ -145,6 +148,7 @@ class Reply(CamelModel):
     correction: ShownCorrection | None
     next_input: NextInput
     episode_complete: bool
+    meta: GenerationMeta | None = None
 
 
 REPLY_PROMPT = """You are {name}, {role}, in a role-play inside an English learning app.
@@ -217,7 +221,7 @@ async def reply(request: ReplyRequest, model: Model) -> Reply:
     mode = random.choice(request.allowed_modes)
     needs_suggestions = mode == "choose_and_record" and not final_turn
 
-    turn = await generate(
+    turn, meta = await generate(
         model,
         reply_messages(request, mode, final_turn),
         CharacterTurn,
@@ -235,4 +239,5 @@ async def reply(request: ReplyRequest, model: Model) -> Reply:
         correction=correction,
         next_input=NextInput(mode=mode, suggestions=turn.suggestions if needs_suggestions else []),
         episode_complete=final_turn,
+        meta=meta,
     )

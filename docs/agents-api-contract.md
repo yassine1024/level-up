@@ -11,8 +11,8 @@ calls them directly. Design and reasons: [`agents-architecture.md`](agents-archi
 | Status | Meaning | Backend action |
 |---|---|---|
 | `200` | Done | Store the result |
-| `422` | The request body is wrong | Fix the caller; this is a bug |
-| `502` | The model failed, or its answer was still invalid after one fix request | Use the current fallback content |
+| `422` | The request body is wrong, or the model's answer was still invalid after one fix request | Use the current fallback content; `validationProblems` lists what failed |
+| `502` | The model call itself failed (provider error, timeout) | Use the current fallback content |
 | `503` | No Gemini API key on the agents service | Use the current fallback content |
 
 Shared types:
@@ -341,3 +341,19 @@ Unsupported types return `415`, larger files `413`, empty files `400`.
 The transcript keeps the student's mistakes. `text` is empty when nobody speaks.
 When `language` is not `en`, ask the student to answer in English. Otherwise send
 `text` on to `practice/check-answer` or `character/reply` with `spoken: true`.
+
+## Metadata (Phase 4)
+
+Every generating endpoint now returns an extra `meta` field alongside its existing fields. The field is optional and may be `null` when generation did not run (for example placement falling back to a fixed summary).
+
+```jsonc
+"meta": {
+  "attempts": 1,                 // 1 = accepted first try, 2 = accepted after retry
+  "validationProblems": [],      // problems found at each attempt (empty on first-try success)
+  "model": "gemini-3.5-flash-lite",
+  "latencyMs": 1234,
+  "tokenUsage": 567              // provider-reported token count, when available
+}
+```
+
+On a `422` response the body contains `validationProblems` (a list of strings) describing the final failure, so the backend can store it even without a usable output.

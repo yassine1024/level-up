@@ -7,7 +7,7 @@ from langchain_core.messages import BaseMessage, HumanMessage, SystemMessage
 from pydantic import BeforeValidator, Field, model_validator
 
 from app.llm import MODEL_FAILURES, Model, generate
-from app.schemas import LEVELS, CamelModel, Level, Localized
+from app.schemas import LEVELS, CamelModel, GenerationMeta, Level, Localized
 
 logger = logging.getLogger(__name__)
 
@@ -68,6 +68,7 @@ class PlacementResult(CamelModel):
     level: Level
     by_level: list[LevelScore]
     summary: Localized
+    meta: GenerationMeta | None = None
 
 
 def score_by_level(request: PlacementRequest) -> list[LevelScore]:
@@ -162,8 +163,9 @@ FALLBACK_SUMMARIES: dict[Level, Localized] = {
 async def evaluate(request: PlacementRequest, model: Model) -> PlacementResult:
     scores = score_by_level(request)
     level = assign_level(scores)
+    meta = None
     try:
-        summary = await generate(model, summary_messages(request, scores, level), Localized)
+        summary, meta = await generate(model, summary_messages(request, scores, level), Localized)
     except MODEL_FAILURES:
         # The level is already known; a fixed message is better than blocking onboarding.
         logger.exception("Placement summary failed, using the fixed summary for %s", level)
@@ -174,4 +176,5 @@ async def evaluate(request: PlacementRequest, model: Model) -> PlacementResult:
         level=level,
         by_level=scores,
         summary=summary,
+        meta=meta,
     )

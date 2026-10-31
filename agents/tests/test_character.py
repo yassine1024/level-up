@@ -27,7 +27,9 @@ def test_episode_is_built_from_the_teacher_material_and_the_chosen_role(client, 
     })
 
     assert response.status_code == 200
-    assert response.json() == EPISODE
+    body = response.json()
+    assert body.pop("meta")["attempts"] == 1
+    assert body == EPISODE
     prompt = model.prompt()
     assert "<character_role>\ncousin\n</character_role>" in prompt
     assert "<student_scenario>\nAt a family dinner\n</student_scenario>" in prompt

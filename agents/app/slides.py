@@ -5,7 +5,7 @@ from langchain_core.messages import BaseMessage, HumanMessage, SystemMessage
 from pydantic import Field, model_validator
 
 from app.llm import Model, data_block, generate
-from app.schemas import CamelModel, LessonInfo, Localized
+from app.schemas import CamelModel, GenerationMeta, LessonInfo, Localized
 
 router = APIRouter(prefix="/api/agents/slides", tags=["Agent 2: course slides"])
 
@@ -52,6 +52,7 @@ class Slide(CamelModel):
 
 class SlideDeck(CamelModel):
     slides: list[Slide]
+    meta: GenerationMeta | None = None
 
 
 SYSTEM_PROMPT = """You turn a teacher's lesson material into a short slide deck for a mobile English course.
@@ -98,9 +99,11 @@ def check_deck(deck: SlideDeck, request: SlidesRequest) -> list[str]:
 
 @router.post("/generate", response_model=SlideDeck)
 async def generate_slides(request: SlidesRequest, model: Model) -> SlideDeck:
-    return await generate(
+    deck, meta = await generate(
         model,
         deck_messages(request),
         SlideDeck,
         check=lambda deck: check_deck(deck, request),
     )
+    deck.meta = meta
+    return deck

@@ -8,7 +8,7 @@ from langchain_core.messages import BaseMessage, HumanMessage, SystemMessage
 from pydantic import Field, model_validator
 
 from app.llm import Model, data_block, generate
-from app.schemas import CamelModel, LessonInfo, Level, Localized
+from app.schemas import CamelModel, GenerationMeta, LessonInfo, Level, Localized
 from app.text import normalize_answer
 
 router = APIRouter(prefix="/api/agents/practice", tags=["Agent 3: practice"])
@@ -252,7 +252,7 @@ def to_practice_item(item: GeneratedItem, index: int, game_type: GameType) -> Pr
 
 @router.post("/questions", response_model=QuestionsResponse)
 async def generate_questions(request: QuestionsRequest, model: Model) -> QuestionsResponse:
-    generated = await generate(
+    generated, meta = await generate(
         model,
         questions_messages(request),
         GeneratedItems,
@@ -261,6 +261,7 @@ async def generate_questions(request: QuestionsRequest, model: Model) -> Questio
     return QuestionsResponse(
         game_type=request.game_type,
         items=[to_practice_item(item, index, request.game_type) for index, item in enumerate(generated.items)],
+        meta=meta,
     )
 
 
@@ -287,6 +288,7 @@ class AnswerCheck(CamelModel):
     correction: str | None = None
     explanation: Localized | None = None
     focus: str | None = None
+    meta: GenerationMeta | None = None
 
 
 CHECK_PROMPT = """You grade one answer in an English practice app.
@@ -323,12 +325,13 @@ async def check_answer(request: AnswerCheckRequest, model: Model) -> AnswerCheck
     if answer in {normalize_answer(text) for text in [request.correct_answer, *request.accepted_answers]}:
         return AnswerCheck(correct=True)
 
-    verdict = await generate(model, check_messages(request), Verdict, check=check_verdict)
+    verdict, meta = await generate(model, check_messages(request), Verdict, check=check_verdict)
     if verdict.correct:
-        return AnswerCheck(correct=True)
+        return AnswerCheck(correct=True, meta=meta)
     return AnswerCheck(
         correct=False,
         correction=verdict.correction,
         explanation=verdict.explanation,
         focus=verdict.focus,
+        meta=meta,
     )
