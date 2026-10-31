@@ -100,6 +100,15 @@ export interface SaveResourcesResponse {
   savedAt?: string;
 }
 
+/** A student shown on the teacher's Students screen. */
+export interface TeacherStudent {
+  id: number;
+  name: string;
+  level: string;
+  progress: number;
+  lastActive: string;
+}
+
 /** One line of the "Lesson saved" recap. */
 export interface SavedResourceLine {
   /** e.g. "Vocabulary · vocabulary_unit1.pdf" or "Writing description". */

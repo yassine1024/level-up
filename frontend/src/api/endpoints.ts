@@ -25,6 +25,7 @@ import type {
   CharacterEpisode,
   CharacterReply,
   StudentMistake,
+  TeacherStudent,
 } from "@/src/types/api";
 
 export const userApi = {
@@ -127,6 +128,11 @@ export const teacherApi = {
       `/api/teacher/lessons/${lessonId}/resources`,
       form
     );
+  },
+
+  async getStudents(): Promise<TeacherStudent[]> {
+    const res = await apiClient.get<TeacherStudent[]>("/api/teacher/students");
+    return res.data;
   },
 };
 

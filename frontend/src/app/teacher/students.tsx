@@ -2,28 +2,37 @@ import { useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { router } from "expo-router";
+import { useQuery } from "@tanstack/react-query";
 
 import { BackButton } from "@/components/BackButton";
 import { Colors, Fonts, Radii } from "@/constants/theme";
+import { teacherApi } from "@/src/api/endpoints";
+import type { TeacherStudent } from "@/src/types/api";
 
-interface Student {
-  id: number;
-  name: string;
-  level: string;
-  progress: number; // 0-100
-  lastActive: string;
+function formatLastActive(value: string): string {
+  if (!value) return "Unknown";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+  const now = new Date();
+  const diffDays = Math.floor(
+    (now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24)
+  );
+  if (diffDays <= 0) return "Today";
+  if (diffDays === 1) return "Yesterday";
+  if (diffDays < 7) return `${diffDays} days ago`;
+  return date.toLocaleDateString();
 }
-
-const MOCK_STUDENTS: Student[] = [
-  { id: 1, name: "Amina", level: "A2", progress: 72, lastActive: "Today" },
-  { id: 2, name: "Youssef", level: "A1", progress: 34, lastActive: "Yesterday" },
-  { id: 3, name: "Sara", level: "B1", progress: 88, lastActive: "2 days ago" },
-  { id: 4, name: "Omar", level: "A2", progress: 51, lastActive: "3 days ago" },
-];
 
 export default function TeacherStudentsScreen() {
   const insets = useSafeAreaInsets();
   const [expanded, setExpanded] = useState<number | null>(null);
+
+  const query = useQuery({
+    queryKey: ["teacher", "students"],
+    queryFn: () => teacherApi.getStudents(),
+  });
+
+  const students: TeacherStudent[] = query.data ?? [];
 
   return (
     <ScrollView
@@ -36,35 +45,42 @@ export default function TeacherStudentsScreen() {
       </View>
       <Text style={styles.subtitle}>Students enrolled in your course.</Text>
 
-      {MOCK_STUDENTS.map((s) => {
-        const open = expanded === s.id;
-        return (
-          <Pressable
-            key={s.id}
-            style={styles.card}
-            onPress={() => setExpanded(open ? null : s.id)}>
-            <View style={styles.row}>
-              <View style={styles.avatar}>
-                <Text style={styles.avatarText}>{s.name.charAt(0)}</Text>
+      {query.isLoading ? (
+        <Text style={styles.meta}>Loading students...</Text>
+      ) : query.isError ? (
+        <Text style={styles.meta}>Could not load students. Check your connection.</Text>
+      ) : students.length === 0 ? (
+        <Text style={styles.meta}>No students yet.</Text>
+      ) : (
+        students.map((s) => {
+          const open = expanded === s.id;
+          return (
+            <Pressable
+              key={s.id}
+              style={styles.card}
+              onPress={() => setExpanded(open ? null : s.id)}>
+              <View style={styles.row}>
+                <View style={styles.avatar}>
+                  <Text style={styles.avatarText}>{s.name.charAt(0).toUpperCase()}</Text>
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.name}>{s.name}</Text>
+                  <Text style={styles.meta}>
+                    Level {s.level} · Last active {formatLastActive(s.lastActive)}
+                  </Text>
+                </View>
+                <Text style={styles.progress}>{s.progress}%</Text>
               </View>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.name}>{s.name}</Text>
-                <Text style={styles.meta}>
-                  Level {s.level} · Last active {s.lastActive}
-                </Text>
-              </View>
-              <Text style={styles.progress}>{s.progress}%</Text>
-            </View>
-            {open ? (
-              <View style={styles.detail}>
-                <Text style={styles.detailText}>Progress: {s.progress}%</Text>
-                <Text style={styles.detailText}>Lessons completed: {Math.round(s.progress / 10)}</Text>
-                <Text style={styles.detailText}>Needs review: {s.progress < 50 ? "Yes" : "No"}</Text>
-              </View>
-            ) : null}
-          </Pressable>
-        );
-      })}
+              {open ? (
+                <View style={styles.detail}>
+                  <Text style={styles.detailText}>Progress: {s.progress}%</Text>
+                  <Text style={styles.detailText}>Level: {s.level}</Text>
+                </View>
+              ) : null}
+            </Pressable>
+          );
+        })
+      )}
       <View style={{ height: 24 }} />
     </ScrollView>
   );
