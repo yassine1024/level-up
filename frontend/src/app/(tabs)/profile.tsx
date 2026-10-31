@@ -1,9 +1,10 @@
 import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 
 import { useMe } from "@/src/hooks/useMe";
+import { mapApiError, friendlyMessage } from "@/src/api/errors";
 
 export default function ProfileScreen() {
-  const { data: user, isLoading, isError } = useMe();
+  const { data: user, isLoading, isError, error } = useMe();
 
   if (isLoading) {
     return (
@@ -16,7 +17,7 @@ export default function ProfileScreen() {
   if (isError || !user) {
     return (
       <View style={styles.center}>
-        <Text>Could not load profile.</Text>
+        <Text>{isError ? friendlyMessage(mapApiError(error)) : "Could not load profile."}</Text>
       </View>
     );
   }

@@ -7,6 +7,7 @@ import { Colors, Fonts, Radii } from "@/constants/theme";
 import { StudentBottomNav } from "@/components/StudentBottomNav";
 import { Ionicons } from "@expo/vector-icons";
 import { useCourse } from "@/src/hooks/useCourse";
+import { mapApiError, friendlyMessage, TAKE_A_MOMENT_MESSAGE } from "@/src/api/errors";
 import {
   useStartPracticeSession,
   useSubmitPracticeAnswer,
@@ -62,8 +63,8 @@ export default function PracticeQuizScreen() {
       });
       setFeedback(res.explanation);
       setCorrectAnswer(res.correction);
-    } catch {
-      setFeedback("Could not check answer.");
+    } catch (err) {
+      setFeedback(friendlyMessage(mapApiError(err)));
     }
   };
 
@@ -145,8 +146,9 @@ export default function PracticeQuizScreen() {
 
 function ActivityIndicatorPlaceholder() {
   return (
-    <View style={{ padding: 24, alignItems: "center" }}>
+    <View style={{ padding: 24, alignItems: "center", gap: 4 }}>
       <Text style={{ color: Colors.muted }}>Loading questions…</Text>
+      <Text style={{ color: Colors.muted, fontSize: 13 }}>{TAKE_A_MOMENT_MESSAGE}</Text>
     </View>
   );
 }

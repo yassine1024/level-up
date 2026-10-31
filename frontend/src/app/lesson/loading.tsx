@@ -7,6 +7,7 @@ import { Colors, Fonts, Radii } from "@/constants/theme";
 import { Chip } from "@/components/Chip";
 import { useCourse } from "@/src/hooks/useCourse";
 import { useGenerateSlides } from "@/src/hooks/useSlides";
+import { TAKE_A_MOMENT_MESSAGE } from "@/src/api/errors";
 
 export default function LoadingSlidesScreen() {
   const insets = useSafeAreaInsets();
@@ -43,6 +44,7 @@ export default function LoadingSlidesScreen() {
         <Text style={styles.subtitle}>
           We are turning your teacher&apos;s files into slides.
         </Text>
+        <Text style={styles.hint}>{TAKE_A_MOMENT_MESSAGE}</Text>
         <View style={styles.card}>
           <View style={styles.row}>
             <Chip label="Done" variant="default" />
@@ -67,6 +69,7 @@ const styles = StyleSheet.create({
   body: { flex: 1, alignItems: "center", justifyContent: "center", paddingHorizontal: 24, gap: 12 },
   title: { fontFamily: Fonts.heading, fontSize: 22, color: Colors.text, textAlign: "center" },
   subtitle: { fontFamily: Fonts.body, fontSize: 15, color: Colors.muted, textAlign: "center" },
+  hint: { fontFamily: Fonts.body, fontSize: 13, color: Colors.muted, textAlign: "center" },
   card: { width: "100%", backgroundColor: Colors.white, borderWidth: 2, borderColor: Colors.cardBorder, borderRadius: Radii.card, padding: 16, gap: 12 },
   row: { flexDirection: "row", alignItems: "center", gap: 12 },
   stepText: { fontFamily: Fonts.body, fontSize: 14, color: Colors.text },

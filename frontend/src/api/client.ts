@@ -47,13 +47,19 @@ apiClient.interceptors.response.use(
   (response) => response,
   (error: AxiosError) => {
     if (error?.response?.status === 401) {
-      useAuthStore.getState().logout();
-      try {
-        // eslint-disable-next-line @typescript-eslint/no-require-imports
-        const { router } = require("expo-router");
-        router.replace("/login");
-      } catch {
-        // ignore
+      const url = String(error.config?.url ?? "");
+      // Do not log out or redirect for the login request itself: the login
+      // screen needs to show the wrong-credentials message.
+      const isLoginRequest = /\/auth\/login\b/.test(url);
+      if (!isLoginRequest) {
+        useAuthStore.getState().logout();
+        try {
+          // eslint-disable-next-line @typescript-eslint/no-require-imports
+          const { router } = require("expo-router");
+          router.replace("/login");
+        } catch {
+          // ignore
+        }
       }
     }
     return Promise.reject(error);

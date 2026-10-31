@@ -1,4 +1,4 @@
-import { API_MODE, apiClient, postMultipart } from "./client";
+import { API_MODE, apiClient, postMultipart, GENERATION_TIMEOUT } from "./client";
 import { mockApi } from "./mock";
 import { appendDocument } from "./upload";
 import type {
@@ -240,7 +240,7 @@ export const studentApi = {
       const res = await apiClient.post(
         `/api/student/lessons/${lessonId}/slides/generate`,
         null,
-        { params: { language } }
+        { params: { language }, timeout: GENERATION_TIMEOUT }
       );
       return res.data as SlideDeck;
     } catch (error) {
@@ -305,7 +305,8 @@ export const studentApi = {
     try {
       const res = await apiClient.post(
         `/api/student/lessons/${lessonId}/practice-sessions`,
-        { gameType }
+        { gameType },
+        { timeout: GENERATION_TIMEOUT }
       );
       return res.data as PracticeSession;
     } catch (error) {
@@ -393,7 +394,8 @@ export const studentApi = {
     try {
       const res = await apiClient.post(
         `/api/student/lessons/${lessonId}/writing-submissions`,
-        { text }
+        { text },
+        { timeout: GENERATION_TIMEOUT }
       );
       return res.data as WritingSubmission;
     } catch (error) {
@@ -416,7 +418,8 @@ export const studentApi = {
     }
     const res = await apiClient.post(
       `/api/student/lessons/${lessonId}/character/episodes`,
-      { characterRole, scenario }
+      { characterRole, scenario },
+      { timeout: GENERATION_TIMEOUT }
     );
     return res.data as CharacterEpisode;
   },
@@ -431,7 +434,8 @@ export const studentApi = {
     }
     const res = await apiClient.post(
       `/api/student/character/episodes/${episodeId}/messages`,
-      { studentMessage, spoken }
+      { studentMessage, spoken },
+      { timeout: GENERATION_TIMEOUT }
     );
     return res.data as CharacterReply;
   },

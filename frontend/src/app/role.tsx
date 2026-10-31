@@ -7,6 +7,7 @@ import { router, useLocalSearchParams } from "expo-router";
 import { Button } from "@/components/Button";
 import { authApi } from "@/src/api/endpoints";
 import { useAuthStore } from "@/src/store/auth";
+import { mapApiError, friendlyMessage } from "@/src/api/errors";
 import { Colors, Fonts, Radii } from "@/constants/theme";
 
 type Role = "student" | "teacher";
@@ -38,11 +39,7 @@ export default function RoleScreen() {
       if (role === "student") router.replace("/placement");
       else router.replace("/teacher");
     } catch (e: any) {
-      const message =
-        e?.response?.data?.message ||
-        e?.message ||
-        "Sign up failed. Try again.";
-      setError(message);
+      setError(friendlyMessage(mapApiError(e)));
     } finally {
       setLoading(false);
     }

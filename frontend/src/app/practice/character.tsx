@@ -8,6 +8,7 @@ import { StudentBottomNav } from "@/components/StudentBottomNav";
 import { Ionicons } from "@expo/vector-icons";
 import { Button } from "@/components/Button";
 import { studentApi } from "@/src/api/endpoints";
+import { mapApiError, friendlyMessage, TAKE_A_MOMENT_MESSAGE } from "@/src/api/errors";
 import type { CharacterReply } from "@/src/types/api";
 import { useCourse } from "@/src/hooks/useCourse";
 
@@ -44,8 +45,8 @@ export default function PracticeCharacterScreen() {
       setEpisodeId(episode.episodeId);
       setPhase("chat");
       setMessages([{ role: "assistant", text: episode.openingLine }]);
-    } catch {
-      setMessages([{ role: "assistant", text: "Sorry, I could not start this episode." }]);
+    } catch (err) {
+      setMessages([{ role: "assistant", text: friendlyMessage(mapApiError(err)) }]);
     } finally {
       setSending(false);
     }
@@ -87,8 +88,8 @@ export default function PracticeCharacterScreen() {
         setMessages((m) => [...m, { role: "correction", text: "", correction: response.correction }]);
       }
       setMessages((m) => [...m, { role: "assistant", text: response.reply }]);
-    } catch {
-      setMessages((m) => [...m, { role: "assistant", text: "Sorry, I could not reply." }]);
+    } catch (err) {
+      setMessages((m) => [...m, { role: "assistant", text: friendlyMessage(mapApiError(err)) }]);
     } finally {
       setSending(false);
     }
@@ -179,6 +180,9 @@ export default function PracticeCharacterScreen() {
             ))}
           </View>
         ) : null}
+        {sending ? (
+          <Text style={styles.loadingHint}>{TAKE_A_MOMENT_MESSAGE}</Text>
+        ) : null}
         <View style={styles.inputRow}>
           <TextInput
             style={styles.input}
@@ -246,6 +250,7 @@ const styles = StyleSheet.create({
   },
   assistantText: { fontFamily: Fonts.body, fontSize: 15, color: Colors.text },
   inputRow: { flexDirection: "row", gap: 8, alignItems: "center" },
+  loadingHint: { fontFamily: Fonts.body, fontSize: 13, color: Colors.muted, textAlign: "center" },
   input: {
     flex: 1,
     height: 48,

@@ -8,6 +8,7 @@ import { Button } from "@/components/Button";
 import { Ionicons } from "@expo/vector-icons";
 import { usePlacementQuestions, useSubmitPlacement } from "@/src/hooks/usePlacement";
 import type { PlacementQuestion } from "@/src/types/api";
+import { mapApiError, friendlyMessage } from "@/src/api/errors";
 
 type Phase = "intro" | "question" | "loading" | "result";
 
@@ -61,9 +62,9 @@ export default function PlacementScreen() {
         });
         setPhase("result");
       })
-      .catch(() => {
+      .catch((err) => {
         if (cancelled) return;
-        setSubmitError("Could not compute your level. Try again.");
+        setSubmitError(friendlyMessage(mapApiError(err)));
         setPhase("question");
       });
     return () => {
@@ -153,7 +154,7 @@ export default function PlacementScreen() {
             </View>
           ) : questionsQuery.isError ? (
             <View style={styles.loadingBox}>
-              <Text style={styles.loadingText}>Could not load questions.</Text>
+              <Text style={styles.loadingText}>{friendlyMessage(mapApiError(questionsQuery.error))}</Text>
               <Pressable onPress={() => questionsQuery.refetch()}>
                 <Text style={styles.retryText}>Retry</Text>
               </Pressable>

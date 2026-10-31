@@ -9,6 +9,7 @@ import { Button } from "@/components/Button";
 import { TextArea } from "@/components/TextArea";
 import { Ionicons } from "@expo/vector-icons";
 import { useCourse } from "@/src/hooks/useCourse";
+import { mapApiError, friendlyMessage, TAKE_A_MOMENT_MESSAGE } from "@/src/api/errors";
 import { useWritingTask, useSubmitWriting } from "@/src/hooks/useWriting";
 
 export default function PracticeWritingScreen() {
@@ -33,8 +34,8 @@ export default function PracticeWritingScreen() {
       setFeedback(res.feedback);
       setCorrected(res.correctedText ?? res.text);
       setCorrections(res.corrections ?? []);
-    } catch {
-      setFeedback("Could not get feedback.");
+    } catch (err) {
+      setFeedback(friendlyMessage(mapApiError(err)));
     }
   };
 
@@ -66,6 +67,9 @@ export default function PracticeWritingScreen() {
           onPress={handleSubmit}
           disabled={submitWriting.isPending || !text.trim()}
         />
+        {submitWriting.isPending ? (
+          <Text style={styles.loadingHint}>{TAKE_A_MOMENT_MESSAGE}</Text>
+        ) : null}
         {feedback ? (
           <View style={styles.feedbackCard}>
             <Text style={styles.feedbackHeadline}>Good work</Text>
@@ -149,6 +153,7 @@ const styles = StyleSheet.create({
   label: { fontFamily: Fonts.bodyHeavy, fontSize: 13, color: Colors.muted },
   task: { fontFamily: Fonts.body, fontSize: 15, color: Colors.text, lineHeight: 22 },
   wordCount: { fontFamily: Fonts.body, fontSize: 12, color: Colors.muted, textAlign: "right" },
+  loadingHint: { fontFamily: Fonts.body, fontSize: 13, color: Colors.muted, textAlign: "center" },
   feedbackCard: {
     backgroundColor: Colors.board,
     borderWidth: 2,

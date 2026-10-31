@@ -22,6 +22,7 @@ import {
 } from "@/src/hooks/useTeacherCourse";
 import { useMe } from "@/src/hooks/useMe";
 import { useAuthStore } from "@/src/store/auth";
+import { mapApiError, friendlyMessage } from "@/src/api/errors";
 import { useTeacherStore } from "@/src/store/teacher";
 import { Colors, Fonts } from "@/constants/theme";
 import type {
@@ -292,7 +293,7 @@ export default function CourseResourcesScreen() {
 
         {save.isError ? (
           <Text style={styles.error}>
-            Could not save the lesson. Check your connection and try again.
+            {friendlyMessage(mapApiError(save.error))}
           </Text>
         ) : null}
 

@@ -9,6 +9,7 @@ import {
 } from "@expo-google-fonts/nunito";
 import { DarkTheme, DefaultTheme, Stack, ThemeProvider } from "expo-router";
 import { SafeAreaProvider } from "react-native-safe-area-context";
+import { ServerWakeUp } from "@/components/ServerWakeUp";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect } from "react";
 import "react-native-reanimated";
@@ -62,6 +63,7 @@ function RootLayoutNav() {
 
   return (
     <SafeAreaProvider>
+      <ServerWakeUp />
       <QueryClientProvider client={queryClient}>
         <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
           <Stack screenOptions={{ headerShown: false }}>
