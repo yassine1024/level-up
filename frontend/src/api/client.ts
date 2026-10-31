@@ -1,28 +1,39 @@
-import axios, { AxiosInstance } from "axios";
+import axios, { AxiosError, AxiosInstance, AxiosRequestConfig } from "axios";
 import { useAuthStore } from "@/src/store/auth";
 
-// Mode is controlled by EXPO_PUBLIC_API_MODE (mock | live).
-// Defaults to "mock" so the app runs without a backend.
-export const API_MODE = (process.env.EXPO_PUBLIC_API_MODE ?? "live") as
-  | "mock"
-  | "live";
+export const API_MODE = (process.env.EXPO_PUBLIC_API_MODE ??
+  (__DEV__ ? "mock" : "live")) as "mock" | "live";
 
-export const API_BASE_URL =
-  process.env.EXPO_PUBLIC_API_URL ?? "http://localhost:8080";
+export const DEFAULT_TIMEOUT = 60000;
+export const GENERATION_TIMEOUT = 90000;
+export const UPLOAD_TIMEOUT = 120000;
 
-// eslint-disable-next-line import/no-named-as-default-member
+const isDev = typeof __DEV__ !== "undefined" ? __DEV__ : true;
+
+function normalizeBaseUrl(raw: string | undefined): string {
+  if (!raw || !raw.trim()) {
+    if (!isDev) {
+      const msg = "EXPO_PUBLIC_API_URL is missing in a production build.";
+      console.error(msg);
+      throw new Error(msg);
+    }
+    return "http://localhost:8080";
+  }
+  let url = raw.trim();
+  if (url.endsWith("/")) url = url.slice(0, -1);
+  if (!isDev && !url.startsWith("https://")) {
+    console.warn("EXPO_PUBLIC_API_URL is not https in a production build:", url);
+  }
+  return url;
+}
+
+export const API_BASE_URL = normalizeBaseUrl(process.env.EXPO_PUBLIC_API_URL);
+
 export const apiClient: AxiosInstance = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 10000,
+  timeout: DEFAULT_TIMEOUT,
 });
 
-// NOTE: no default `Content-Type` here on purpose.
-// Axios sets `application/json` by itself for plain-object bodies, and it only
-// JSON.stringify()s a FormData body when the Content-Type already says
-// application/json. Leaving it unset lets React Native's networking layer
-// (and the browser on web) add `multipart/form-data; boundary=…` for uploads.
-
-// Attach auth token when present.
 apiClient.interceptors.request.use((config) => {
   const token = useAuthStore.getState().token;
   if (token) {
@@ -32,15 +43,42 @@ apiClient.interceptors.request.use((config) => {
   return config;
 });
 
-/**
- * Posts a multipart/form-data body (teacher resource uploads).
- * The Content-Type header is intentionally left unset so the platform adds
- * the multipart boundary itself.
- */
+apiClient.interceptors.response.use(
+  (response) => response,
+  (error: AxiosError) => {
+    if (error?.response?.status === 401) {
+      useAuthStore.getState().logout();
+      try {
+        // eslint-disable-next-line @typescript-eslint/no-require-imports
+        const { router } = require("expo-router");
+        router.replace("/login");
+      } catch {
+        // ignore
+      }
+    }
+    return Promise.reject(error);
+  }
+);
+
+apiClient.interceptors.response.use(undefined, async (error: AxiosError) => {
+  const config = error.config as (AxiosRequestConfig & { _retried?: boolean }) | undefined;
+  if (!config || config._retried) return Promise.reject(error);
+  const method = (config.method ?? "get").toLowerCase();
+  if (method !== "get") return Promise.reject(error);
+  const isNetwork =
+    !error.response ||
+    error.code === "ECONNABORTED" ||
+    error.code === "ERR_NETWORK" ||
+    /timeout/i.test(error.message ?? "");
+  if (!isNetwork) return Promise.reject(error);
+  config._retried = true;
+  return apiClient.request(config);
+});
+
 export async function postMultipart<T>(
   url: string,
   form: FormData,
-  timeout = 120000
+  timeout = UPLOAD_TIMEOUT
 ): Promise<T> {
   const res = await apiClient.post<T>(url, form, { timeout });
   return res.data;
