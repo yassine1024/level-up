@@ -1,3 +1,9 @@
+server:
+  port: ${PORT:8080}
+agents:
+  base-url: ${AGENTS_BASE_URL:http://localhost:8000}
+  api-token: ${AGENTS_API_TOKEN:}
+
 spring:
   application:
     name: backend
@@ -9,13 +15,12 @@ spring:
     url: jdbc:h2:mem:levelup
   servlet:
     multipart:
-      max-file-size: 10MB
+      max-file-size: 25MB
       max-request-size: 42MB
 
 jwt:
-  secret: jwt-secret-for-development-only-123456-123456
+  secret: ${JWT_SECRET:jwt-secret-for-development-only-123456-123456}
   expiration-minutes: 60
-
 
 app:
   storage:
