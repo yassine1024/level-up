@@ -36,6 +36,16 @@ export const userApi = {
 };
 
 export const authApi = {
+  checkUsernameAvailability: async (
+    username: string
+  ): Promise<{ available: boolean }> => {
+    if (API_MODE === "mock") return { available: true };
+    const res = await apiClient.get<{ available: boolean }>(
+      "/api/auth/username-available",
+      { params: { username } }
+    );
+    return res.data;
+  },
   login: async (payload: LoginRequest): Promise<{ token: string }> => {
     if (API_MODE === "mock") return mockApi.login(payload.username, payload.password);
     const res = await apiClient.post<{ token: string }>("/api/auth/login", payload);
@@ -145,7 +155,7 @@ export const teacherApi = {
     ];
     for (const field of fileFields) {
       const file = payload[field];
-      if (file) appendDocument(form, field, file);
+      if (file) await appendDocument(form, field, file);
     }
     if (payload.writingDescription?.trim()) {
       form.append("writingDescription", payload.writingDescription.trim());

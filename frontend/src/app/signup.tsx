@@ -5,6 +5,7 @@ import { router } from "expo-router";
 
 import { useKeyboardVisible } from "@/src/hooks/useKeyboardVisible";
 
+import { authApi } from "@/src/api/endpoints";
 import { BackButton } from "@/components/BackButton";
 import { Button } from "@/components/Button";
 import { Input } from "@/components/Input";
@@ -19,6 +20,7 @@ export default function SignupScreen() {
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [checking, setChecking] = useState(false);
 
   return (
     <KeyboardAvoidingView
@@ -78,8 +80,9 @@ export default function SignupScreen() {
         ) : null}
         <View style={{ flex: 1, minHeight: 40 }} />
         <Button
-          title="Sign up"
-          onPress={() => {
+          title={checking ? "Checking..." : "Sign up"}
+          disabled={checking}
+          onPress={async () => {
             if (!username.trim()) {
               setError("Choose a username to continue.");
               return;
@@ -93,10 +96,24 @@ export default function SignupScreen() {
               return;
             }
             setError(null);
-            router.push({
-              pathname: "/role",
-              params: { username, password },
-            });
+            setChecking(true);
+            try {
+              const { available } = await authApi.checkUsernameAvailability(
+                username.trim()
+              );
+              if (!available) {
+                setError("That username is already taken. Try another.");
+                return;
+              }
+              router.push({
+                pathname: "/role",
+                params: { username, password },
+              });
+            } catch {
+              setError("Could not check username. Check your connection and try again.");
+            } finally {
+              setChecking(false);
+            }
           }}
         />
         <Text style={styles.footer}>

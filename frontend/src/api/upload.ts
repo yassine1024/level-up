@@ -25,8 +25,9 @@ export function appendDocument(
   }
 
   // React Native's FormData takes `{ uri, name, type }` where the DOM
-  // typings only allow string | Blob, hence the cast.
-  const append = form.append as unknown as (
+  // typings only allow string | Blob, hence the cast. Bind `append` to the
+  // form instance so `this._parts` stays defined (unbound calls throw).
+  const append = form.append.bind(form) as unknown as (
     name: string,
     value: unknown
   ) => void;

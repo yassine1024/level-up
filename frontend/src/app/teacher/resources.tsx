@@ -52,11 +52,10 @@ const FILE_LABELS: Record<ResourceFileField, string> = {
 const DOC_TYPES = [
   "application/pdf",
   "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-  "application/msword",
   "text/plain",
 ];
-
-const DOC_EXTENSIONS = ["pdf", "docx", "doc", "txt"];
+ 
+const DOC_EXTENSIONS = ["pdf", "docx", "txt"];
 
 export default function CourseResourcesScreen() {
   const insets = useSafeAreaInsets();
@@ -153,6 +152,21 @@ export default function CourseResourcesScreen() {
       // The error is surfaced below through save.isError.
     }
   };
+
+  const saveErrorMessage = (() => {
+    const error = save.error as
+      | {
+          response?: { data?: { detail?: string; error?: string } };
+          message?: string;
+        }
+      | null;
+    return (
+      error?.response?.data?.detail ??
+      error?.response?.data?.error ??
+      error?.message ??
+      "Could not save the lesson. Check your connection and try again."
+    );
+  })();
 
   const initials = (me.data?.username ?? "TA").slice(0, 2).toUpperCase();
 
@@ -292,7 +306,7 @@ export default function CourseResourcesScreen() {
 
         {save.isError ? (
           <Text style={styles.error}>
-            Could not save the lesson. Check your connection and try again.
+            {saveErrorMessage}
           </Text>
         ) : null}
 
