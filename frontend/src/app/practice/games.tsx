@@ -14,10 +14,10 @@ const GAMES: Record<Tab, { key: string; title: string; sub: string; count: strin
   Writing: [
     { key: "fill", title: "Fill in the blank", sub: "Complete the sentence", count: "3 questions", route: "/practice/fill-blank" },
   ],
-  Listening: [{ key: "listening", title: "Listening", sub: "Dialogue at the café", count: "3 questions", route: "/practice/listening", locked: false }],
+  Listening: [{ key: "listening", title: "Listening", sub: "Coming soon", count: "Soon", route: "/practice/listening", locked: true }],
   Practising: [
-    { key: "quiz", title: "Quiz", sub: "Choose the right answer", count: "3 questions", route: "/practice/quiz" },
-    { key: "grammar-crush", title: "Grammar Crush", sub: "Coming soon", count: "Soon", route: "/practice/grammar-crush", locked: true },
+    { key: "quiz", title: "Quiz", sub: "Coming soon", count: "Soon", route: "/practice/quiz", locked: true },
+    { key: "grammar-crush", title: "Grammar Crush", sub: "Match and learn grammar", count: "Play", route: "/practice/grammar-crush" },
   ],
 };
 
@@ -50,7 +50,7 @@ export default function PracticeGamesScreen() {
               if (g.locked) return;
               if (g.key === "quiz") router.push("/practice/quiz");
               else if (g.key === "fill") router.push("/practice/fill-blank");
-else if (g.key === "listening") router.push("/practice/listening");
+              else if (g.key === "listening") router.push("/practice/listening");
               else if (g.key === "grammar-crush") router.push("/practice/grammar-crush");
             }}
             disabled={g.locked}>
