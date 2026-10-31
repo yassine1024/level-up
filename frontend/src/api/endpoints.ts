@@ -85,65 +85,24 @@ const NOT_IMPLEMENTED = [404, 501];
 
 export const teacherApi = {
   async getLevels(): Promise<TeacherList<LessonLevel>> {
-    if (API_MODE === "mock") {
-      return { items: await mockApi.getLessonLevels(), isDemo: true };
-    }
-    try {
-      const res = await apiClient.get("/api/lessons/levels");
-      return { items: toItems<LessonLevel>(res.data), isDemo: false };
-    } catch (error) {
-      // Fall back to mock data only when the endpoint is not implemented yet.
-      const status = (error as { response?: { status?: number } })?.response
-        ?.status;
-      if (status && NOT_IMPLEMENTED.includes(status)) {
-        return { items: await mockApi.getLessonLevels(), isDemo: true };
-      }
-      throw error;
-    }
+    const res = await apiClient.get("/api/lessons/levels");
+    return { items: toItems<LessonLevel>(res.data), isDemo: false };
   },
 
   async getUnits(levelId: string): Promise<TeacherList<LessonUnit>> {
-    if (API_MODE === "mock") {
-      return { items: await mockApi.getLessonUnits(levelId), isDemo: true };
-    }
-    try {
-      const res = await apiClient.get(`/api/lessons/levels/${levelId}/units`);
-      return { items: toItems<LessonUnit>(res.data), isDemo: false };
-    } catch (error) {
-      const status = (error as { response?: { status?: number } })?.response
-        ?.status;
-      if (status && NOT_IMPLEMENTED.includes(status)) {
-        return { items: await mockApi.getLessonUnits(levelId), isDemo: true };
-      }
-      throw error;
-    }
+    const res = await apiClient.get(`/api/lessons/levels/${levelId}/units`);
+    return { items: toItems<LessonUnit>(res.data), isDemo: false };
   },
 
   async getLessons(unitId: number): Promise<TeacherList<Lesson>> {
-    if (API_MODE === "mock") {
-      return { items: await mockApi.getLessons(unitId), isDemo: true };
-    }
-    try {
-      const res = await apiClient.get(`/api/units/${unitId}/lessons`);
-      return { items: toItems<Lesson>(res.data), isDemo: false };
-    } catch (error) {
-      const status = (error as { response?: { status?: number } })?.response
-        ?.status;
-      if (status && NOT_IMPLEMENTED.includes(status)) {
-        return { items: await mockApi.getLessons(unitId), isDemo: true };
-      }
-      throw error;
-    }
+    const res = await apiClient.get(`/api/units/${unitId}/lessons`);
+    return { items: toItems<Lesson>(res.data), isDemo: false };
   },
 
   async saveResources(
     lessonId: number,
     payload: SaveResourcesPayload
   ): Promise<SaveResourcesResponse> {
-    if (API_MODE === "mock") {
-      return mockApi.saveResources(lessonId, payload);
-    }
-
     const form = new FormData();
     const fileFields: ResourceFileField[] = [
       "vocabulary",
@@ -164,21 +123,10 @@ export const teacherApi = {
       form.append("otherDescription", payload.otherDescription.trim());
     }
 
-    try {
-      return await postMultipart<SaveResourcesResponse>(
-        `/api/teacher/lessons/${lessonId}/resources`,
-        form
-      );
-    } catch (error) {
-      // 404/501 means the endpoint does not exist yet, not that the save
-      // failed: acknowledge it locally so the flow can be demonstrated.
-      const status = (error as { response?: { status?: number } })?.response
-        ?.status;
-      if (status && NOT_IMPLEMENTED.includes(status)) {
-        return mockApi.saveResources(lessonId, payload);
-      }
-      throw error;
-    }
+    return await postMultipart<SaveResourcesResponse>(
+      `/api/teacher/lessons/${lessonId}/resources`,
+      form
+    );
   },
 };
 

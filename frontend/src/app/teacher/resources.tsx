@@ -87,11 +87,6 @@ export default function CourseResourcesScreen() {
     })
   );
 
-  const isDemo =
-    levelsQuery.data?.isDemo === true ||
-    unitsQuery.data?.isDemo === true ||
-    lessonsQuery.data?.isDemo === true;
-
   const handleLevel = (value: string) => {
     const level = levelsQuery.data?.items.find((l) => l.id === value) ?? null;
     setDraft({ level, unit: null, lesson: null });
@@ -147,7 +142,6 @@ export default function CourseResourcesScreen() {
         unitLabel: draft.unit ? `Unit ${draft.unit.number}` : "",
         lessonLabel: draft.lesson ? `Lesson ${draft.lesson.number}` : "",
         lines: buildLines(),
-        isDemo,
       });
       router.push("/teacher/saved");
     } catch {
@@ -247,10 +241,6 @@ export default function CourseResourcesScreen() {
             <Text style={styles.toggleText}>List</Text>
           </Pressable>
         </View>
-
-        {isDemo ? (
-          <Chip label="Demo data" variant="grey" style={{ alignSelf: "flex-start" }} />
-        ) : null}
 
         <SelectField
           label="Choose a level"

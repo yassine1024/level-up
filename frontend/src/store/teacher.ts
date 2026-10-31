@@ -26,7 +26,6 @@ export interface SavedLesson {
   /** e.g. "Lesson 2". */
   lessonLabel: string;
   lines: SavedResourceLine[];
-  isDemo: boolean;
 }
 
 const emptyDraft: TeacherDraft = {
