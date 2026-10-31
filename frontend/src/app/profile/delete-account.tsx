@@ -28,7 +28,7 @@ export default function DeleteAccountScreen() {
         <View style={styles.handle} />
         <Text style={styles.title}>Delete your account?</Text>
         <Text style={styles.message}>
-          This permanently removes your profile, progress and XP. This can't be undone.
+          This permanently removes your profile, progress and XP. This can&apos;t be undone.
         </Text>
         <Text style={styles.label}>Type delete to confirm</Text>
         <TextInput

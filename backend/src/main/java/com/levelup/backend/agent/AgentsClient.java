@@ -64,6 +64,15 @@ public class AgentsClient {
         return execute("slides", "/api/agents/slides/generate", request, context);
     }
 
+    public Optional<JsonNode> generateSlides(Object request) {
+        return generateSlides(request, null);
+    }
+
+    public Optional<JsonNode> generateSlides(Object request, RunContext context) {
+        JsonNode node = request == null ? null : objectMapper.valueToTree(request);
+        return execute("slides", "/api/agents/slides/generate", node, context);
+    }
+
     public Optional<JsonNode> generatePracticeQuestions(JsonNode request) {
         return generatePracticeQuestions(request, null);
     }

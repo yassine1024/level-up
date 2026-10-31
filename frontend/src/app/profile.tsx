@@ -21,11 +21,13 @@ export default function ProfileScreen() {
   const [email, setEmail] = useState("");
 
   useEffect(() => {
-    if (user) {
+    if (!user) return;
+    const id = setTimeout(() => {
       setName(user.username ?? "");
       setUsernameEdit(user.username ?? "");
       setEmail((user as any).email ?? "");
-    }
+    }, 0);
+    return () => clearTimeout(id);
   }, [user]);  if (isLoading) {
     return (
       <View style={styles.center}>
