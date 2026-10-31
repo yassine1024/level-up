@@ -6,6 +6,7 @@ Every contributor must keep application source code inside its designated folder
 
 | Folder | Owner | Purpose |
 |---|---|---|
+| `admin/` | Admin developer | Web admin console (Next.js) |
 | `frontend/` | Frontend developer | Android or web application |
 | `backend/` | Backend developer | Java and Spring Boot REST API |
 | `agents/` | AI developer | Python and LangChain agents |
@@ -35,6 +36,7 @@ Every contributor must keep application source code inside its designated folder
 
 Use the following convention:
 
+- `feature/admin-<description>`
 - `feature/frontend-<description>`
 - `feature/backend-<description>`
 - `feature/agent-<description>`

@@ -3,7 +3,7 @@ from langchain_core.messages import BaseMessage, HumanMessage, SystemMessage
 from pydantic import Field
 
 from app.llm import Model, data_block, generate
-from app.schemas import CamelModel, LessonInfo, Localized
+from app.schemas import CamelModel, GenerationMeta, LessonInfo, Localized
 from app.text import DiffSegment, contains_words, same_words, word_diff
 
 router = APIRouter(prefix="/api/agents/writing", tags=["Agent 3: practice"])
@@ -38,6 +38,7 @@ class WritingReview(CamelModel):
 
 class WritingFeedback(WritingReview):
     corrected_segments: list[DiffSegment]
+    meta: GenerationMeta | None = None
 
 
 SYSTEM_PROMPT = """You correct a short text written by an English learner in a mobile app, like a kind teacher.
@@ -74,7 +75,7 @@ def check_review(review: WritingReview, student_text: str) -> list[str]:
 
 @router.post("/feedback", response_model=WritingFeedback)
 async def writing_feedback(request: WritingFeedbackRequest, model: Model) -> WritingFeedback:
-    review = await generate(
+    review, meta = await generate(
         model,
         feedback_messages(request),
         WritingReview,
@@ -83,4 +84,5 @@ async def writing_feedback(request: WritingFeedbackRequest, model: Model) -> Wri
     return WritingFeedback(
         **review.model_dump(),
         corrected_segments=word_diff(request.student_text, review.corrected_text),
+        meta=meta,
     )

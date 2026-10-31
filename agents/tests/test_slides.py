@@ -42,7 +42,9 @@ def test_deck_is_built_from_the_teacher_material(client, model):
     response = client.post("/api/agents/slides/generate", json=request())
 
     assert response.status_code == 200
-    assert response.json() == GOOD_DECK
+    body = response.json()
+    assert body.pop("meta")["attempts"] == 1
+    assert body == GOOD_DECK
     prompt = model.prompt()
     assert 'Lesson "Introducing yourself", unit "Meeting people", CEFR level A1.' in prompt
     assert f"<vocabulary>\n{VOCABULARY}\n</vocabulary>" in prompt
@@ -57,7 +59,9 @@ def test_wrong_exercise_answer_is_sent_back_once(client, model):
     response = client.post("/api/agents/slides/generate", json=request())
 
     assert response.status_code == 200
-    assert response.json() == GOOD_DECK
+    body = response.json()
+    assert body.pop("meta")["attempts"] == 2
+    assert body == GOOD_DECK
     assert "slide 2: the answer 'names' is not one of the options" in model.prompt()
 
 
@@ -69,13 +73,13 @@ def test_every_material_needs_its_own_slide(client, model):
     assert "there is grammar material but no slide of kind grammar" in model.prompt()
 
 
-def test_still_invalid_after_the_fix_request_is_a_502(client, model):
+def test_still_invalid_after_the_fix_request_is_a_422(client, model):
     too_short = deck(slide("vocabulary"), slide("grammar"))
     model.queue(too_short, too_short)
 
     response = client.post("/api/agents/slides/generate", json=request())
 
-    assert response.status_code == 502
+    assert response.status_code == 422
     assert "make between 3 and 10 slides, not 2" in response.json()["detail"]
 
 

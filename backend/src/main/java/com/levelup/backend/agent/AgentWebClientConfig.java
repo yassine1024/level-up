@@ -1,5 +1,6 @@
 package com.levelup.backend.agent;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -16,13 +17,15 @@ public class AgentWebClientConfig {
     @Bean
     public AgentsClient agentsClient(
             @Value("${AGENTS_BASE_URL:http://localhost:8000}")
-            String agentsBaseUrl) {
+            String agentsBaseUrl,
+            GenerationRunService runService,
+            ObjectMapper objectMapper) {
 
         WebClient webClient = WebClient.builder()
                 .baseUrl(agentsBaseUrl)
                 .clientConnector(new ReactorClientHttpConnector(
                         HttpClient.create().responseTimeout(Duration.ofSeconds(45))))
                 .build();
-        return new AgentsClient(webClient);
+        return new AgentsClient(webClient, runService, objectMapper);
     }
 }

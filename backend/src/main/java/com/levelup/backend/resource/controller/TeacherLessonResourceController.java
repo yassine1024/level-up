@@ -3,6 +3,7 @@ package com.levelup.backend.resource.controller;
 
 import com.levelup.backend.resource.dto.SaveLessonResourcesResponse;
 import com.levelup.backend.resource.entity.LessonResourceType;
+import com.levelup.backend.auth.service.UserAccessService;
 import com.levelup.backend.resource.service.LessonResourceService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -27,6 +28,7 @@ import java.util.Map;
 public class TeacherLessonResourceController {
 
     private final LessonResourceService resourceService;
+    private final UserAccessService userAccessService;
 
     @PostMapping(
             value = "/{lessonId}/resources",
@@ -43,8 +45,15 @@ public class TeacherLessonResourceController {
             @RequestParam(required = false) MultipartFile listening2,
             @RequestParam(required = false) MultipartFile other,
             @RequestParam(required = false) String writingDescription,
-            @RequestParam(required = false) String otherDescription
+            @RequestParam(required = false) String otherDescription,
+            @RequestHeader(value = "Authorization", required = false) String authorization
     ) throws IOException {
+        Long uploadedBy = null;
+        try {
+            uploadedBy = userAccessService.requireUser(authorization).getId();
+        } catch (Exception ignored) {
+            uploadedBy = null;
+        }
         // These two sections are not available in the MVP.
         rejectUnavailable(pronunciation, "Pronunciation");
         rejectUnavailable(listening2, "Listening 2");
@@ -67,29 +76,29 @@ public class TeacherLessonResourceController {
 
         if (hasSelectedFile(vocabulary)) {
             resourceService.saveFile(
-                    lessonId, LessonResourceType.VOCABULARY, vocabulary
+                    lessonId, LessonResourceType.VOCABULARY, vocabulary, uploadedBy
             );
         }
 
         if (hasSelectedFile(grammar)) {
             resourceService.saveFile(
-                    lessonId, LessonResourceType.GRAMMAR, grammar
+                    lessonId, LessonResourceType.GRAMMAR, grammar, uploadedBy
             );
         }
 
         if (hasSelectedFile(listening1)) {
             resourceService.saveFile(
-                    lessonId, LessonResourceType.LISTENING_1, listening1
+                    lessonId, LessonResourceType.LISTENING_1, listening1, uploadedBy
             );
         }
 
         if (hasSelectedFile(listeningAudio)) {
-            resourceService.saveAudioFile(lessonId, listeningAudio);
+            resourceService.saveAudioFile(lessonId, listeningAudio, uploadedBy);
         }
 
         if (hasSelectedFile(other)) {
             resourceService.saveFile(
-                    lessonId, LessonResourceType.OTHER, other
+                    lessonId, LessonResourceType.OTHER, other, uploadedBy
             );
         }
 
@@ -99,7 +108,8 @@ public class TeacherLessonResourceController {
             resourceService.saveDescription(
                     lessonId,
                     LessonResourceType.WRITING_DESCRIPTION,
-                    writingDescription
+                    writingDescription,
+                    uploadedBy
             );
         }
 
@@ -107,7 +117,8 @@ public class TeacherLessonResourceController {
             resourceService.saveDescription(
                     lessonId,
                     LessonResourceType.OTHER,
-                    otherDescription
+                    otherDescription,
+                    uploadedBy
             );
         }
 

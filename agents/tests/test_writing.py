@@ -66,7 +66,7 @@ def test_mistakes_without_a_corrected_text_are_sent_back(client, model):
 
     response = post_feedback(client)
 
-    assert response.status_code == 502
+    assert response.status_code == 422
     assert "correctedText is the same as the student's text" in response.json()["detail"]
 
 

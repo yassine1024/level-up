@@ -7,7 +7,7 @@ from langchain.chat_models import init_chat_model
 from pydantic import BaseModel, Field
 
 from app import character, placement, practice, slides, speech, writing
-from app.llm import MODEL_FAILURES
+from app.llm import MODEL_FAILURES, GenerationError
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -32,7 +32,20 @@ async def model_failure(request: Request, error: Exception) -> JSONResponse:
 
 
 for failure in MODEL_FAILURES:
+    if failure is GenerationError:
+        continue
     app.add_exception_handler(failure, model_failure)
+
+
+async def validation_failure(request: Request, error: GenerationError) -> JSONResponse:
+    logger.warning("Validation failed for %s: %s", request.url.path, error.problems)
+    return JSONResponse(
+        status_code=422,
+        content={"detail": str(error), "validationProblems": error.problems},
+    )
+
+
+app.add_exception_handler(GenerationError, validation_failure)
 
 
 class AgentRequest(BaseModel):

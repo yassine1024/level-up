@@ -51,6 +51,12 @@ public class GeneratedExerciseSet {
     @Column(nullable = false)
     private Instant createdAt = Instant.now();
 
+    @Column(name = "generation_run_id")
+    private Long generationRunId;
+
+    @Column(name = "hidden", nullable = false)
+    private boolean hidden = false;
+
     protected GeneratedExerciseSet() {
     }
 
@@ -60,10 +66,21 @@ public class GeneratedExerciseSet {
             GameType gameType,
             String questionsJson
     ) {
+        this(lesson, contentVersion, gameType, questionsJson, null);
+    }
+
+    public GeneratedExerciseSet(
+            Lesson lesson,
+            int contentVersion,
+            GameType gameType,
+            String questionsJson,
+            Long generationRunId
+    ) {
         this.lesson = lesson;
         this.contentVersion = contentVersion;
         this.gameType = gameType;
         this.questionsJson = questionsJson;
+        this.generationRunId = generationRunId;
         this.createdAt = Instant.now();
     }
 
@@ -89,5 +106,17 @@ public class GeneratedExerciseSet {
 
     public Instant getCreatedAt() {
         return createdAt;
+    }
+
+    public Long getGenerationRunId() {
+        return generationRunId;
+    }
+
+    public boolean isHidden() {
+        return hidden;
+    }
+
+    public void setHidden(boolean hidden) {
+        this.hidden = hidden;
     }
 }

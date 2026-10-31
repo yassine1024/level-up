@@ -5,7 +5,7 @@ from langchain_core.messages import HumanMessage
 from pydantic import Field
 
 from app.llm import Model, generate
-from app.schemas import CamelModel
+from app.schemas import CamelModel, GenerationMeta
 
 router = APIRouter(prefix="/api/agents/speech", tags=["Speech-to-text tool"])
 
@@ -39,6 +39,7 @@ class Transcript(CamelModel):
     language: str = Field(
         description="ISO 639-1 code of the main language spoken, e.g. en, fr, ar; empty if nobody speaks"
     )
+    meta: GenerationMeta | None = None
 
 
 TRANSCRIBE_PROMPT = """Transcribe this recording of an English learner word for word.
@@ -63,4 +64,6 @@ async def transcribe(audio: UploadFile, model: Model) -> Transcript:
             {"type": "audio", "base64": base64.b64encode(data).decode("ascii"), "mime_type": mime_type},
         ]
     )
-    return await generate(model, [message], Transcript)
+    transcript, meta = await generate(model, [message], Transcript)
+    transcript.meta = meta
+    return transcript

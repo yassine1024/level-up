@@ -8,6 +8,7 @@ import com.levelup.backend.auth.repository.UserRepository;
 import com.levelup.backend.auth.service.JwtService;
 import com.levelup.backend.auth.exception.InvalidCredentialsException;
 import jakarta.validation.Valid;
+import java.time.Instant;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -38,6 +39,9 @@ public class AuthController {
             throw new InvalidCredentialsException("Invalid username or password");
         }
 
+        user.setLastLoginAt(Instant.now());
+        userRepository.save(user);
+
         String token = jwtService.generateToken(user.getUsername(), user.getRole().name());
         return new LoginResponse(token);
     }
@@ -51,6 +55,7 @@ public class AuthController {
         user.setUsername(request.username());
         user.setPasswordHash(passwordEncoder.encode(request.password()));
         user.setRole(request.role());
+        user.setCreatedAt(Instant.now());
         userRepository.save(user);
 
         String token = jwtService.generateToken(user.getUsername(), user.getRole().name());

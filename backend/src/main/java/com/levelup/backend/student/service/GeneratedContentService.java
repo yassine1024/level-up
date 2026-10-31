@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.levelup.backend.agent.AgentsClient;
+import com.levelup.backend.agent.RunContext;
 import com.levelup.backend.auth.entity.User;
 import com.levelup.backend.catalog.entity.Lesson;
 import com.levelup.backend.resource.entity.LessonResource;
@@ -87,7 +88,8 @@ public class GeneratedContentService {
                 .orElseGet(() -> {
                     String json = toJson(generateExercises(user, lesson, gameType)
                             .orElseGet(() -> buildExercises(lesson, gameType)));
-                    exerciseSetRepository.save(new GeneratedExerciseSet(lesson, version, gameType, json));
+                    Long runId = agentsClient.lastRunId();
+                    exerciseSetRepository.save(new GeneratedExerciseSet(lesson, version, gameType, json, runId));
                     return json;
                 });
     }
@@ -198,7 +200,17 @@ public class GeneratedContentService {
             excludePrompts.add(mistake.getPrompt());
         }
 
-        Optional<JsonNode> response = agentsClient.generatePracticeQuestions(request);
+        RunContext runContext = new RunContext(
+                "practice",
+                "/api/agents/practice/questions",
+                lesson.getId(),
+                lesson.getContentVersion(),
+                gameType.name(),
+                user.getId(),
+                user.getRole().name(),
+                "lesson:" + lesson.getId()
+        );
+        Optional<JsonNode> response = agentsClient.generatePracticeQuestions(request, runContext);
         if (response.isEmpty()) {
             return Optional.empty();
         }

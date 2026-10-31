@@ -45,6 +45,13 @@ public class LessonResource {
     @Column(name = "extracted_text")
     private String extractedText;
 
+    @Column(name = "uploaded_by")
+    private Long uploadedBy;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "extraction_status", length = 30)
+    private ExtractionStatus extractionStatus;
+
     @Lob
     @Column(name = "description")
     private String description;
@@ -113,6 +120,22 @@ public class LessonResource {
 
     public String getDescription() {
         return description;
+    }
+
+    public Long getUploadedBy() {
+        return uploadedBy;
+    }
+
+    public void setUploadedBy(Long uploadedBy) {
+        this.uploadedBy = uploadedBy;
+    }
+
+    public ExtractionStatus getExtractionStatus() {
+        return extractionStatus;
+    }
+
+    public void setExtractionStatus(ExtractionStatus extractionStatus) {
+        this.extractionStatus = extractionStatus;
     }
 
     public Instant getCreatedAt() {

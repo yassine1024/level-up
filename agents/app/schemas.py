@@ -22,6 +22,14 @@ class Localized(CamelModel):
     ar: str = Field(description="Modern Standard Arabic")
 
 
+class GenerationMeta(CamelModel):
+    attempts: int
+    validation_problems: list[str] = []
+    model: str | None = None
+    latency_ms: int | None = None
+    token_usage: int | None = None
+
+
 class LessonInfo(CamelModel):
     title: str = Field(min_length=1, max_length=200)
     level: Level

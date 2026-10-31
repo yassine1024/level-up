@@ -3,9 +3,12 @@ package com.levelup.backend.resource.service;
 
 import com.levelup.backend.catalog.entity.Lesson;
 import com.levelup.backend.catalog.repository.LessonRepository;
+import com.levelup.backend.resource.entity.ExtractionStatus;
 import com.levelup.backend.resource.entity.LessonResource;
 import com.levelup.backend.resource.entity.LessonResourceType;
+import com.levelup.backend.resource.entity.LessonResourceVersion;
 import com.levelup.backend.resource.repository.LessonResourceRepository;
+import com.levelup.backend.resource.repository.LessonResourceVersionRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -23,6 +26,7 @@ public class LessonResourceService {
 
     private final LessonRepository lessonRepository;
     private final LessonResourceRepository resourceRepository;
+    private final LessonResourceVersionRepository versionRepository;
     private final DocumentTextExtractor documentTextExtractor;
     private final FileStorageService fileStorageService;
     private final AudioFileValidator audioFileValidator;
@@ -38,16 +42,14 @@ public class LessonResourceService {
     public void saveFile(
             Long lessonId,
             LessonResourceType type,
-            MultipartFile file
+            MultipartFile file,
+            Long uploadedBy
     ) throws IOException {
         if (type == LessonResourceType.WRITING_DESCRIPTION) {
             throw new IllegalArgumentException(
                     "Writing descriptions are text fields, not files."
             );
         }
-
-        // Validate the file and extract its text before storing it.
-        String extractedText = documentTextExtractor.extractText(file);
 
         Lesson lesson = lessonRepository.findById(lessonId)
                 .orElseThrow(() ->
@@ -78,8 +80,18 @@ public class LessonResourceService {
             );
         }
 
-        // Adapt this call if your FileStorageService uses a different
-        // method name or return type.
+        // Extract text (best effort); failures are recorded as ERROR but do not
+        // abort the upload.
+        String extractedText;
+        ExtractionStatus status;
+        try {
+            extractedText = documentTextExtractor.extractText(file);
+            status = extractionStatus(extractedText);
+        } catch (RuntimeException exception) {
+            extractedText = "";
+            status = ExtractionStatus.ERROR;
+        }
+
         String storageKey = String.valueOf(fileStorageService.store(file));
 
         LessonResource resource = resourceRepository
@@ -93,17 +105,20 @@ public class LessonResourceService {
                 storageKey,
                 extractedText
         );
+        resource.setUploadedBy(uploadedBy);
+        resource.setExtractionStatus(status);
 
         // A new/changed file invalidates cached generated content (slides, exercises).
         lesson.incrementContentVersion();
         lessonRepository.save(lesson);
 
-        resourceRepository.save(resource);
+        LessonResource saved = resourceRepository.save(resource);
+        versionRepository.save(new LessonResourceVersion(saved, uploadedBy, status));
     }
 
 
     @Transactional
-    public void saveAudioFile(Long lessonId, MultipartFile file) throws IOException {
+    public void saveAudioFile(Long lessonId, MultipartFile file, Long uploadedBy) throws IOException {
 
         // Validate the audio before writing anything to disk.
         String contentType =
@@ -139,12 +154,15 @@ public class LessonResourceService {
                 storageKey,
                 ""
         );
+        resource.setUploadedBy(uploadedBy);
+        resource.setExtractionStatus(ExtractionStatus.OK);
 
         // A new/changed file invalidates cached generated content (slides, exercises).
         lesson.incrementContentVersion();
         lessonRepository.save(lesson);
 
-        resourceRepository.save(resource);
+        LessonResource saved = resourceRepository.save(resource);
+        versionRepository.save(new LessonResourceVersion(saved, uploadedBy, ExtractionStatus.OK));
     }
 
     private LessonResource newResource(
@@ -155,13 +173,30 @@ public class LessonResourceService {
         return new LessonResource(lesson, type);
     }
 
+    private ExtractionStatus extractionStatus(String text) {
+        if (text == null || text.isBlank()) {
+            return ExtractionStatus.EMPTY;
+        }
+        String trimmed = text.trim();
+        if (trimmed.length() < 50) {
+            return ExtractionStatus.TOO_SHORT;
+        }
+        long letters = trimmed.chars().filter(Character::isLetter).count();
+        double ratio = (double) letters / (double) trimmed.length();
+        if (ratio < 0.5) {
+            return ExtractionStatus.MOSTLY_NON_TEXT;
+        }
+        return ExtractionStatus.OK;
+    }
+
 
 
     @Transactional
     public void saveDescription(
             Long lessonId,
             LessonResourceType type,
-            String description
+            String description,
+            Long uploadedBy
     ) {
         if (type != LessonResourceType.WRITING_DESCRIPTION
                 && type != LessonResourceType.OTHER) {
@@ -183,6 +218,8 @@ public class LessonResourceService {
 
         // An empty description clears the saved description.
         resource.updateDescription(description);
+        resource.setUploadedBy(uploadedBy);
+        resource.setExtractionStatus(ExtractionStatus.OK);
         lesson.incrementContentVersion();
         lessonRepository.save(lesson);
         resourceRepository.save(resource);

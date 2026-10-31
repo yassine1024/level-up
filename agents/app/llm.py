@@ -1,6 +1,8 @@
 import logging
 import os
+import time
 from collections.abc import Callable
+from dataclasses import dataclass
 from functools import lru_cache
 from typing import Annotated, Any
 
@@ -11,6 +13,8 @@ from langchain_core.language_models import BaseChatModel
 from langchain_core.messages import BaseMessage, HumanMessage
 from langchain_google_genai.chat_models import ChatGoogleGenerativeAIError
 from pydantic import BaseModel
+
+from app.schemas import GenerationMeta
 
 logger = logging.getLogger(__name__)
 
@@ -52,30 +56,68 @@ def get_model() -> BaseChatModel:
 Model = Annotated[BaseChatModel, Depends(get_model)]
 
 
+def _token_usage(result: dict[str, Any]) -> int | None:
+    raw = result.get("raw")
+    usage = None
+    if isinstance(raw, dict):
+        usage = raw.get("usage_metadata")
+    else:
+        usage = getattr(raw, "usage_metadata", None)
+    if isinstance(usage, dict):
+        value = usage.get("total_tokens", usage.get("total_token_count"))
+    else:
+        value = getattr(usage, "total_tokens", None)
+        if value is None:
+            value = getattr(usage, "total_token_count", None)
+    return value if isinstance(value, int) else None
+
+
 async def generate[T: BaseModel](
     model: BaseChatModel,
     messages: list[BaseMessage],
     schema: type[T],
     check: Callable[[T], list[str]] | None = None,
-) -> T:
-    """Get structured output; if it fails parsing or `check`, send the problems back once."""
+) -> tuple[T, GenerationMeta]:
+    """Get structured output; if it fails parsing or `check`, send the problems back once.
+
+    Returns the parsed value together with a ``GenerationMeta`` describing the
+    attempts, the validation problems found, the model name, the latency and the
+    token usage (when the provider reports it).
+    """
+    started = time.monotonic()
     structured = model.with_structured_output(schema, include_raw=True)
+    model_name = os.getenv("GEMINI_MODEL", "gemini-3.5-flash-lite")
+
     result = await structured.ainvoke(messages)
     problems = _problems(result, check)
-    if not problems:
-        return result["parsed"]
+    attempts = 1
+    all_problems: list[str] = list(problems)
+    token_usage = _token_usage(result)
 
-    logger.warning("%s output rejected, asking for a fix: %s", schema.__name__, problems)
-    fix_request = HumanMessage(
-        "Your answer has these problems:\n"
-        + "\n".join(f"- {problem}" for problem in problems)
-        + "\nReturn the whole answer again with them fixed."
-    )
-    result = await structured.ainvoke([*messages, result["raw"], fix_request])
-    problems = _problems(result, check)
     if problems:
-        raise GenerationError(schema.__name__, problems)
-    return result["parsed"]
+        logger.warning("%s output rejected, asking for a fix: %s", schema.__name__, problems)
+        fix_request = HumanMessage(
+            "Your answer has these problems:\n"
+            + "\n".join(f"- {problem}" for problem in problems)
+            + "\nReturn the whole answer again with them fixed."
+        )
+        result = await structured.ainvoke([*messages, result["raw"], fix_request])
+        attempts = 2
+        problems = _problems(result, check)
+        token_usage = _token_usage(result) or token_usage
+        if problems:
+            all_problems.extend(problems)
+            raise GenerationError(schema.__name__, problems)
+
+    latency_ms = int((time.monotonic() - started) * 1000)
+    meta = GenerationMeta(
+        attempts=attempts,
+        validation_problems=all_problems,
+        model=model_name,
+        latency_ms=latency_ms,
+        token_usage=token_usage,
+    )
+    return result["parsed"], meta
 
 
 def _problems(result: dict[str, Any], check: Callable[[Any], list[str]] | None) -> list[str]:

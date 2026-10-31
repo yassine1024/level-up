@@ -15,7 +15,9 @@ def test_audio_goes_to_the_model_and_the_transcript_comes_back(client, model):
     response = upload(client)
 
     assert response.status_code == 200
-    assert response.json() == {"text": "I eat chicken yesterday", "language": "en"}
+    body = response.json()
+    assert body.pop("meta")["attempts"] == 1
+    assert body == {"text": "I eat chicken yesterday", "language": "en"}
     text_block, audio_block = model.prompts[0][0].content
     assert "Keep every grammar mistake" in text_block["text"]
     assert audio_block == {"type": "audio", "base64": base64.b64encode(AUDIO).decode(), "mime_type": "audio/wav"}

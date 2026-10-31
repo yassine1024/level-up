@@ -167,7 +167,9 @@ def check(client, **body):
 
 
 def test_matching_answer_is_correct_without_the_model(client):
-    assert check(client, studentAnswer="i'm from ORAN").json() == {
+    body = check(client, studentAnswer="i'm from ORAN").json()
+    assert body.pop("meta") is None
+    assert body == {
         "correct": True, "correction": None, "explanation": None, "focus": None,
     }
 
@@ -184,6 +186,8 @@ def test_other_answers_are_judged_by_the_model(client, model):
 
     body = check(client, studentAnswer="I from Algiers", spoken=True).json()
 
+    meta = body.pop("meta")
+    assert meta["attempts"] == 1
     assert body == {
         "correct": False,
         "correction": "I am from Algiers.",
