@@ -21,7 +21,7 @@ interface Message {
 
 export default function PracticeCharacterScreen() {
   const insets = useSafeAreaInsets();
-  const [phase, setPhase] = useState<"intro" | "chat">("intro");
+  const [phase, setPhase] = useState<"intro" | "chat" | "summary" | "error">("intro");
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
@@ -45,7 +45,7 @@ export default function PracticeCharacterScreen() {
       setPhase("chat");
       setMessages([{ role: "assistant", text: episode.openingLine }]);
     } catch {
-      setMessages([{ role: "assistant", text: "Sorry, I could not start this episode." }]);
+      setPhase("error");
     } finally {
       setSending(false);
     }
@@ -121,9 +121,59 @@ export default function PracticeCharacterScreen() {
         </ScrollView>
         <StudentBottomNav
           active="practice"
-          onCoursePress={() => router.push("/course")}
+          onCoursePress={() => router.navigate("/course")}
           onPracticePress={() => {}}
         />
+      </View>
+    );
+  }
+
+  if (phase === "error") {
+    return (
+      <View style={[styles.root, { paddingTop: insets.top }]}>
+        <ScrollView contentContainerStyle={styles.body}>
+          <View style={styles.header}>
+            <Pressable onPress={() => router.back()}>
+              <Ionicons name="chevron-back" size={24} color={Colors.text} />
+            </Pressable>
+            <Text style={styles.title}>Yasmine</Text>
+          </View>
+          <View style={{ flex: 1, justifyContent: "center" }}>
+            <Text style={styles.bodyText}>The chat took too long to respond. Try again.</Text>
+            <View style={{ marginTop: 16 }}>
+              <Button title="Retry" onPress={() => { setPhase("intro"); }} />
+            </View>
+          </View>
+        </ScrollView>
+      </View>
+    );
+  }
+
+  if (phase === "summary") {
+    const userMsgs = messages.filter((m) => m.role === "user").length;
+    const corrections = messages.filter((m) => m.role === "correction").length;
+    const progress = Math.min(100, 40 + userMsgs * 10);
+    return (
+      <View style={[styles.root, { paddingTop: insets.top }]}>
+        <ScrollView contentContainerStyle={styles.body}>
+          <View style={styles.header}>
+            <Text style={styles.title}>Session summary</Text>
+          </View>
+          <View style={styles.card}>
+            <Text style={styles.eyebrow}>RECAP</Text>
+            <Text style={styles.episodeTitle}>Dinner talk with Yasmine</Text>
+            <Text style={styles.bodyText}>Expressions learned: {userMsgs + 2}</Text>
+            <Text style={styles.bodyText}>Mistakes corrected: {corrections}</Text>
+            <View style={{ marginTop: 8 }}>
+              <Text style={styles.bodyText}>Progress</Text>
+              <View style={styles.progressTrack}>
+                <View style={[styles.progressFill, { width: `${progress}%` }]} />
+              </View>
+              <Text style={styles.bodyText}>{progress}%</Text>
+            </View>
+          </View>
+          <Button title="Continue" onPress={() => router.back()} />
+        </ScrollView>
       </View>
     );
   }
@@ -136,6 +186,9 @@ export default function PracticeCharacterScreen() {
             <Ionicons name="chevron-back" size={24} color={Colors.text} />
           </Pressable>
           <Text style={styles.title}>Yasmine</Text>
+          <Pressable onPress={() => setPhase("summary")}>
+            <Text style={styles.finishText}>Finish</Text>
+          </Pressable>
         </View>
         <Text style={styles.emotion}>Feeling {emotion}</Text>
         {messages.map((m, i) => {
@@ -194,7 +247,7 @@ export default function PracticeCharacterScreen() {
       </ScrollView>
       <StudentBottomNav
         active="practice"
-        onCoursePress={() => router.push("/course")}
+        onCoursePress={() => router.navigate("/course")}
         onPracticePress={() => {}}
       />
     </View>
@@ -297,6 +350,9 @@ const styles = StyleSheet.create({
   correctionLangRow: { flexDirection: "row", gap: 8, marginTop: 2 },
   correctionLang: { fontFamily: Fonts.bodyHeavy, fontSize: 12, color: Colors.muted },
   emotion: { fontFamily: Fonts.body, fontSize: 13, color: Colors.muted },
+  finishText: { fontFamily: Fonts.bodyHeavy, fontSize: 14, color: Colors.primaryDark },
+  progressTrack: { height: 8, borderRadius: 4, backgroundColor: Colors.disabled, overflow: "hidden", marginTop: 4 },
+  progressFill: { height: 8, backgroundColor: Colors.primary },
   suggestionRow: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
   suggestion: {
     borderWidth: 1,

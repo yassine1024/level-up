@@ -9,7 +9,7 @@ import { Chip } from "@/components/Chip";
 import { useCourse } from "@/src/hooks/useCourse";
 import { useUpdateProgress } from "@/src/hooks/useProgress";
 
-type Variant = "vocab" | "grammar";
+type Variant = "vocab" | "grammar" | "vocab2";
 
 interface SlideViewerProps {
   variant?: Variant;
@@ -36,6 +36,15 @@ const CONTENT: Record<
     exercise: "Complete: My ____ is Amine.",
     options: ["name", "nice", "from"],
     initial: 3,
+  },
+  vocab2: {
+    title: "Talk about your family",
+    bullets: ["This is my mother.", "I have two brothers.", "My father works in Algiers."],
+    example: "This is my sister. She is a doctor.",
+    hint: "Hint (FR): Voici ma mère. · J'ai deux frères. · Mon père travaille à Alger.",
+    exercise: "Complete: This is my ____.",
+    options: ["mother", "from", "name"],
+    initial: 2,
   },
   grammar: {
     title: "Verb to be: am, is, are",

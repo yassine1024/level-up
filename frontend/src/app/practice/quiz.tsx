@@ -136,7 +136,7 @@ export default function PracticeQuizScreen() {
       </ScrollView>
       <StudentBottomNav
         active="practice"
-        onCoursePress={() => router.push("/course")}
+        onCoursePress={() => router.navigate("/course")}
         onPracticePress={() => {}}
       />
     </View>

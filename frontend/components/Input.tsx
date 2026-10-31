@@ -108,7 +108,7 @@ const styles = StyleSheet.create({
     height: 52,
     width: "100%",
     borderRadius: Radii.input,
-    borderWidth: 2,
+    borderWidth: 1.5,
     borderColor: Colors.border,
     backgroundColor: Colors.white,
     paddingHorizontal: 16,

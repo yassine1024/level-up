@@ -105,10 +105,18 @@ export default function SignupScreen() {
                 setError("That username is already taken. Try another.");
                 return;
               }
-              router.push({
-                pathname: "/role",
-                params: { username, password },
-              });
+              const isEmail = username.includes("@");
+              if (isEmail) {
+                router.push({
+                  pathname: "/verify-email",
+                  params: { username, password, next: "/role", verified: "1" },
+                });
+              } else {
+                router.push({
+                  pathname: "/role",
+                  params: { username, password },
+                });
+              }
             } catch {
               setError("Could not check username. Check your connection and try again.");
             } finally {

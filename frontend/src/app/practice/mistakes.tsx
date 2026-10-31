@@ -38,7 +38,7 @@ export default function PracticeMistakesScreen() {
       </ScrollView>
       <StudentBottomNav
         active="practice"
-        onCoursePress={() => router.push("/course")}
+        onCoursePress={() => router.navigate("/course")}
         onPracticePress={() => {}}
       />
     </View>
