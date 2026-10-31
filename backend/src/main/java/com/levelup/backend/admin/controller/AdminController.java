@@ -189,7 +189,9 @@ public class AdminController {
     public Map<String, Object> studentDetail(@RequestHeader(value = "Authorization", required = false) String authorization,
                                             @PathVariable Long id) {
         admin(authorization);
+        User a = admin(authorization);
         User u = userRepository.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+        auditLogService.log(a.getId(), "VIEW_STUDENT", "USER", id, null);
         Map<String, Object> res = new LinkedHashMap<>();
         res.put("id", u.getId());
         res.put("username", u.getUsername());
