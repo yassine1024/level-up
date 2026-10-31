@@ -340,8 +340,8 @@ const styles = StyleSheet.create({
   correctionRight: {
     fontFamily: Fonts.bodyHeavy,
     fontSize: 15,
-    color: "#0A5A40",
-    backgroundColor: "#CDEFDD",
+    color: "#2563EB",
+    backgroundColor: "#E0F2FE",
     paddingHorizontal: 4,
     borderRadius: 4,
   },

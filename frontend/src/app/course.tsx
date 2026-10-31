@@ -424,7 +424,7 @@ const styles = StyleSheet.create({
   },
   sheetBackdrop: {
     ...StyleSheet.absoluteFill,
-    backgroundColor: "rgba(16,36,28,0.35)",
+    backgroundColor: "rgba(15,23,42,0.35)",
   },
   sheet: {
     backgroundColor: Colors.white,
@@ -434,7 +434,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingBottom: 28,
     gap: 12,
-    shadowColor: "rgba(16,36,28,0.25)",
+    shadowColor: "rgba(15,23,42,0.25)",
     shadowOffset: { width: 0, height: -8 },
     shadowOpacity: 1,
     shadowRadius: 30,
