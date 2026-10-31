@@ -10,4 +10,4 @@ Set `EXPO_PUBLIC_API_URL` (must be https, no trailing slash) and `EXPO_PUBLIC_AP
 - Production AAB: `npx eas-cli build --profile production --platform android`
 
 ## Cold start test
-Open `https://YOUR-BACKEND.onrender.com/api/health` in the phone browser; first launch after sleep should show "Waking up the server, please wait..." then load.
+Open `https://level-up-backend-elhs.onrender.com/api/health` in the phone browser; first launch after sleep should show "Waking up the server, please wait..." then load.

@@ -12,7 +12,7 @@ import { useGenerateSlides } from "@/src/hooks/useSlides";
 export default function LoadingSlidesScreen() {
   const insets = useSafeAreaInsets();
   const courseQuery = useCourse();
-  const generateSlides = useGenerateSlides();
+  const { mutateAsync: generateSlides } = useGenerateSlides();
   const lessonId = courseQuery.data?.currentUnit?.currentLesson?.id;
 
   const [status, setStatus] = useState<"loading" | "error">("loading");
@@ -22,9 +22,13 @@ export default function LoadingSlidesScreen() {
     let cancelled = false;
     const run = async () => {
       setStatus("loading");
+      if (!lessonId) {
+        if (courseQuery.isError && !cancelled) setStatus("error");
+        return;
+      }
       if (lessonId) {
         try {
-          await generateSlides.mutateAsync({ lessonId });
+          await generateSlides({ lessonId });
         } catch {
           if (!cancelled) setStatus("error");
           return;
@@ -39,7 +43,7 @@ export default function LoadingSlidesScreen() {
       cancelled = true;
       clearTimeout(timer);
     };
-  }, [lessonId, generateSlides, retryKey]);
+  }, [courseQuery.isError, generateSlides, lessonId, retryKey]);
 
   if (status === "error") {
     return (
