@@ -69,13 +69,13 @@ def test_every_material_needs_its_own_slide(client, model):
     assert "there is grammar material but no slide of kind grammar" in model.prompt()
 
 
-def test_still_invalid_after_the_fix_request_is_a_502(client, model):
+def test_still_invalid_after_the_fix_request_is_a_422(client, model):
     too_short = deck(slide("vocabulary"), slide("grammar"))
     model.queue(too_short, too_short)
 
     response = client.post("/api/agents/slides/generate", json=request())
 
-    assert response.status_code == 502
+    assert response.status_code == 422
     assert "make between 3 and 10 slides, not 2" in response.json()["detail"]
 
 

@@ -51,6 +51,9 @@ public class GeneratedSlideDeck {
     @Column(nullable = false)
     private Instant createdAt = Instant.now();
 
+    @Column(name = "generation_run_id")
+    private Long generationRunId;
+
     protected GeneratedSlideDeck() {
     }
 
@@ -60,10 +63,21 @@ public class GeneratedSlideDeck {
             ExplanationLanguage language,
             String slidesJson
     ) {
+        this(lesson, contentVersion, language, slidesJson, null);
+    }
+
+    public GeneratedSlideDeck(
+            Lesson lesson,
+            int contentVersion,
+            ExplanationLanguage language,
+            String slidesJson,
+            Long generationRunId
+    ) {
         this.lesson = lesson;
         this.contentVersion = contentVersion;
         this.language = language;
         this.slidesJson = slidesJson;
+        this.generationRunId = generationRunId;
         this.createdAt = Instant.now();
     }
 
@@ -89,5 +103,9 @@ public class GeneratedSlideDeck {
 
     public Instant getCreatedAt() {
         return createdAt;
+    }
+
+    public Long getGenerationRunId() {
+        return generationRunId;
     }
 }
