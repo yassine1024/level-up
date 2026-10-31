@@ -212,6 +212,26 @@ export const mockApi = {
               prompt: "She ____ to school every day.",
               options: ["goes", "go", "going", "gone"],
             },
+            {
+              index: 1,
+              prompt: "They ____ playing football now.",
+              options: ["is", "are", "am", "be"],
+            },
+            {
+              index: 2,
+              prompt: "Yesterday, I ____ my homework.",
+              options: ["do", "does", "did", "doing"],
+            },
+            {
+              index: 3,
+              prompt: "We ____ two cats at home.",
+              options: ["has", "having", "have", "had"],
+            },
+            {
+              index: 4,
+              prompt: "He is ____ than his brother.",
+              options: ["tall", "taller", "tallest", "more tall"],
+            },
           ];
     return { sessionId: 1, lessonId, gameType, questions };
   },
@@ -223,11 +243,23 @@ export const mockApi = {
     _spoken = false
   ): Promise<PracticeAnswerResponse> {
     await delay();
-    const correct = answer === "My name is Sara." || answer === "goes";
+    const correctAnswers =
+      questionIndex === 0
+        ? "goes"
+        : questionIndex === 1
+          ? "are"
+          : questionIndex === 2
+            ? "did"
+            : questionIndex === 3
+              ? "have"
+              : questionIndex === 4
+                ? "taller"
+                : "My name is Sara.";
+    const correct = answer === correctAnswers;
     return {
       questionIndex,
       correct,
-      correction: correct ? answer : "goes",
+      correction: correct ? answer : correctAnswers,
       explanation: "In the present simple, he, she and it need -s.",
     };
   },
