@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View } from "react-native";
+import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import Animated, { FadeInUp } from "react-native-reanimated";
@@ -21,7 +21,10 @@ export default function WelcomeScreen() {
       </View>
 
       {/* Body */}
-      <View style={[styles.body, { paddingBottom: insets.bottom + 20 }]}>
+      <ScrollView
+        style={styles.body}
+        contentContainerStyle={{ paddingBottom: insets.bottom + 24 }}
+        showsVerticalScrollIndicator={false}>
         <View style={styles.chip}>
           <Text style={styles.chipText}>Lisan · working name</Text>
         </View>
@@ -30,7 +33,6 @@ export default function WelcomeScreen() {
           Lessons from your teacher, games to practice, and a character who chats
           with you and fixes your mistakes.
         </Text>
-        <View style={{ flex: 1 }} />
         <Animated.View entering={FadeInUp.delay(100).springify()}>
           <Button title="Create account" onPress={() => router.push("/signup")} />
         </Animated.View>
@@ -43,7 +45,7 @@ export default function WelcomeScreen() {
           />
         </Animated.View>
         <View style={{ height: 20 }} />
-      </View>
+      </ScrollView>
     </View>
   );
 }

@@ -3,7 +3,6 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { BackButton } from "@/components/BackButton";
 import { Colors, Fonts } from "@/constants/theme";
-import { useKeyboardVisible } from "@/src/hooks/useKeyboardVisible";
 
 interface AuthLayoutProps {
   title?: string;
@@ -23,16 +22,18 @@ export function AuthLayout({
   footer,
 }: AuthLayoutProps) {
   const insets = useSafeAreaInsets();
-  const keyboardVisible = useKeyboardVisible();
 
   return (
     <KeyboardAvoidingView
       style={{ flex: 1 }}
       behavior={Platform.OS === "ios" ? "padding" : undefined}>
       <ScrollView
-        contentContainerStyle={[styles.body, { paddingTop: insets.top + 24 }]}
+        contentContainerStyle={[
+          styles.body,
+          { paddingTop: insets.top + 24, paddingBottom: insets.bottom + 24 },
+        ]}
         keyboardShouldPersistTaps="handled"
-        scrollEnabled={keyboardVisible}
+        scrollEnabled
         bounces={false}
         showsVerticalScrollIndicator={false}>
         {showBack ? (

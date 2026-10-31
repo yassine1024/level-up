@@ -3,7 +3,6 @@ import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, View } fr
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { router } from "expo-router";
 
-import { useKeyboardVisible } from "@/src/hooks/useKeyboardVisible";
 import { authApi } from "@/src/api/endpoints";
 import { useAuthStore } from "@/src/store/auth";
 
@@ -20,7 +19,6 @@ import {
 
 export default function LoginScreen() {
   const insets = useSafeAreaInsets();
-  const keyboardVisible = useKeyboardVisible();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -31,9 +29,12 @@ export default function LoginScreen() {
       style={{ flex: 1 }}
       behavior={Platform.OS === "ios" ? "padding" : undefined}>
       <ScrollView
-        contentContainerStyle={[styles.body, { paddingTop: insets.top + 24 }]}
+        contentContainerStyle={[
+          styles.body,
+          { paddingTop: insets.top + 24, paddingBottom: insets.bottom + 24 },
+        ]}
         keyboardShouldPersistTaps="handled"
-        scrollEnabled={keyboardVisible}
+        scrollEnabled
         bounces={false}
         showsVerticalScrollIndicator={false}>
         <View style={styles.row}>
