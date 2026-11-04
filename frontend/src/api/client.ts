@@ -45,17 +45,25 @@ apiClient.interceptors.request.use((config) => {
   return config;
 });
 
+let sessionExpiredHandledAt = 0;
+
 apiClient.interceptors.response.use(
   (response) => response,
   (error: AxiosError) => {
     if (error?.response?.status === 401) {
       useAuthStore.getState().logout();
-      try {
-        // eslint-disable-next-line @typescript-eslint/no-require-imports
-        const { router } = require("expo-router");
-        router.replace("/login");
-      } catch {
-        // ignore
+      // Several requests can 401 at the same time (parallel queries).
+      // Only route to the session-expired screen once per episode.
+      const now = Date.now();
+      if (now - sessionExpiredHandledAt > 2000) {
+        sessionExpiredHandledAt = now;
+        try {
+          // eslint-disable-next-line @typescript-eslint/no-require-imports
+          const { router } = require("expo-router");
+          router.replace("/session-expired");
+        } catch {
+          // ignore
+        }
       }
     }
     return Promise.reject(error);

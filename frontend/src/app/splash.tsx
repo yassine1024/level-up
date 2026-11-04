@@ -7,10 +7,17 @@ import { useAuthStore } from "@/src/store/auth";
 import { Colors, Fonts } from "@/constants/theme";
 
 export default function SplashScreen() {
+  const hydrated = useAuthStore((s) => s.hydrated);
   const token = useAuthStore((s) => s.token);
-  const me = useMe({ enabled: !!token });
+  const me = useMe({ enabled: hydrated && !!token });
+
+  // Restore the persisted JWT (Keychain / localStorage) once per app start.
+  useEffect(() => {
+    void useAuthStore.getState().hydrate();
+  }, []);
 
   useEffect(() => {
+    if (!hydrated) return;
     if (!token) {
       router.replace("/welcome");
       return;
@@ -22,9 +29,9 @@ export default function SplashScreen() {
     }
     if (me.isError) {
       useAuthStore.getState().logout();
-      router.replace("/welcome");
+      router.replace("/session-expired");
     }
-  }, [token, me.isSuccess, me.isError, me.data]);
+  }, [hydrated, token, me.isSuccess, me.isError, me.data]);
 
   return (
     <View style={styles.root}>

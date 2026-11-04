@@ -5,7 +5,7 @@ import { router } from "expo-router";
 
 import { useKeyboardVisible } from "@/src/hooks/useKeyboardVisible";
 import { authApi } from "@/src/api/endpoints";
-import { useAuthStore } from "@/src/store/auth";
+import { decodeTokenPayload, useAuthStore } from "@/src/store/auth";
 
 import { BackButton } from "@/components/BackButton";
 import { Button } from "@/components/Button";
@@ -89,14 +89,8 @@ export default function LoginScreen() {
               // Route based on the role embedded in the JWT so the role
               // selection screen only appears during account creation.
               let role = "STUDENT";
-              try {
-                const payload = JSON.parse(
-                  atob(res.token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/"))
-                );
-                if (payload?.role) role = String(payload.role);
-              } catch {
-                // Fall back to student home if the token cannot be decoded.
-              }
+              const payload = decodeTokenPayload(res.token);
+              if (payload?.role) role = String(payload.role);
               if (role === "TEACHER") router.replace("/teacher");
               else router.replace("/home");
             } catch (err) {
